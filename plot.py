@@ -9,7 +9,7 @@ import sys
 import time
 import threading
 
-def plot_results(K_values, step_sizes, dataset):
+def plot_results(K_values, step_sizes, dataset,beta=0):
     # Ensure the figures directory exists
     if not os.path.exists('figures'):
         os.makedirs('figures')
@@ -18,13 +18,23 @@ def plot_results(K_values, step_sizes, dataset):
     best_step_sizes = getBestStepsizes(K_values, step_sizes, dataset)
 
     plt.figure(figsize=(12, 8))
-    
+
+
     for K, step_size in best_step_sizes.items():
         log_filename = f"saved_logs/lr={step_size}_K={K}_dataset={dataset}.json"
         if os.path.exists(log_filename):
             with open(log_filename, 'r') as f:
                 log_data = json.load(f)
-                plt.plot(np.log(log_data['loss_log']), label=f'K={K}, step_size={step_size}')
+                loss_log = log_data['loss_log']
+                
+                # Compute running average
+                running_avg = []
+                avg = loss_log[0]
+                for i, loss in enumerate(loss_log):
+                    avg = beta * avg + (1 - beta) * loss
+                    running_avg.append(avg)
+                
+                plt.plot(np.log(running_avg), label=f'K={K}, step_size={step_size}')
     
     plt.xlabel('Epochs')
     plt.ylabel('Loss (log scale)')
@@ -206,9 +216,12 @@ if __name__ == "__main__":
         # Extract the K values, step sizes, and datasets from the saved logs directory
         K_values, step_sizes, datasets = extract_K_and_stepsizes('saved_logs')
         
+        # Ask for beta value
+        beta = float(input("Please enter the beta value for running average computation (e.g., 0.9): ").strip())
+        
         # Plot the results for each dataset
         for dataset in datasets:
-            plot_results(K_values, step_sizes, dataset)
+            plot_results(K_values, step_sizes, dataset, beta=beta)
             for K in K_values:
                 plot_results_for_specific_K(K, step_sizes, dataset)
 

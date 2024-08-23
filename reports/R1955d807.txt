@@ -1,0 +1,63 @@
+Process ID: 5488
+Status: dead
+Hyperparameters: {"batch_size": 512, "hidden_dim": 128, "step_size": 0.0001, "evaluation_samples": 1024, "rounds": 20000, "K": 10, "dataset_name": "cifar10", "cuda_core": 4}
+
+[2024-08-23 12:31:06] K: 10, Step Size: 0.0001, CUDA Core: 4, Dataset: cifar10, Rounds: 20000
+[2024-08-23 12:31:38] Total number of parameters in the GAN model: 1732224
+[2024-08-23 12:31:42] Started the training loop
+[2024-08-23 12:31:56] Iteration 0: FID Loss = 1462.2498779296875
+[2024-08-23 12:32:45] Iteration 4000: FID Loss = 452.86871337890625
+[2024-08-23 12:33:37] Iteration 8000: FID Loss = 360.339111328125
+[2024-08-23 12:34:30] Iteration 12000: FID Loss = 249.0318603515625
+[2024-08-23 12:35:22] Iteration 16000: FID Loss = 205.489013671875
+[2024-08-23 12:36:13] Iteration 20000: FID Loss = 166.52870178222656
+[2024-08-23 12:37:03] Iteration 24000: FID Loss = 182.7910614013672
+[2024-08-23 12:37:53] Iteration 28000: FID Loss = 142.86245727539062
+[2024-08-23 12:38:50] Iteration 32000: FID Loss = 174.5096435546875
+[2024-08-23 12:39:33] Iteration 36000: FID Loss = 160.27603149414062
+[2024-08-23 12:40:29] Iteration 40000: FID Loss = 134.81326293945312
+[2024-08-23 12:41:12] Iteration 44000: FID Loss = 110.69691467285156
+[2024-08-23 12:42:10] Iteration 48000: FID Loss = 106.38770294189453
+[2024-08-23 12:42:52] Iteration 52000: FID Loss = 97.13018798828125
+[2024-08-23 12:43:46] Iteration 56000: FID Loss = 116.61347961425781
+[2024-08-23 12:44:32] Iteration 60000: FID Loss = 114.03520202636719
+[2024-08-23 12:45:28] Iteration 64000: FID Loss = 84.43807983398438
+[2024-08-23 12:46:14] Iteration 68000: FID Loss = 91.6314697265625
+[2024-08-23 12:47:10] Iteration 72000: FID Loss = 76.68806457519531
+[2024-08-23 12:47:56] Iteration 76000: FID Loss = 86.93994140625
+[2024-08-23 12:48:49] Iteration 80000: FID Loss = 107.5870361328125
+[2024-08-23 12:49:34] Iteration 84000: FID Loss = 85.39484405517578
+[2024-08-23 12:50:27] Iteration 88000: FID Loss = 102.90399169921875
+[2024-08-23 12:51:14] Iteration 92000: FID Loss = 82.66259002685547
+[2024-08-23 12:52:06] Iteration 96000: FID Loss = 86.08714294433594
+[2024-08-23 12:52:51] Iteration 100000: FID Loss = 105.37641906738281
+[2024-08-23 12:53:44] Iteration 104000: FID Loss = 88.79574584960938
+[2024-08-23 12:54:24] Iteration 108000: FID Loss = 97.98648834228516
+[2024-08-23 12:55:13] Iteration 112000: FID Loss = 85.77747344970703
+[2024-08-23 12:55:52] Iteration 116000: FID Loss = 93.25537109375
+[2024-08-23 12:57:48] Iteration 120000: FID Loss = 99.5471420288086
+[2024-08-23 12:58:27] Iteration 124000: FID Loss = 93.95346069335938
+[2024-08-23 13:00:22] Iteration 128000: FID Loss = 97.76322937011719
+[2024-08-23 13:00:59] Iteration 132000: FID Loss = 92.23460388183594
+[2024-08-23 13:02:52] Iteration 136000: FID Loss = 84.81848907470703
+[2024-08-23 13:03:29] Iteration 140000: FID Loss = 97.7607650756836
+[2024-08-23 13:05:25] Iteration 144000: FID Loss = 94.3044204711914
+[2024-08-23 13:06:02] Iteration 148000: FID Loss = 78.18463134765625
+[2024-08-23 13:07:53] Iteration 152000: FID Loss = 87.71942138671875
+[2024-08-23 13:08:30] Iteration 156000: FID Loss = 84.05950927734375
+[2024-08-23 13:10:22] Iteration 160000: FID Loss = 74.18187713623047
+[2024-08-23 13:10:57] Iteration 164000: FID Loss = 78.92534637451172
+[2024-08-23 13:12:51] Iteration 168000: FID Loss = 84.6777114868164
+[2024-08-23 13:13:28] Iteration 172000: FID Loss = 76.39392852783203
+[2024-08-23 13:15:20] Iteration 176000: FID Loss = 95.65562438964844
+[2024-08-23 13:15:57] Iteration 180000: FID Loss = 85.21511840820312
+[2024-08-23 13:17:49] Iteration 184000: FID Loss = 82.26815032958984
+[2024-08-23 13:18:27] Iteration 188000: FID Loss = 88.15245056152344
+[2024-08-23 13:20:19] Iteration 192000: FID Loss = 80.60028076171875
+[2024-08-23 13:20:56] Iteration 196000: FID Loss = 86.0389404296875
+[2024-08-23 13:22:03] Training terminated due to an error: CUDA out of memory. Tried to allocate 2.64 GiB. GPU 4 has a total capacity of 21.95 GiB of which 313.00 MiB is free. Including non-PyTorch memory, this process has 5.38 GiB memory in use. Process 46206 has 16.26 GiB memory in use. Of the allocated memory 4.85 GiB is allocated by PyTorch, and 302.77 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+[2024-08-23 13:22:03] Process ended
+
+[2024-08-23 13:22:03] Process terminated due to an error: CUDA out of memory. Tried to allocate 2.64 GiB. GPU 4 has a total capacity of 21.95 GiB of which 313.00 MiB is free. Including non-PyTorch memory, this process has 5.38 GiB memory in use. Process 46206 has 16.26 GiB memory in use. Of the allocated memory 4.85 GiB is allocated by PyTorch, and 302.77 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+[2024-08-23 13:22:03] Process ended
+

@@ -1,0 +1,19 @@
+Process ID: 97081
+Status: alive
+Hyperparameters: {"batch_size": 512, "hidden_dim": 128, "step_size": 0.001, "evaluation_samples": 1024, "rounds": 20000, "K": 2, "dataset_name": "cifar10", "cuda_core": 1}
+
+[2024-08-23 14:39:11] K: 2, Step Size: 0.001, CUDA Core: 1, Dataset: cifar10, Rounds: 20000
+[2024-08-23 14:39:30] Total number of parameters in the GAN model: 1732224
+[2024-08-23 14:39:31] Started the training loop
+[2024-08-23 14:39:39] Iteration 0: FID Loss = 1612.7412109375
+[2024-08-23 14:40:11] Iteration 800: FID Loss = 745.7171630859375
+[2024-08-23 14:40:42] Iteration 1600: FID Loss = 563.7550048828125
+[2024-08-23 14:41:13] Iteration 2400: FID Loss = 486.3962707519531
+[2024-08-23 14:41:45] Iteration 3200: FID Loss = 643.368896484375
+[2024-08-23 14:42:13] Iteration 4000: FID Loss = 520.1600341796875
+[2024-08-23 14:42:45] Iteration 4800: FID Loss = 364.23797607421875
+[2024-08-23 14:43:09] Iteration 5600: FID Loss = 565.9432373046875
+[2024-08-23 14:43:39] Iteration 6400: FID Loss = 465.34429931640625
+[2024-08-23 14:44:08] Iteration 7200: FID Loss = 388.0970458984375
+[2024-08-23 14:44:43] Iteration 8000: FID Loss = 361.50421142578125
+[2024-08-23 14:45:09] Iteration 8800: FID Loss = 254.5791015625
