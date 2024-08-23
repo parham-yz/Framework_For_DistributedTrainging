@@ -2,3 +2,8 @@
 data/
 data/
 data/ data/
+.gitignore
+reports/
+__pycache__/
+reports/
+figures/

@@ -108,10 +108,9 @@ class GAN:
         self.batch_size = H["batch_size"]
         self.rounds = H["rounds"]  # Changed from epochs to rounds
         self.K = H["K"]
-        self.beta = 0
         self.device = torch.device(f"cuda:{H['cuda_core']}")
         self.evaluation_samples = H["evaluation_samples"]
-        self.running_average = []
+        self.loss_history = []
         
         # Print hyperparameters at the beginning if printing is enabled
         Reporter.log(f"K: {self.K}, Step Size: {self.lr}, CUDA Core: {H['cuda_core']}, Dataset: {H['dataset_name']}, Rounds: {self.rounds}")
@@ -190,7 +189,7 @@ def train(gan):
                 batch = batch.to(gan.device)
                 
 
-                if iteration % (gan.K * 400) == 0:
+                if iteration % (gan.K * 200) == 0:
                     # Generate fake samples
                     z = torch.randn(gan.evaluation_samples, *gan.z_dim[1:]).to(gan.device)
                     fake_samples = gan.generator(z)
@@ -203,14 +202,10 @@ def train(gan):
                     # Print progress
                     Reporter.log(f"Iteration {iteration}: FID Loss = {loss}")
 
-                    # Update running average of the loss
-                    if len(gan.running_average) == 0:
-                        gan.running_average.append(loss)
-                    else:
-                        gan.running_average.append(
-                            gan.beta * gan.running_average[-1] + (1 - gan.beta) * loss
-                        )
-                
+                    # Update loss history
+                    
+                    gan.loss_history.append(loss)
+                    
    
                 
                 if iteration % gan.K == 0:
@@ -283,7 +278,7 @@ if __name__ == '__main__':
         # After training, you can log the data and plot MMD or other metrics if needed
         log_data = {
             "hyper_parameters": H,
-            "loss_log": gan.running_average
+            "loss_log": gan.loss_history
         }
 
         log_filename = f"lr={gan.lr}_K={gan.K}_dataset={H['dataset_name']}.json"
@@ -295,7 +290,7 @@ if __name__ == '__main__':
         with open(log_path, 'w') as f:
             json.dump(log_data, f)
 
-        plt.plot(gan.running_average)
+        plt.plot(gan.loss_history)
         plt.title(f"Running Average FID Loss - {H['dataset_name']}")
         plt.xlabel("Iterations")
         plt.ylabel("FID Loss")
