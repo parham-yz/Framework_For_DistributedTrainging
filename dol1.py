@@ -76,6 +76,17 @@ def generate_data(dataset_name="mnist"):
         inputs = [data[0] for data in train_set]
         return torch.stack(inputs)
     
+    elif dataset_name == "imagenet":
+        transform = transforms.Compose([
+            resize_transform,
+            to_tensor_transform,
+            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
+        ])
+        train_set = datasets.ImageNet(root='./data', split='train', download=True, transform=transform)
+        # Extract inputs only
+        inputs = [data[0] for data in train_set]
+        return torch.stack(inputs)
+    
     else:
         Reporter.log("Unknown dataset name")
         raise ValueError("Unknown dataset name")        
@@ -127,6 +138,10 @@ class GAN:
             self.generator = Generator_CIFAR().to(self.device)  # Assuming CIFAR generator is used for SVHN
             self.discriminator = Discriminator_CIFAR().to(self.device)  # Assuming CIFAR discriminator is used for SVHN
             self.z_dim = [H["batch_size"], 100, 1, 1]  # Set z_dim for SVHN
+        elif H["dataset_name"] == "imagenet":
+            self.generator = Generator_ImageNet().to(self.device)
+            self.discriminator = Discriminator_ImageNet().to(self.device)
+            self.z_dim = [H["batch_size"], 100, 1, 1]  # Set z_dim for ImageNet
         else:
             Reporter.log("Unknown dataset name")
             raise ValueError("Unknown dataset name")
