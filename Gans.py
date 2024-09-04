@@ -266,6 +266,7 @@ class Generator_ImageNet(nn.Module):
             nn.Tanh())
 
     def forward(self, z):
+        z = z.to(self.device)  # Ensure z is on the same device as the model
         return self.model(self.dense(z).view(-1, _GEN_SIZE, 4, 4))
 
 
