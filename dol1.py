@@ -26,7 +26,7 @@ from data_imagenet import ImageFolder
 
 # Hyperparameters
 H = {
-    "batch_size": 256,
+    "batch_size": 512,
     "hidden_dim": 128,
     "step_size": 0.00001,
     "evaluation_samples": 256,
@@ -133,10 +133,10 @@ class GAN:
             self.z_dim = [H["batch_size"], 5, 1, 1]  # Set z_dim for MNIST
             self.label_size = [H["batch_size"], 1, 1, 1]  # Set label_size for MNIST
         elif H["dataset_name"] == "cifar10":
-            self.generator = Generator_ImageNet(z_dim=256).to(self.device)  # Use ImageNet generator for CIFAR-10
-            self.discriminator = Discriminator_ImageNet().to(self.device)  # Use ImageNet discriminator for CIFAR-10
-            self.z_dim = [H["batch_size"], 256]  # Set z_dim for CIFAR-10
-            self.label_size = [H["batch_size"], 1]  # Set label_size for CIFAR-10
+            self.generator = Generator_CIFAR().to(self.device)  # Use CIFAR generator for CIFAR-10
+            self.discriminator = Discriminator_CIFAR().to(self.device)  # Use CIFAR discriminator for CIFAR-10
+            self.z_dim = [H["batch_size"], 100, 1, 1]  # Set z_dim for CIFAR-10
+            self.label_size = [H["batch_size"], 1, 1, 1]  # Set label_size for CIFAR-10
         elif H["dataset_name"] == "svhn":
             self.generator = Generator_CIFAR().to(self.device)  # Assuming CIFAR generator is used for SVHN
             self.discriminator = Discriminator_CIFAR().to(self.device)  # Assuming CIFAR discriminator is used for SVHN
@@ -198,7 +198,11 @@ def train(gan):
     start_time = time.time()  # Record the start time
     iteration = 0
     pupy_discriminator = type(gan.discriminator)().to(device)
-    pupy_generator = type(gan.generator)(gan.generator.z_dim).to(device)
+    
+    if isinstance(gan.generator, Generator_ImageNet):
+        pupy_generator = type(gan.generator)(gan.generator.z_dim).to(device)
+    else:
+        pupy_generator = type(gan.generator)().to(device)
     
     try:
         Reporter.log("Started the training loop")
