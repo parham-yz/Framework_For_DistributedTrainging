@@ -131,18 +131,22 @@ class GAN:
             self.generator = Generator_Mnist().to(self.device)
             self.discriminator = Discriminator_Mnist().to(self.device)
             self.z_dim = [H["batch_size"], 5, 1, 1]  # Set z_dim for MNIST
+            self.label_size = [H["batch_size"], 1, 1, 1]  # Set label_size for MNIST
         elif H["dataset_name"] == "cifar10":
-            self.generator = Generator_ImageNet().to(self.device)
-            self.discriminator = Discriminator_ImageNet().to(self.device)
-            self.z_dim = [H["batch_size"], 100, 1, 1]  # Set z_dim for CIFAR-10
+            self.generator = Generator_ImageNet(z_dim=256).to(self.device)  # Use ImageNet generator for CIFAR-10
+            self.discriminator = Discriminator_ImageNet().to(self.device)  # Use ImageNet discriminator for CIFAR-10
+            self.z_dim = [H["batch_size"], 256]  # Set z_dim for CIFAR-10
+            self.label_size = [H["batch_size"], 1]  # Set label_size for CIFAR-10
         elif H["dataset_name"] == "svhn":
             self.generator = Generator_CIFAR().to(self.device)  # Assuming CIFAR generator is used for SVHN
             self.discriminator = Discriminator_CIFAR().to(self.device)  # Assuming CIFAR discriminator is used for SVHN
             self.z_dim = [H["batch_size"], 100, 1, 1]  # Set z_dim for SVHN
+            self.label_size = [H["batch_size"], 1, 1, 1]  # Set label_size for SVHN
         elif H["dataset_name"] == "imagenet":
             self.generator = Generator_ImageNet(z_dim=256).to(self.device)
             self.discriminator = Discriminator_ImageNet().to(self.device)
             self.z_dim = [H["batch_size"], 256]  # Corrected z_dim for ImageNet
+            self.label_size = [H["batch_size"], 1]  # Set label_size for ImageNet
         else:
             Reporter.log("Unknown dataset name")
             raise ValueError("Unknown dataset name")
@@ -160,9 +164,8 @@ class GAN:
 
     def backprob_discriminator(self, real_samples, generator):
         batch_size = real_samples.size(0)
-        real_labels = torch.ones(batch_size, 1, 1, 1).to(self.device)
-        fake_labels = torch.zeros(batch_size, 1, 1, 1).to(self.device)
-        
+        real_labels = torch.ones(self.label_size).to(self.device)
+        fake_labels = torch.zeros(self.label_size).to(self.device)
         self.optimizer_D.zero_grad()
         
         outputs = self.discriminator(real_samples)
@@ -189,9 +192,13 @@ class GAN:
         return g_loss
 
 def train(gan):
-    fid_calculator = FIDCalculator(torch.device(f"cuda:{H['cuda_core']}" if torch.cuda.is_available() else "cpu"))
+    device = gan.device
+
+    fid_calculator = FIDCalculator(device)
     start_time = time.time()  # Record the start time
     iteration = 0
+    pupy_discriminator = type(gan.discriminator)().to(device)
+    pupy_generator = type(gan.generator)(gan.generator.z_dim).to(device)
     
     try:
         Reporter.log("Started the training loop")
@@ -202,12 +209,12 @@ def train(gan):
                     continue
                 if batch.dim() == 3:
                     batch = batch.unsqueeze(1)
-                batch = batch.to(gan.device)
+                batch = batch.to(device)
                 
 
                 if iteration % (gan.K * 200) == 0:
                     # Generate fake samples
-                    z = torch.randn(gan.evaluation_samples, *gan.z_dim[1:]).to(gan.device)
+                    z = torch.randn(gan.evaluation_samples, *gan.z_dim[1:]).to(device)
                     fake_samples = gan.generator(z)
                     
                     # Compute FID
@@ -226,8 +233,11 @@ def train(gan):
                 
                 if iteration % gan.K == 0:
                     # Create deep copies of the generator and discriminator
-                    pupy_generator = copy.deepcopy(gan.generator)
-                    pupy_discriminator = copy.deepcopy(gan.discriminator)
+                    state_generator = copy.deepcopy(gan.generator.state_dict())
+                    pupy_generator.load_state_dict(state_generator)
+
+                    state_discriminator = copy.deepcopy(gan.discriminator.state_dict())
+                    pupy_discriminator.load_state_dict(state_discriminator)
                     
                     # Train discriminator
                     gan.backprob_discriminator(batch, pupy_generator)

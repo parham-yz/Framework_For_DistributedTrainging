@@ -284,6 +284,7 @@ class Discriminator_ImageNet(nn.Module):
         self.fc = nn.Linear(_DISC_SIZE, 1)
         nn.init.xavier_uniform_(self.fc.weight.data, 1.)
         self.fc = SpectralNorm(self.fc)
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        return self.fc(self.model(x).view(-1, _DISC_SIZE))
+        return self.sigmoid(self.fc(self.model(x).view(-1, _DISC_SIZE)))
