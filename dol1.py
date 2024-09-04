@@ -22,13 +22,14 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import utils
 import itertools
+from data_imagenet import ImageFolder
 
 # Hyperparameters
 H = {
-    "batch_size": 512,
+    "batch_size": 256,
     "hidden_dim": 128,
     "step_size": 0.00001,
-    "evaluation_samples": 1024,
+    "evaluation_samples": 256,
     "rounds": 20000,  # Changed from epochs to rounds
     "K": 1,
     "dataset_name": "mnist",  # Default dataset
@@ -82,7 +83,7 @@ def generate_data(dataset_name="mnist"):
             to_tensor_transform,
             transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
         ])
-        train_set = datasets.ImageNet(root='./data', split='train', download=True, transform=transform)
+        train_set = ImageFolder(root='data/imagenet_data/data/imagenet', transform=transform)
         # Extract inputs only
         inputs = [data[0] for data in train_set]
         return torch.stack(inputs)
@@ -131,17 +132,17 @@ class GAN:
             self.discriminator = Discriminator_Mnist().to(self.device)
             self.z_dim = [H["batch_size"], 5, 1, 1]  # Set z_dim for MNIST
         elif H["dataset_name"] == "cifar10":
-            self.generator = Generator_CIFAR().to(self.device)
-            self.discriminator = Discriminator_CIFAR().to(self.device)
+            self.generator = Generator_ImageNet().to(self.device)
+            self.discriminator = Discriminator_ImageNet().to(self.device)
             self.z_dim = [H["batch_size"], 100, 1, 1]  # Set z_dim for CIFAR-10
         elif H["dataset_name"] == "svhn":
             self.generator = Generator_CIFAR().to(self.device)  # Assuming CIFAR generator is used for SVHN
             self.discriminator = Discriminator_CIFAR().to(self.device)  # Assuming CIFAR discriminator is used for SVHN
             self.z_dim = [H["batch_size"], 100, 1, 1]  # Set z_dim for SVHN
         elif H["dataset_name"] == "imagenet":
-            self.generator = Generator_ImageNet().to(self.device)
+            self.generator = Generator_ImageNet(z_dim=256).to(self.device)
             self.discriminator = Discriminator_ImageNet().to(self.device)
-            self.z_dim = [H["batch_size"], 100, 1, 1]  # Set z_dim for ImageNet
+            self.z_dim = [H["batch_size"], 256]  # Corrected z_dim for ImageNet
         else:
             Reporter.log("Unknown dataset name")
             raise ValueError("Unknown dataset name")
@@ -168,7 +169,7 @@ class GAN:
         d_loss_real = self.criterion(outputs.view(-1), real_labels.view(-1))
         d_loss_real.backward()
         
-        z = torch.randn(batch_size, self.z_dim[1], self.z_dim[2], self.z_dim[3]).to(self.device)
+        z = torch.randn(batch_size, *self.z_dim[1:]).to(self.device)
         fake_samples = generator(z)
         outputs = self.discriminator(fake_samples.detach())
         d_loss_fake = self.criterion(outputs, fake_labels)

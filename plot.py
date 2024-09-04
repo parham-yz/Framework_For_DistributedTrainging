@@ -202,6 +202,52 @@ def monitor_reports(reports_folder='reports'):
             monitor_thread.join()
             break
 
+
+
+def save_and_export_logs():
+    import shutil
+    from datetime import datetime
+    import zipfile
+
+    # Create the exports directory if it doesn't exist
+    if not os.path.exists('exports'):
+        os.makedirs('exports')
+
+    # Create a timestamp for the export
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    zip_filename = os.path.join('exports', f"export_{timestamp}.zip")
+
+    # Create a ZIP file
+    with zipfile.ZipFile(zip_filename, 'w') as zipf:
+        # Add saved_logs directory to the ZIP file
+        for root, dirs, files in os.walk('saved_logs'):
+            for file in files:
+                file_path = os.path.join(root, file)
+                zipf.write(file_path, os.path.join('saved_logs', os.path.relpath(file_path, 'saved_logs')))
+
+        # Add figures directory to the ZIP file
+        for root, dirs, files in os.walk('figures'):
+            for file in files:
+                file_path = os.path.join(root, file)
+                zipf.write(file_path, os.path.join('figures', os.path.relpath(file_path, 'figures')))
+
+        # Generate README file with the output of option_2
+        readme_path = 'README.txt'
+        with open(readme_path, 'w') as readme_file:
+            original_stdout = sys.stdout
+            sys.stdout = readme_file
+            option_2()
+            sys.stdout = original_stdout
+
+        # Add README file to the ZIP file
+        zipf.write(readme_path, 'README.txt')
+
+    # Remove the README file after adding it to the ZIP
+    os.remove(readme_path)
+
+    print(f"Logs and data have been exported to {zip_filename}")
+
+
 if __name__ == "__main__":
     import sys
 
@@ -211,6 +257,7 @@ if __name__ == "__main__":
         print("2. List all trained hyperparameters")
         print("3. Monitor reports")
         print("4. Free Gpu Cores")
+        print("5. Save and export logs")
 
     def option_1():
         # Extract the K values, step sizes, and datasets from the saved logs directory
@@ -282,15 +329,19 @@ if __name__ == "__main__":
         free_cores = get_free_gpu_cores()
         print(f"Free GPU cores: {free_cores}")
 
+    def option_5():
+        save_and_export_logs()
+
     options = {
         "1": option_1,
         "2": option_2,
         "3": option_3,
-        "4": option_4
+        "4": option_4,
+        "5": option_5
     }
 
     display_menu()
-    choice = input("Enter your choice (1-4): ")
+    choice = input("Enter your choice (1-5): ")
 
     if choice in options:
         options[choice]()
