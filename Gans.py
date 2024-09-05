@@ -153,8 +153,8 @@ import numpy as np
 
 
 _N_CHANNELS = 3
-_GEN_SIZE = 256
-_DISC_SIZE = 128
+_GEN_SIZE = 160
+_DISC_SIZE = 80
 
 
 class ResBlockGenerator(nn.Module):

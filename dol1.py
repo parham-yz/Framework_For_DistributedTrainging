@@ -5,7 +5,6 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.datasets import make_moons
 import os
 import copy
 import time
@@ -13,20 +12,16 @@ import json
 import sys
 import torch.utils
 import signal
-import sys
 import fcntl
 from Gans import *
-from Inception import*
-import torch
-import torchvision.transforms as transforms
-import torchvision.datasets as datasets
+from Inception import *
 import utils
 import itertools
 from data_imagenet import ImageFolder
 
 # Hyperparameters
 H = {
-    "batch_size": 512,
+    "batch_size": 256,
     "hidden_dim": 128,
     "step_size": 0.00001,
     "evaluation_samples": 256,
@@ -327,7 +322,7 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, handle_interrupt)
 
     try:
-        Reporter= utils.Reporter(hyperparameters=H)
+        Reporter = utils.Reporter(hyperparameters=H)
         gan = GAN(H)
 
         total_params = sum(p.numel() for p in itertools.chain(gan.generator.parameters(), gan.discriminator.parameters()))

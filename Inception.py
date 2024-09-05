@@ -37,16 +37,40 @@ class FIDCalculator:
 
     def calculate_statistics(self, activations):
         mean = torch.mean(activations, dim=0)
-        cov = torch.cov(activations.T)
+        cov = self.torch_cov(activations.T)
         return mean, cov
+
+    def torch_cov(self, m, rowvar=False):
+        if m.dim() > 2:
+            raise ValueError('m has more than 2 dimensions')
+        if m.dim() < 2:
+            m = m.view(1, -1)
+        if not rowvar and m.size(0) != 1:
+            m = m.t()
+        fact = 1.0 / (m.size(1) - 1)
+        m -= torch.mean(m, dim=1, keepdim=True)
+        mt = m.t()
+        return fact * m.matmul(mt).squeeze()
+
+    def sqrt_newton_schulz(self, A, numIters):
+        with torch.no_grad():
+            batchSize = A.shape[0]
+            dim = A.shape[1]
+            normA = A.mul(A).sum(dim=1).sum(dim=1).sqrt()
+            Y = A.div(normA.view(batchSize, 1, 1).expand_as(A))
+            I = torch.eye(dim, dim).view(1, dim, dim).repeat(batchSize, 1, 1).type(A.dtype).to(A.device)
+            Z = torch.eye(dim, dim).view(1, dim, dim).repeat(batchSize, 1, 1).type(A.dtype).to(A.device)
+            for i in range(numIters):
+                T = 0.5 * (3.0 * I - Z.bmm(Y))
+                Y = Y.bmm(T)
+                Z = T.bmm(Z)
+            sA = Y * torch.sqrt(normA).view(batchSize, 1, 1).expand_as(A)
+        return sA
 
     def calculate_frechet_distance(self, mu1, sigma1, mu2, sigma2):
         diff = mu1 - mu2
-        covmean, _ = sqrtm((sigma1 @ sigma2).cpu().numpy(), disp=False)
-        covmean = torch.tensor(covmean, device=self.device)
-        if torch.is_complex(covmean):
-            covmean = covmean.real
-        return diff @ diff + torch.trace(sigma1 + sigma2 - 2 * covmean)
+        covmean = self.sqrt_newton_schulz(sigma1.mm(sigma2).unsqueeze(0), 50).squeeze()
+        return diff.dot(diff) + torch.trace(sigma1) + torch.trace(sigma2) - 2 * torch.trace(covmean)
 
     def calculate_fid(self, real_images, fake_images):
         real_images = real_images.to(self.device)
