@@ -112,6 +112,22 @@ def compute_mmd(x, y, kernel='rbf', sigma=1.0):
 
     return beta * torch.sum(K) + gamma * torch.sum(L) - delta * torch.sum(P)
 
+def compute_gradient_penalty(D, real_samples, fake_samples):
+    alpha = torch.rand(real_samples.size(0), 1, 1, 1).to(real_samples.device)
+    interpolates = (alpha * real_samples + ((1 - alpha) * fake_samples)).requires_grad_(True)
+    d_interpolates = D(interpolates)
+    fake = torch.ones(d_interpolates.size()).to(real_samples.device)
+    gradients = torch.autograd.grad(
+        outputs=d_interpolates,
+        inputs=interpolates,
+        grad_outputs=fake,
+        create_graph=True,
+        retain_graph=True,
+        only_inputs=True
+    )[0]
+    gradients = gradients.view(gradients.size(0), -1)
+    gradient_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean()
+    return gradient_penalty
 
 class GAN:
     def __init__(self, H):
@@ -133,15 +149,15 @@ class GAN:
             self.z_dim = [H["batch_size"], 5, 1, 1]  # Set z_dim for MNIST
             self.label_size = [H["batch_size"], 1, 1, 1]  # Set label_size for MNIST
         elif H["dataset_name"] == "cifar10":
-            self.generator = Generator_CIFAR().to(self.device)  # Use CIFAR generator for CIFAR-10
-            self.discriminator = Discriminator_CIFAR().to(self.device)  # Use CIFAR discriminator for CIFAR-10
-            self.z_dim = [H["batch_size"], 100, 1, 1]  # Set z_dim for CIFAR-10
-            self.label_size = [H["batch_size"], 1, 1, 1]  # Set label_size for CIFAR-10
+            self.generator = Generator_ImageNet(z_dim=128).to(self.device)  # Use ImageNet generator for CIFAR-10
+            self.discriminator = Discriminator_ImageNet().to(self.device)  # Use ImageNet discriminator for CIFAR-10
+            self.z_dim = [H["batch_size"], 128]  # Set z_dim for CIFAR-10
+            self.label_size = [H["batch_size"], 1]  # Set label_size for CIFAR-10
         elif H["dataset_name"] == "svhn":
-            self.generator = Generator_CIFAR().to(self.device)  # Assuming CIFAR generator is used for SVHN
-            self.discriminator = Discriminator_CIFAR().to(self.device)  # Assuming CIFAR discriminator is used for SVHN
-            self.z_dim = [H["batch_size"], 100, 1, 1]  # Set z_dim for SVHN
-            self.label_size = [H["batch_size"], 1, 1, 1]  # Set label_size for SVHN
+            self.generator = Generator_ImageNet(z_dim=128).to(self.device)  # Use ImageNet generator for SVHN
+            self.discriminator = Discriminator_ImageNet().to(self.device)  # Use ImageNet discriminator for SVHN
+            self.z_dim = [H["batch_size"], 128]  # Set z_dim for SVHN
+            self.label_size = [H["batch_size"], 1]  # Set label_size for SVHN
         elif H["dataset_name"] == "imagenet":
             self.generator = Generator_ImageNet(z_dim=256).to(self.device)
             self.discriminator = Discriminator_ImageNet().to(self.device)
@@ -153,6 +169,8 @@ class GAN:
         
         self.optimizer_G = optim.Adam(self.generator.parameters(), lr=self.lr)
         self.optimizer_D = optim.Adam(self.discriminator.parameters(), lr=self.lr)
+        self.scheduler_G = torch.optim.lr_scheduler.StepLR(self.optimizer_G, step_size=1000, gamma=0.95)
+        self.scheduler_D = torch.optim.lr_scheduler.StepLR(self.optimizer_D, step_size=1000, gamma=0.95)
         self.criterion = nn.BCELoss()
         
         self.train_loader = torch.utils.data.DataLoader(
@@ -162,6 +180,13 @@ class GAN:
             drop_last=True
         )
 
+        self.generator_ema = copy.deepcopy(self.generator)
+        self.ema_decay = 0.999
+
+    def update_ema(self):
+        for ema_param, param in zip(self.generator_ema.parameters(), self.generator.parameters()):
+            ema_param.data.mul_(self.ema_decay).add_(param.data, alpha=1 - self.ema_decay)
+
     def backprob_discriminator(self, real_samples, generator):
         batch_size = real_samples.size(0)
         real_labels = torch.ones(self.label_size).to(self.device)
@@ -170,15 +195,17 @@ class GAN:
         
         outputs = self.discriminator(real_samples)
         d_loss_real = self.criterion(outputs.view(-1), real_labels.view(-1))
-        d_loss_real.backward()
         
         z = torch.randn(batch_size, *self.z_dim[1:]).to(self.device)
         fake_samples = generator(z)
         outputs = self.discriminator(fake_samples.detach())
         d_loss_fake = self.criterion(outputs, fake_labels)
-        d_loss_fake.backward()
         
-        return d_loss_real + d_loss_fake
+        gradient_penalty = compute_gradient_penalty(self.discriminator, real_samples, fake_samples)
+        d_loss = d_loss_real + d_loss_fake + 10 * gradient_penalty  # Lambda for gradient penalty
+        d_loss.backward()
+        
+        return d_loss
 
     def backprob_generator(self, discriminator):
         self.optimizer_G.zero_grad()
@@ -219,7 +246,7 @@ def train(gan):
                 if iteration % (gan.K * 200) == 0:
                     # Generate fake samples
                     z = torch.randn(gan.evaluation_samples, *gan.z_dim[1:]).to(device)
-                    fake_samples = gan.generator(z)
+                    fake_samples = gan.generator_ema(z)
                     
                     # Compute FID
                     with torch.no_grad():
@@ -249,9 +276,12 @@ def train(gan):
                     # Train generator
                     gan.backprob_generator(pupy_discriminator)
                 
-                             # Step optimizers
+                # Step optimizers
                 gan.optimizer_G.step()
                 gan.optimizer_D.step()
+                gan.update_ema()  # Update EMA weights
+                gan.scheduler_G.step()  # Update learning rate for generator
+                gan.scheduler_D.step()  # Update learning rate for discriminator
                 torch.cuda.empty_cache()  # Clear unused variables from GPU memory
                 iteration += 1
                 
