@@ -34,13 +34,14 @@ def plot_results(K_values, step_sizes, dataset,beta=0):
                     avg = beta * avg + (1 - beta) * loss
                     running_avg.append(avg)
                 
-                plt.plot(np.log(running_avg), label=f'K={K}, step_size={step_size}')
+                iterations = np.arange(len(running_avg)) * 200
+                plt.plot(iterations, np.log10(running_avg), label=f'K={K}, step_size={step_size}')
     
-    plt.xlabel('Epochs')
+    plt.xlabel('Rounds')
     plt.ylabel('Loss (log scale)')
-    plt.title(f'Comparison of Loss vs Epochs for Different K Values (Dataset: {dataset})')
+    plt.title(f'Comparison of Loss vs Iterations for Different K Values (Dataset: {dataset})')
     plt.legend()
-    plt.savefig(f'figures/comparison_loss_vs_epochs_{dataset}.png')
+    plt.savefig(f'figures/comparison_loss_vs_iterations_{dataset}.png')
     plt.close()
 
 def plot_results_for_specific_K(K, step_sizes, dataset):

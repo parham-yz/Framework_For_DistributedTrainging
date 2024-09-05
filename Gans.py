@@ -98,6 +98,10 @@ class Generator_CIFAR(nn.Module):
             nn.BatchNorm2d(256),
             nn.ReLU(True),
             
+            nn.ConvTranspose2d(256, 256, 3, 1, 1, bias=False),
+            nn.BatchNorm2d(256),
+            nn.ReLU(True),
+
             nn.ConvTranspose2d(256, 128, 4, 2, 1, bias=False),
             nn.BatchNorm2d(128),
             nn.ReLU(True),
