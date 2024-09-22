@@ -9,7 +9,7 @@ import sys
 import time
 import threading
 
-def plot_results(K_values, step_sizes, dataset,beta=0):
+def plot_results(K_values, step_sizes, dataset, beta=0):
     # Ensure the figures directory exists
     if not os.path.exists('figures'):
         os.makedirs('figures')
@@ -19,29 +19,83 @@ def plot_results(K_values, step_sizes, dataset,beta=0):
 
     plt.figure(figsize=(12, 8))
 
-
     for K, step_size in best_step_sizes.items():
-        log_filename = f"saved_logs/lr={step_size}_K={K}_dataset={dataset}.json"
-        if os.path.exists(log_filename):
-            with open(log_filename, 'r') as f:
-                log_data = json.load(f)
-                loss_log = log_data['loss_log']
-                
-                # Compute running average
-                running_avg = []
-                avg = loss_log[0]
-                for i, loss in enumerate(loss_log):
-                    avg = beta * avg + (1 - beta) * loss
-                    running_avg.append(avg)
-                
-                iterations = np.arange(len(running_avg)) * 200
-                plt.plot(iterations, np.log10(running_avg), label=f'K={K}, step_size={step_size}')
+        log_files = [f"saved_logs/{file}" for file in os.listdir('saved_logs') if file.startswith(f"lr={step_size}_K={K}_dataset={dataset}")]
+        if log_files:
+            all_loss_logs = []
+            for log_file in log_files:
+                with open(log_file, 'r') as f:
+                    log_data = json.load(f)
+                    all_loss_logs.append(log_data['loss_log'])
+            
+            # Compute running average and variance
+            running_avg = []
+            running_var = []
+            avg = np.mean([loss_log[0] for loss_log in all_loss_logs])
+            for i in range(len(all_loss_logs[0])):
+                losses = [loss_log[i] for loss_log in all_loss_logs]
+                avg = beta * avg + (1 - beta) * np.mean(losses)
+                var = np.var(losses)
+                running_avg.append(avg)
+                running_var.append(var)
+            
+            iterations = np.arange(len(running_avg)) * 200
+            plt.plot(iterations, np.log10(running_avg), label=f'K={K}, step_size={step_size}')
+            plt.fill_between(iterations, np.log10(running_avg) - np.log10(running_var), np.log10(running_avg) + np.log10(running_var), alpha=0.2)
     
     plt.xlabel('Rounds')
     plt.ylabel('Loss (log scale)')
     plt.title(f'Comparison of Loss vs Iterations for Different K Values (Dataset: {dataset})')
     plt.legend()
     plt.savefig(f'figures/comparison_loss_vs_iterations_{dataset}.png')
+    
+    # Save figure as PDF with specific naming convention for 'svhn' dataset
+    if dataset == 'svhn':
+        date_str = time.strftime("%Y%m%d")
+        plt.savefig(f'figures/svhn_{date_str}.pdf')
+    
+    plt.close()
+
+def plot_with_variance(K_values, step_sizes, dataset):
+    # Ensure the figures directory exists
+    if not os.path.exists('figures'):
+        os.makedirs('figures')
+
+    plt.figure(figsize=(12, 8))
+
+    epsilon = 1e-10  # Small value to avoid log of zero or negative numbers
+
+    for K in K_values:
+        for step_size in step_sizes:
+            log_files = [f"saved_logs/{file}" for file in os.listdir('saved_logs') if file.startswith(f"lr={step_size}_K={K}_dataset={dataset}")]
+            if len(log_files) == 3:  # Ensure there are exactly 3 log files
+                all_loss_logs = []
+                for log_file in log_files:
+                    with open(log_file, 'r') as f:
+                        log_data = json.load(f)
+                        all_loss_logs.append(log_data['loss_log'])
+
+                # Compute mean and variance
+                loss_matrix = np.array(all_loss_logs)
+                mean_loss_log = np.mean(loss_matrix, axis=0)
+                var_loss_log = np.var(loss_matrix, axis=0)
+                smoothed_var_loss_log = []
+                smoothed_var = var_loss_log[0]
+                beta = 0.9  # Smoothing factor
+                for var in var_loss_log:
+                    smoothed_var = beta * smoothed_var + (1 - beta) * var
+                    smoothed_var_loss_log.append(smoothed_var)
+                var_loss_log = np.array(smoothed_var_loss_log)
+
+                iterations = np.arange(len(mean_loss_log)) * 200
+                plt.plot(iterations, np.log10(mean_loss_log + epsilon), label=f'K={K}, step_size={step_size}')
+                plt.fill_between(iterations, np.log10(mean_loss_log + epsilon - np.sqrt(var_loss_log)), np.log10(mean_loss_log + epsilon + np.sqrt(var_loss_log)), alpha=0.2)
+
+    plt.xlabel('Rounds')
+    plt.ylabel('Loss (log scale)')
+    plt.title(f'Comparison of Loss vs Iterations with Variance for Different K Values (Dataset: {dataset})')
+    plt.legend()
+    plt.savefig(f'figures/comparison_loss_vs_iterations_with_variance_{dataset}.png')
     plt.close()
 
 def plot_results_for_specific_K(K, step_sizes, dataset):
@@ -52,11 +106,17 @@ def plot_results_for_specific_K(K, step_sizes, dataset):
     plt.figure(figsize=(12, 8))
     
     for step_size in step_sizes:
-        log_filename = f"saved_logs/lr={step_size}_K={K}_dataset={dataset}.json"
-        if os.path.exists(log_filename):
-            with open(log_filename, 'r') as f:
-                log_data = json.load(f)
-                plt.plot(np.log(log_data['loss_log']), label=f'step_size={step_size}')
+        log_files = [f"saved_logs/{file}" for file in os.listdir('saved_logs') if file.startswith(f"lr={step_size}_K={K}_dataset={dataset}")]
+        if log_files:
+            all_loss_logs = []
+            for log_file in log_files:
+                with open(log_file, 'r') as f:
+                    log_data = json.load(f)
+                    all_loss_logs.append(log_data['loss_log'])
+            
+            # Compute average loss log
+            avg_loss_log = np.mean(all_loss_logs, axis=0)
+            plt.plot(np.log(avg_loss_log), label=f'step_size={step_size}')
     
     plt.xlabel('Epochs')
     plt.ylabel('Loss (log scale)')
@@ -73,15 +133,18 @@ def getBestStepsizes(K_values, step_sizes, dataset):
         best_min_loss = float('inf')
         
         for step_size in step_sizes:
-            log_filename = f"saved_logs/lr={step_size}_K={K}_dataset={dataset}.json"
-            if os.path.exists(log_filename):
-                with open(log_filename, 'r') as f:
-                    log_data = json.load(f)
-                    min_loss = min(log_data['loss_log'])
-                    
-                    if min_loss < best_min_loss:
-                        best_min_loss = min_loss
-                        best_step_size = step_size
+            log_files = [f"saved_logs/{file}" for file in os.listdir('saved_logs') if file.startswith(f"lr={step_size}_K={K}_dataset={dataset}")]
+            if log_files:
+                min_losses = []
+                for log_file in log_files:
+                    with open(log_file, 'r') as f:
+                        log_data = json.load(f)
+                        min_losses.append(min(log_data['loss_log']))
+                
+                min_loss = np.mean(min_losses)
+                if min_loss < best_min_loss:
+                    best_min_loss = min_loss
+                    best_step_size = step_size
 
         if best_step_size is not None:
             best_results[K] = best_step_size
@@ -107,6 +170,7 @@ def extract_K_and_stepsizes(directory):
                 datasets.add(dataset)
     
     return sorted(K_values), sorted(step_sizes, key=float), sorted(datasets)
+
 
 def get_free_gpu_cores(reports_folder='reports'):
     total_cores = set()
@@ -248,6 +312,13 @@ def save_and_export_logs():
 
     print(f"Logs and data have been exported to {zip_filename}")
 
+def option_6():
+    # Extract the K values, step sizes, and datasets from the saved logs directory
+    K_values, step_sizes, datasets = extract_K_and_stepsizes('saved_logs')
+
+    # Plot the results with variance for each dataset
+    for dataset in datasets:
+        plot_with_variance(K_values, step_sizes, dataset)
 
 if __name__ == "__main__":
     import sys
@@ -259,6 +330,7 @@ if __name__ == "__main__":
         print("3. Monitor reports")
         print("4. Free Gpu Cores")
         print("5. Save and export logs")
+        print("6. Plot with variance")
 
     def option_1():
         # Extract the K values, step sizes, and datasets from the saved logs directory
@@ -333,16 +405,25 @@ if __name__ == "__main__":
     def option_5():
         save_and_export_logs()
 
+    def option_6():
+        # Extract the K values, step_sizes, and datasets from the saved logs directory
+        K_values, step_sizes, datasets = extract_K_and_stepsizes('saved_logs')
+
+        # Plot the results with variance for each dataset
+        for dataset in datasets:
+            plot_with_variance(K_values, step_sizes, dataset)
+
     options = {
         "1": option_1,
         "2": option_2,
         "3": option_3,
         "4": option_4,
-        "5": option_5
+        "5": option_5,
+        "6": option_6
     }
 
     display_menu()
-    choice = input("Enter your choice (1-5): ")
+    choice = input("Enter your choice (1-6): ")
 
     if choice in options:
         options[choice]()
