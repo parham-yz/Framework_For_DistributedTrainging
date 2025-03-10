@@ -117,7 +117,7 @@ def train_blockwise(frame):
 
 
 
-def train_blockwise_sequential(frame: Model_frames.Classifier_frame_blockwise):
+def train_blockwise_sequential(frame: Model_frames.ImageClassifier_frame_blockwise):
     """
     Trains the model with an inner loop (round) calling train_block for each optimizer.
     

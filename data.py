@@ -1,11 +1,17 @@
+
+
 import torchvision.transforms as transforms
 from torchvision import datasets
 from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader
-from torchtext.data.utils import get_tokenizer
-from torchtext.vocab import build_vocab_from_iterator
-from torchtext.datasets import IMDB
-from torch.utils.data.dataset import to_map_style_dataset
+
+
+
+
+# from torchtext.data.utils import get_tokenizer
+# from torchtext.vocab import build_vocab_from_iterator
+# from torchtext.datasets import IMDB
+# from torch.utils.data.dataset import to_map_style_dataset
 import torch
 
 def generate_imagedata(dataset_name):

@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 import copy
 import BCD_engine
-from Models import ResNet18
+from Models import load_resnet18, load_resnet34
 from data_imagenet import *
 import utils
 import Model_frames
@@ -23,13 +23,14 @@ if __name__ == "__main__":
         "dataset_name": "cifar100",
         "cuda_core": 0,
         "training_mode": "entire",
-        "report_sampling_rate" : 10
+        "report_sampling_rate" : 10,
+        "model": "ResNet34"
     }
     
     # Parse command-line arguments to update hyperparameters
     H = utils.parse_arguments(H)
     # Generate the model based on the specified training mode
-    classifier = Model_frames.generate_model(H)
+    classifier = Model_frames.generate_ModelFrame(H)
 
     # Train the model using the specified training mode
     if H["training_mode"] == "blockwise":

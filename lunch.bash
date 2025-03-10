@@ -14,6 +14,7 @@ ROUNDS="2000"
 REPORT_SAMPLING_RATE="20"
 DATASET="cifar100"
 BATCH_SIZE="128"
+MODEL="ResNet34" # Global variable for model type
 
 # Array to keep track of child process PIDs
 child_pids=()
@@ -36,8 +37,8 @@ trap cleanup SIGINT SIGTERM
 # Launch the instances in parallel
 for ((i=0; i<$NUM_INSTANCES; i++))
 do
-    echo "Starting instance $i with stepsize ${stepsizes[$i]}, batch size $BATCH_SIZE, K ${k_values[$i]}, rounds $ROUNDS, dataset $DATASET, on CUDA core ${cuda_cores[$i]}, training mode ${training_modes[$i]}, report sampling rate $REPORT_SAMPLING_RATE"
-    python3 dol1.py --step_size "${stepsizes[$i]}" --batch_size "$BATCH_SIZE" --K "${k_values[$i]}" --rounds "$ROUNDS" --dataset_name "$DATASET" --cuda_core "${cuda_cores[$i]}" --training_mode "${training_modes[$i]}" --report_sampling_rate "$REPORT_SAMPLING_RATE" &
+    echo "Starting instance $i with stepsize ${stepsizes[$i]}, batch size $BATCH_SIZE, K ${k_values[$i]}, rounds $ROUNDS, dataset $DATASET, on CUDA core ${cuda_cores[$i]}, training mode ${training_modes[$i]}, model $MODEL, report sampling rate $REPORT_SAMPLING_RATE"
+    python3 dol1.py --step_size "${stepsizes[$i]}" --batch_size "$BATCH_SIZE" --K "${k_values[$i]}" --rounds "$ROUNDS" --dataset_name "$DATASET" --cuda_core "${cuda_cores[$i]}" --training_mode "${training_modes[$i]}" --model "$MODEL" --report_sampling_rate "$REPORT_SAMPLING_RATE" &
     # Save the PID of the background process
     child_pids+=($!)
 done
