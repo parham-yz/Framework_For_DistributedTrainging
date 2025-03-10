@@ -5,7 +5,13 @@ import torchvision.datasets as datasets
 import torch
 import subprocess
 import hashlib
-
+import os
+import json
+import datetime
+from torchvision.datasets import ImageFolder
+import argparse
+from tqdm import tqdm
+import copy
 
 def get_max_batch_size(dataset_name, cuda_core=0):
 
@@ -24,7 +30,7 @@ def get_max_batch_size(dataset_name, cuda_core=0):
 
     if dataset_name == "mnist":
         transform = transforms.Compose([
-            transforms.Grayscale(num_output_channels=1),
+            transforms.Grayscale(num_output_channels=3),
             resize_transform,
             to_tensor_transform,
             transforms.Normalize((0.5,), (0.5,))
@@ -67,11 +73,6 @@ def clear_gpu_memory():
             logging.error(f"Failed to clear GPU memory: {e}")
         except Exception as e:
             logging.error(f"Unexpected error while clearing GPU memory: {e}")
-
-import os
-import json
-
-import datetime
 
 class Reporter:
     def __init__(self, hyperparameters):
@@ -118,3 +119,136 @@ class Reporter:
         
         with open(self.log_filename, 'w') as f:
             f.writelines(lines)
+
+
+def generate_data(dataset_name):
+    # Define common transformations including resizing
+    resize_transform = transforms.Resize((32, 32))
+    to_tensor_transform = transforms.ToTensor()
+    
+    if dataset_name == "mnist":
+        transform = transforms.Compose([
+            transforms.Grayscale(num_output_channels=3),
+            resize_transform,
+            to_tensor_transform,
+            transforms.Normalize((0.5,), (0.5,))
+        ])
+        train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
+        return train_set  # Return the dataset directly
+    
+    elif dataset_name == "cifar10":
+        transform = transforms.Compose([
+            resize_transform,
+            to_tensor_transform,
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        ])
+        train_set = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+        return train_set  # Return the dataset directly
+    
+    elif dataset_name == "cifar100":
+        transform = transforms.Compose([
+            resize_transform,
+            to_tensor_transform,
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        ])
+        train_set = datasets.CIFAR100(root='./data', train=True, download=True, transform=transform)
+        return train_set  # Return the dataset directly
+    
+    elif dataset_name == "svhn":
+        transform = transforms.Compose([
+            resize_transform,
+            to_tensor_transform,
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        ])
+        train_set = datasets.SVHN(root='./data', split='train', download=True, transform=transform)
+        return train_set  # Return the dataset directly
+    
+    elif dataset_name == "imagenet":
+        transform = transforms.Compose([
+            resize_transform,
+            to_tensor_transform,
+            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
+        ])
+        train_set = ImageFolder(root='data/imagenet_data/data/imagenet', transform=transform)
+        return train_set  # Return the dataset directly
+    
+    else:
+        print("Unknown dataset name")
+        raise ValueError("Unknown dataset name")
+
+
+def copy_block(source_model, target_model, block_index):
+    """
+    Copies the parameters of a specific block from the source model to the target model.
+    
+    Args:
+        source_model: The model from which to copy the parameters.
+        target_model: The model to which the parameters will be copied.
+        block_index: The index of the block whose parameters are to be copied.
+    """
+    # Ensure the block index is within the range of available blocks
+    if block_index < 0 or block_index >= len(source_model.blocks):
+        raise IndexError("Block index is out of range.")
+    
+    # Get the specific block from both models
+    source_block = source_model.blocks[block_index]
+    target_block = target_model.blocks[block_index]
+    
+    # Iterate over the parameters of the source block
+    with torch.no_grad():  # Ensure no gradients are computed during parameter copying
+        for source_param, target_param in zip(source_block.parameters(), target_block.parameters()):
+            # Copy the parameter data to the target model's block
+            # .data ensures we are modifying the tensor in-place and detach() ensures no gradient history is copied
+            target_param.data = copy.deepcopy(source_param.data).detach()
+
+
+def parse_arguments(H):
+    """
+    Dynamically parses command-line arguments based on the fields of an input dictionary H,
+    and updates H with any new values provided via the command line.
+    
+    Args:
+        H (dict): Initial dictionary containing default values for arguments.
+    
+    Returns:
+        H (dict): Updated dictionary containing the parsed command-line arguments.
+    """
+    # Create the parser
+    parser = argparse.ArgumentParser(description="Dynamically process input arguments for training configuration.")
+    
+    # Dynamically add arguments based on the keys and values of H
+    for key, value in H.items():
+        # Determine the type of the default value
+        arg_type = type(value)
+        if arg_type is bool:
+            # Special handling for boolean flags
+            parser.add_argument(f"--{key}", type=lambda x: (str(x).lower() == 'true'), default=value, help=f"{key} (default: {value})")
+        else:
+            parser.add_argument(f"--{key}", type=arg_type, default=value, help=f"{key} (default: {value})")
+    
+    # Parse arguments
+    args = parser.parse_args()
+    
+    # Update H with arguments provided via command line
+    H.update(vars(args))
+    
+    return H
+
+
+
+def copy_model(source_model, target_model,device):
+    """
+    Copies the parameters from source_model to target_model.
+
+    Parameters:
+    - source_model: A PyTorch model from which to copy the parameters.
+    - target_model: A PyTorch model to which the parameters will be copied.
+
+    Both models should be of the same architecture.
+    """
+    # Ensure that both models are on the same device to avoid unnecessary data transfers
+    target_model.to(device)
+    # Get the state dictionary of the source model
+    source_state_dict = source_model.state_dict()
+    # Load the source state dictionary into the target model
+    target_model.load_state_dict(source_state_dict)

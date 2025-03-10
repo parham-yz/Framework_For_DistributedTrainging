@@ -125,6 +125,69 @@ def plot_results_for_specific_K(K, step_sizes, dataset):
     plt.savefig(f'figures/comparison_loss_vs_epochs_K={K}_{dataset}.png')
     plt.close()
 
+
+def plot_reports(directory='reports'):
+    # Dictionary to hold data
+    data_by_k = {}
+
+    # Read each file in the directory
+    for filename in os.listdir(directory):
+        if filename.endswith('.txt'):
+            filepath = os.path.join(directory, filename)
+            with open(filepath, 'r') as file:
+                lines = file.readlines()
+                
+                # Extract K value and metrics from the report
+                k_value = None
+                metrics = {'time': [], 'energy': [], 'accuracy': []}
+                
+                for line in lines:
+                    if 'Hyperparameters:' in line:
+                        # Extracting the K value from the hyperparameters line
+                        hyperparameters = json.loads(line.split('Hyperparameters: ')[1].strip())
+                        k_value = hyperparameters['K']
+                    if line.startswith('[') and 'Time' in line:
+                        # Extracting the metrics from the line
+                        parts = line.split()
+                        time = float(parts[3].strip(':'))
+                        energy = float(parts[6].strip(','))
+                        accuracy = float(parts[9].strip(','))
+                        metrics['time'].append(time)
+                        metrics['energy'].append(energy)
+                        metrics['accuracy'].append(accuracy)
+                if k_value is not None:
+                    if k_value not in data_by_k:
+                        data_by_k[k_value] = {'time': [], 'energy': [], 'accuracy': []}
+                    data_by_k[k_value]['time'].extend(metrics['time'])
+                    data_by_k[k_value]['energy'].extend(metrics['energy'])
+                    data_by_k[k_value]['accuracy'].extend(metrics['accuracy'])
+
+    # Plotting
+    plt.figure(figsize=(14, 6))
+
+    # Energy plot on a log scale
+    plt.subplot(1, 2, 1)
+    for k, vals in data_by_k.items():
+        plt.plot(vals['time'], np.log10(vals['energy']), label=f'K={k}')  # Energy values are now plotted on a log scale
+    plt.title('Log-Scale Energy (Loss) over Time')
+    plt.xlabel('Time')
+    plt.ylabel('Log-Scale Energy')
+    plt.legend()
+    plt.savefig(f'figures/log_energy_over_time.png')
+
+    # Accuracy plot
+    plt.subplot(1, 2, 2)
+    for k, vals in data_by_k.items():
+        plt.plot(vals['time'], vals['accuracy'], label=f'K={k}')
+    plt.title('Accuracy over Time')
+    plt.xlabel('Time')
+    plt.ylabel('Accuracy (%)')
+    plt.legend()
+    plt.savefig(f'figures/accuracy_over_time.png')
+
+    plt.tight_layout()
+    # plt.show()  # This line is commented out to prevent showing the plot
+
 def getBestStepsizes(K_values, step_sizes, dataset):
     best_results = {}
     
@@ -210,47 +273,50 @@ def monitor_reports(reports_folder='reports'):
             lines = file.readlines()
             status_line = None
             progress_lines = []
+            hyperparameters = {}
             
             for line in lines:
                 if line.startswith('Status:'):
                     status_line = line.strip()
-                elif line.startswith('['):
+                elif line.startswith('['):  # Assuming all progress lines start with '['
                     progress_lines.append(line.strip())
-            
-            return status_line, progress_lines
+                elif line.startswith('Hyperparameters:'):  # Assuming hyperparameters are stored in this format
+                    hyperparameters = json.loads(line[len("Hyperparameters: "):].strip())
+
+            return status_line, progress_lines, hyperparameters
 
     def parse_progress_line(line):
-        parts = line.split(' ')
-        iteration_index = parts.index("Iteration")
-        iteration = int(parts[iteration_index + 1].strip(':'))
-        fid_loss = float(parts[parts.index('FID') + 3])
-        return iteration, fid_loss
+        timestamp, metrics_part = line.split(']', 1)
+        metrics = {}
+        parts = metrics_part.strip().split(',')
+        for part in parts:
+            key_value = part.split('=')
+            if len(key_value) == 2:
+                key, value = key_value
+                metrics[key.strip()] = float(value)
+        return timestamp, metrics
 
     def monitor():
         while not exit_monitoring:
             alive_reports = []
             for filename in os.listdir(reports_folder):
                 if filename.endswith('.txt'):
-                    status_line, progress_lines = read_report(filename)
+                    status_line, progress_lines, hyperparameters = read_report(filename)
                     if status_line and 'alive' in status_line:
-                        alive_reports.append((filename, progress_lines))
+                        alive_reports.append((filename, progress_lines, hyperparameters))
             
             os.system('clear')  # Clear the console
             print("Monitoring alive reports:")
-            for filename, progress_lines in alive_reports:
-                print(f"\nReport: {filename}")
+            for filename, progress_lines, hyperparameters in alive_reports:
+                print(f"\nReport: {filename} - BS: {hyperparameters.get('batch_size', 'N/A')}, Step: {hyperparameters.get('step_size', 'N/A')}, K: {hyperparameters.get('K', 'N/A')}, Core: {hyperparameters.get('cuda_core', 'N/A')}")
                 
                 if progress_lines:
                     last_line = progress_lines[-1]
-                    iteration, fid_loss = parse_progress_line(last_line)
-                    first_line = progress_lines[0]
-                    parts = first_line.split(', ')
-                    K = int(parts[0].split(': ')[1])
-                    rounds = int(parts[4].split(': ')[1])
-                    total_iterations = rounds * K  # Assuming total iterations are 20000 times K value
-                    progress = iteration / total_iterations
-                    print(f"Iteration: {iteration}, FID Loss: {fid_loss}")
-                    print(f"Progress: [{'#' * int(progress * 50)}{'.' * (50 - int(progress * 50))}] {progress * 100:.2f}%")
+                    timestamp, metrics = parse_progress_line(last_line)
+                    print(f"{timestamp} - Metrics: ", end='')
+                    for key, value in metrics.items():
+                        print(f"{key}: {value:.4f}, ", end='')
+                    print()
                 else:
                     print("No progress lines found.")
             
@@ -266,7 +332,6 @@ def monitor_reports(reports_folder='reports'):
             exit_monitoring = True
             monitor_thread.join()
             break
-
 
 
 def save_and_export_logs():
@@ -331,6 +396,7 @@ if __name__ == "__main__":
         print("4. Free Gpu Cores")
         print("5. Save and export logs")
         print("6. Plot with variance")
+        print("7. Plot reports")
 
     def option_1():
         # Extract the K values, step sizes, and datasets from the saved logs directory
@@ -413,17 +479,22 @@ if __name__ == "__main__":
         for dataset in datasets:
             plot_with_variance(K_values, step_sizes, dataset)
 
+    def option_7():
+        # Plot the reports from the reports directory
+        plot_reports()
+
     options = {
         "1": option_1,
         "2": option_2,
         "3": option_3,
         "4": option_4,
         "5": option_5,
-        "6": option_6
+        "6": option_6,
+        "7": option_7
     }
 
     display_menu()
-    choice = input("Enter your choice (1-6): ")
+    choice = input("Enter your choice (1-7): ")
 
     if choice in options:
         options[choice]()
