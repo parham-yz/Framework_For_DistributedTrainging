@@ -19,6 +19,7 @@ class ImageClassifier_frame_blockwise:
         self.device = torch.device(f"cuda:{H['cuda_core']}")
         self.dataset_name = H["dataset_name"]
         self.loss_history = []
+        self.param_deviation = []
 
         # Move the model to the specified device (e.g., GPU)
         self.center_model = model.to(self.device)
@@ -61,8 +62,12 @@ class ImageClassifier_frame_blockwise:
             drop_last=True
         )
 
-        # Initialize the reporting mechanism
+        # Initialize the reporting mechanism and log additional information about frame type, number of blocks, and number of model parameters
         self.reporter = utils.Reporter(H)
+        frame_type = type(self).__name__
+        num_blocks = len(self.center_model.blocks)
+        num_parameters = sum(p.numel() for p in self.center_model.parameters())
+        self.reporter.log(f"Frame Type: {frame_type}, Number of Blocks: {num_blocks}, Number of Model Parameters: {num_parameters}")
 
     def communicate(self):
         # Synchronize the blocks with the central model
@@ -74,6 +79,40 @@ class ImageClassifier_frame_blockwise:
         for block in self.distributed_models.keys():
             model, _ = self.distributed_models[block]
             utils.copy_model(self.center_model, model, self.device)
+
+    def compute_deviation(self):
+        # Synchronize the blocks with the central model
+        for block_idx, block in enumerate(self.distributed_models.keys()):
+            model, _ = self.distributed_models[block]
+            utils.copy_block(model, self.center_model, block_idx)
+
+        avg_param_diff_norm = self.average_parameter_difference_norm()
+        self.param_deviation.append(avg_param_diff_norm)
+
+        # Synchronize the central model with the blocks
+        for block in self.distributed_models.keys():
+            model, _ = self.distributed_models[block]
+            utils.copy_model(self.center_model, model, self.device)
+        
+
+    def average_parameter_difference_norm(self):
+        total_norm = 0
+
+        # Iterate through each block's model
+        for block, (model, _) in self.distributed_models.items():
+            # Iterate through parameters of both the block's model and the central model
+            for param_distributed, param_center in zip(model.parameters(), self.center_model.parameters()):
+                # Compute the difference
+                diff = param_distributed.data - param_center.data
+                # Calculate the norm of the difference
+                norm = torch.norm(diff)
+                # Accumulate the total norm
+                total_norm += norm.item()
+
+        # Compute the average norm by dividing by the number of distributed models
+        average_norm = total_norm / len(self.distributed_models) if self.distributed_models else 0
+
+        return average_norm
 
 class ImageClassifier_frame_entire:
     def __init__(self, model, H):

@@ -168,7 +168,9 @@ def train_blockwise_sequential(frame: Model_frames.ImageClassifier_frame_blockwi
                     loss = frame.criterion(outputs, labels)
                     _, predicted = torch.max(outputs, 1)
                     accuracy = (predicted == labels).float().mean().item()
-                    frame.reporter.log(f"Time {(round_idx)/(1000)}: Energy = {loss.item()}, Accuracy = {round(accuracy, 2)}, ComputeTimeShare = {round(time_spent_in_optimize_block/total_time, 2)}")  # Now using Reporter
+                    frame.compute_deviation()
+                    param_deviation = sum(frame.param_deviation)/len(frame.param_deviation)
+                    frame.reporter.log(f"Time {(round_idx)/(1000)}: Energy = {loss.item()}, Accuracy = {round(accuracy, 2)}, ComputeTimeShare = {round(time_spent_in_optimize_block/total_time, 2)}, Deviation = {param_deviation}")  # Now using Reporter
                     frame.loss_history.append(loss.item())
                     break  # Evaluate on one batch
 
