@@ -26,25 +26,37 @@ if __name__ == "__main__":
         "report_sampling_rate" : 10,
         "model": "ResNet34"
     }
+
+    H = {
+        "step_size": 0.00001,
+        "batch_size": 1,
+        "rounds": 20000,
+        "K": 1,
+        "dataset_name": "ones",
+        "cuda_core": -1,
+        "training_mode": "blockwise_sequential",
+        "report_sampling_rate" : 10,
+        "model": "linear_nn"
+    }
     
     # Parse command-line arguments to update hyperparameters
     H = utils.parse_arguments(H)
     # Generate the model based on the specified training mode
-    classifier = Model_frames.generate_ModelFrame(H)
+    frame = Model_frames.generate_ModelFrame(H)
 
     # Train the model using the specified training mode
     if H["training_mode"] == "blockwise":
         # Train the model blockwise if the training mode is 'blockwise'
-        BCD_engine.train_blockwise(classifier)
+        BCD_engine.train_blockwise(frame)
     elif H["training_mode"] == "blockwise_sequential":
         # Train the entire model if the training mode is 'entire'
-        BCD_engine.train_blockwise_sequential(classifier)
+        BCD_engine.train_blockwise_sequential(frame)
     elif H["training_mode"] == "entire":
         # Train the entire model if the training mode is 'entire'
-        BCD_engine.train_entire(classifier)
+        BCD_engine.train_entire(frame)
     else:
         # Raise an error if an invalid training mode is specified
         raise ValueError(f"Invalid training mode: {H['training_mode']}")
     
-    classifier.reporter.terminate()
+    frame.reporter.terminate()
     

@@ -1,5 +1,14 @@
 import logging
-import GPUtil
+try:
+    import GPUtil
+except ImportError:
+    import subprocess
+    import sys
+    logging.info("GPUtil not found. Installing GPUtil...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "GPUtil"])
+    import GPUtil
+
+
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import torch

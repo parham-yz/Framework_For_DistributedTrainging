@@ -117,3 +117,33 @@ def generate_nlp_data(dataset_name, batch_size=32, max_vocab_size=10000, max_len
     test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_batch)
 
     return train_dataloader, test_dataloader
+
+
+def generate_regressiondata(dataset_name, n_samples=1000, d1=10, d2=1):
+    """
+    Generates a synthetic regression dataset.
+    Currently, only the "ones" dataset is supported.
+    For each sample:
+      - The input is a tensor of ones with shape (d1,)
+      - The output is a tensor of ones with shape (d2,)
+    
+    Parameters:
+        dataset_name (str): Name of the regression dataset. Currently, only "ones" is supported.
+        n_samples (int): Number of samples in the dataset (default is 1000).
+        d1 (int): Dimension of the input features (default is 10).
+        d2 (int): Dimension of the output (default is 1).
+    
+    Returns:
+        torch.utils.data.TensorDataset: A TensorDataset where each sample is a tuple (input, target)
+        with input of shape (d1,) and target of shape (d2,).
+    """
+    if dataset_name != "ones":
+        raise ValueError("Unknown regression dataset name. Currently, only 'ones' is supported.")
+    
+    # Create input and output tensors filled with ones
+    X = torch.ones(n_samples, d1)
+    y = torch.ones(n_samples, d2)
+    
+    # Create a TensorDataset from the generated tensors
+    dataset = torch.utils.data.TensorDataset(X, y)
+    return dataset
