@@ -20,28 +20,65 @@ class Frame:
             self.device = torch.device(f"cuda:{H['cuda_core']}")
         self.reporter = utils.Reporter(H)
         self.criterion = nn.CrossEntropyLoss()  # Common loss function
+        
+        # Initialize the list of measurement units (instances of MeasurementUnit subclasses)
+        self.measure_units = []
 
-    def setup_dataloaders(self,data_set):
+    def setup_dataloaders(self, data_set):
+        self.dataset = [(d[0].to(self.device), d[1]) for d in data_set]
+        train_size = int(0.9 * len(self.dataset))
+        test_size = len(self.dataset) - train_size
+        self.train_dataset, self.test_dataset = torch.utils.data.random_split(self.dataset, [train_size, test_size])
+        self.train_loader = torch.utils.data.DataLoader(
+            self.train_dataset,
+            batch_size=self.batch_size,
+            shuffle=True,
+            drop_last=True
+        )
+        self.big_train_loader = torch.utils.data.DataLoader(
+            self.train_dataset,
+            batch_size=self.batch_size * 8,
+            shuffle=True,
+            drop_last=True
+        )
 
-            self.dataset = [(d[0].to(self.device), d[1]) for d in data_set]
-            train_size = int(0.9 * len(self.dataset))
-            test_size = len(self.dataset) - train_size
-            self.train_dataset, self.test_dataset = torch.utils.data.random_split(self.dataset, [train_size, test_size])
-            self.train_loader = torch.utils.data.DataLoader(
-                self.train_dataset,
-                batch_size=self.batch_size,
-                shuffle=True,
-                drop_last=True
-            )
-            self.big_train_loader = torch.utils.data.DataLoader(
-                self.train_dataset,
-                batch_size=self.batch_size * 8,
-                shuffle=True,
-                drop_last=True
-            )
+        
+    def set_measure_units(self, measure_units: list):
+        """
+        Set the measurement units to be used for logging metrics.
+        
+        Args:
+            measure_units (list): List of MeasurementUnit instances.
+        """
+        self.measure_units = measure_units
 
-    def train(self):
-        raise NotImplementedError("Subclasses should implement the train() method.")
+    def run_measurmentUnits(self):
+        """
+        Runs each measurement unit by feeding a list of models.
+        
+        The input list is composed of the main model followed by all distributed models 
+        (if available). For distributed frames the main model is typically stored in 
+        'center_model' and distributed models in 'distributed_models', while for non-distributed
+        frames the main model is stored in 'model'.
+        """
+        models_list = []
+        
+        # Determine the main model: prefer center_model over model
+        if hasattr(self, "center_model"):
+            models_list.append(self.center_model)
+        elif hasattr(self, "model"):
+            models_list.append(self.model)
+        
+        # Append any distributed models if they exist (assumed to be stored as a dict)
+        if hasattr(self, "distributed_models"):
+            for key in sorted(self.distributed_models.keys()):
+                model, _ = self.distributed_models[key]
+                models_list.append(model)
+        
+        # Feed the models list to each measurement unit
+        for measurement_unit in self.measure_units:
+            result = measurement_unit.measure(models_list)
+            measurement_unit.log_measurement(result)
 
 
 class Disributed_frame(Frame):

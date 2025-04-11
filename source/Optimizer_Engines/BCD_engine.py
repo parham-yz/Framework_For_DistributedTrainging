@@ -1,5 +1,5 @@
 import torch
-import Model_frames
+import FramWork_For_DistributedNNTrainging.source.Frame.Model_frames as Model_frames
 import concurrent.futures
 import time  # Import the time module
 import multiprocessing

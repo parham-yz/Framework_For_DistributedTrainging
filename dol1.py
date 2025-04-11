@@ -2,11 +2,11 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import copy
-import BCD_engine
+import FramWork_For_DistributedNNTrainging.source.Optimizer_Engines.BCD_engine as BCD_engine
 from Models import load_resnet18, load_resnet34
 from data_imagenet import *
 import utils
-import Model_frames
+import FramWork_For_DistributedNNTrainging.source.Frame.Model_frames as Model_frames
 
 
 
