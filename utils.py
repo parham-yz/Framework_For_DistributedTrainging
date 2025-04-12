@@ -25,7 +25,7 @@ from tqdm import tqdm
 import copy
 
 import os
-import  FramWork_For_DistributedNNTrainging.source.Frame.MeasurementUnit 
+import  src.Buliding_Units.MeasurementUnit as MeasurementUnit
 
 
 def get_max_batch_size(dataset_name, cuda_core=0):
@@ -290,7 +290,7 @@ def parse_measurement_units():
 
     # Map valid unit names (as they appear in the file) to the corresponding classes.
     unit_map = {
-        "Working_memory_usage": FramWork_For_DistributedNNTrainging.source.Frame.MeasurementUnit.Working_memory_usage
+        "Working_memory_usage": MeasurementUnit.Working_memory_usage
     }
     
     measurement_units = []

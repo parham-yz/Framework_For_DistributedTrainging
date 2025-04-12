@@ -1,22 +1,22 @@
 #!/bin/bash
 
 # Define the number of instances
-NUM_INSTANCES=5
+NUM_INSTANCES=2
 
 # Define arrays for hyperparameters
-declare -a stepsizes=("0.00005" "0.00005" "0.00005" "0.00005" "0.00005")
-declare -a k_values=("0" "2" "5" "10" "20")
-declare -a cuda_cores=(1 0 1 0 1)
-declare -a training_modes=("entire" "blockwise_sequential" "blockwise_sequential" "blockwise_sequential" "blockwise_sequential")
-declare -a n_workers=("0.25" "0.5" "0.75" "1.0" "1.25") # Added n_workers array
+declare -a stepsizes=("0.00005" "0.00005")
+declare -a k_values=("1" "20")
+declare -a cuda_cores=(1 0)
+declare -a training_modes=("blockwise_sequential" "blockwise_sequential")
+declare -a n_workers=("0.25" "0.25") # Set n_workers to 0.25 for both instances
 
 # Define global variables
 ROUNDS="2000"
 REPORT_SAMPLING_RATE="20"
 DATASET="cifar100"
 BATCH_SIZE="128"
-MODEL="ResNet34" # Global variable for model type
-COMMUNICATION_DELAY="1" # Added communication delay variable
+MODEL="ResNet18" # Changed model to ResNet18
+COMMUNICATION_DELAY="2" # Added communication delay variable
 
 # Array to keep track of child process PIDs
 child_pids=()

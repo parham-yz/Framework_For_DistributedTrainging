@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from FramWork_For_DistributedNNTrainging.source.Frame.Model_frames import Frame
+from src.Buliding_Units.Model_frames import Frame
 
 class StopperUnit(ABC):
     @abstractmethod

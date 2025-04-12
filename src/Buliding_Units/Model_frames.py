@@ -2,11 +2,11 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import copy
-import FramWork_For_DistributedNNTrainging.source.Architectures.Models as Models 
+import src.Architectures.Models as Models 
 import utils
 import signal
 import sys
-import data
+import src.Data.data as data
 import gc
 import time
 
@@ -238,17 +238,26 @@ class ImageClassifier_frame_entire(Frame):
 def get_dataset_dimensionality(dataset_name,dataset_type):
     # Retrieve the dataset based on the given name
     if dataset_type =='image':
-        dataset_raw = data.generate_imagedata(dataset_name)
+        dataset = data.generate_imagedata(dataset_name)
     elif dataset_type == 'nlp':
-        dataset_raw = data.generate_nlp_data(dataset_name)
+        dataset = data.generate_nlp_data(dataset_name)
     elif dataset_type == 'regression':
-        dataset_raw = data.generate_regressiondata(dataset_name)
+        dataset = data.generate_regressiondata(dataset_name)
 
     # Determine the input and target shapes of the dataset
-    input_shape = dataset_raw[0][0].shape
-    target_shape = dataset_raw[0][1].shape if hasattr(dataset_raw[0][1], 'shape') else (1,)
+    input_shape = dataset.data[0].shape
+    if isinstance(dataset.targets, list):
+        target_shape = (1,)
+    else:
+        target_shape = dataset.targets[0].shape
+
+    if target_shape[0] == 1 and dataset_type == 'image':
+        # It's a classification task, count the number of classes
+        num_classes = max(dataset.targets) + 1
+        target_shape = (num_classes,)
+        
     # Release the dataset from memory
-    del dataset_raw
+    del dataset
     # Trigger garbage collection to free up memory
     gc.collect()
     
@@ -274,6 +283,7 @@ def generate_ModelFrame(H):
     
     if model_type in image_models:
         input_shape, output_shape = get_dataset_dimensionality(H["dataset_name"],'image')
+        
     elif model_type in regression_models:
         input_shape, output_shape = get_dataset_dimensionality(H["dataset_name"],'regression')
     elif model_type in nlp_models:
@@ -284,9 +294,10 @@ def generate_ModelFrame(H):
     # Initialize the model based on the specified type
     model = None
     if model_type == "ResNet18":
-        model = Models.load_resnet18(pretrained=pretrained, num_classes=output_shape)
+        model = Models.load_resnet18(pretrained=pretrained, num_classes=output_shape[0])
     elif model_type == "ResNet34":
-        model = Models.load_resnet34(pretrained=pretrained, num_classes=output_shape)
+        print(f"\n\n\nin_features: {input_shape}, num_classes: {output_shape}\n\n\n")
+        model = Models.load_resnet34(pretrained=pretrained, num_classes=output_shape[0])
     elif model_type == "linear_nn":
         # Load a feedforward network for regression tasks; use defaults if not provided in H.
         config = [32]*16

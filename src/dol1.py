@@ -2,18 +2,19 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import copy
-import FramWork_For_DistributedNNTrainging.source.Optimizer_Engines.BCD_engine as BCD_engine
-from FramWork_For_DistributedNNTrainging.source.Architectures.Models import load_resnet18, load_resnet34
-from data_imagenet import *
+import src.Optimizer_Engines.BCD_engine as BCD_engine
+from src.Architectures.Models import load_resnet18, load_resnet34
+from src.Data.data_imagenet import *
 import utils
-import FramWork_For_DistributedNNTrainging.source.Frame.Model_frames as Model_frames
-import FramWork_For_DistributedNNTrainging.source.Frame.StopperUnit as StopperUnit
+import src.Buliding_Units.Model_frames as Model_frames
+import src.Buliding_Units.StopperUnit as StopperUnit
 
 
 # Example usage (assuming H and other dependencies are defined)
 # This script sets up the hyperparameters and model for training.
 # It then selects the training mode based on the 'training_mode' parameter in H.
 # Depending on the mode, it either trains blockwise or trains the entire model.
+
 if __name__ == "__main__":
     H = {
         "step_size": 0.00001,
@@ -21,25 +22,15 @@ if __name__ == "__main__":
         "rounds": 20000,
         "K": 1,
         "dataset_name": "cifar100",
-        "cuda_core": 0,
-        "training_mode": "entire",
-        "report_sampling_rate" : 10,
-        "model": "ResNet34",
-        "communication_delay" : 1
-    }
-
-    H = {
-        "step_size": 0.00001,
-        "batch_size": 1,
-        "rounds": 20000,
-        "K": 1,
-        "dataset_name": "ones",
         "cuda_core": -1,
         "training_mode": "blockwise_sequential",
         "report_sampling_rate" : 10,
-        "model": "linear_nn",
-        "communication_delay" : 1
+        "model": "ResNet18",
+        "communication_delay" : 1,
+        "n_workers": 0.25
     }
+
+
     
     # Parse command-line arguments to update hyperparameters
     H = utils.parse_arguments(H)

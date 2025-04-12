@@ -1,8 +1,8 @@
 from torchvision import models
 
-from source.Architectures.resnets import ResNet_base
-from source.Architectures.resnets import *
-from source.Architectures.feedforward_nn import *
+from src.Architectures.resnets import ResNet_base
+from src.Architectures.resnets import *
+from src.Architectures.feedforward_nn import *
 
 def load_resnet18(pretrained=False, num_classes=1000):
     # Initialize custom model

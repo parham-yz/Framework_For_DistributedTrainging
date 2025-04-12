@@ -1,9 +1,10 @@
 import torch
-import FramWork_For_DistributedNNTrainging.source.Frame.Model_frames as Model_frames
+import src.Buliding_Units.Model_frames as Model_frames
 import concurrent.futures
 import time  # Import the time module
 import multiprocessing
-from FramWork_For_DistributedNNTrainging.source.Frame.StopperUnit import StopperUnit
+from src.Buliding_Units.StopperUnit import StopperUnit
+import random
 
 def log_progress(frame, round_idx, total_time, optimize_block_time, log_deviation=False):
     """Logs performance on one batch from big_train_loader with optional deviation info."""
@@ -73,7 +74,7 @@ def optimzie_block(model, optimizer, K, train_loader, device, criterion):
 # Set the start method for multiprocessing to 'spawn'
 multiprocessing.set_start_method('spawn', force=True)
 
-def train_blockwise_distributed(frame):
+def train_blockwise_distributed(frame:Model_frames.Disributed_frame):
     """
     Trains the model with an inner loop (round) calling optimzie_block for each optimizer in parallel using multiprocessing.
     
@@ -136,12 +137,14 @@ def train_blockwise_distributed(frame):
 
     frame.reporter.log("Training completed")
 
-def train_blockwise_sequential(frame: Model_frames.ImageClassifier_frame_blockwise):
+def train_blockwise_sequential(frame: Model_frames.Disributed_frame, share_of_active_workes=-1):
     """
     Trains the model with an inner loop (round) calling train_block for each optimizer.
-    
+
     Args:
         frame: The Classifier instance containing model, optimizers, stopper_units, etc.
+        number_of_active_workes: Number of randomly selected active workers to use per round.
+                                  If -1, all workers are used.
     """
     device = frame.device
     iteration = 0
@@ -154,8 +157,17 @@ def train_blockwise_sequential(frame: Model_frames.ImageClassifier_frame_blockwi
     time_spent_in_communicate = 0
 
     for round_idx in range(frame.rounds):
-        # Step 1: Call train_block for each block's optimizer
-        for block_name in frame.distributed_models.keys():
+        # New: Randomly select M active workers for this round
+        all_blocks = list(frame.distributed_models.keys())
+        number_of_active_blocks = int(share_of_active_workes*len(all_blocks))
+
+        if share_of_active_workes == -1 or number_of_active_blocks >= len(all_blocks):
+            active_blocks = all_blocks
+        else:
+            active_blocks = random.sample(all_blocks, number_of_active_blocks)
+        
+        # Step 1: Call the optimization function only on the selected active workers
+        for block_name in active_blocks:
             model, optimizer = frame.distributed_models[block_name]
             optimize_block_start = time.time()  # Start timing
             optimzie_block(

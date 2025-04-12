@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 import os
-from Model_frames import Frame
 
 class MeasurementUnit(ABC):
     """
@@ -31,7 +30,7 @@ class MeasurementUnit(ABC):
         self.reporter.flush()
 
     @abstractmethod
-    def measure(self, models: Frame) -> float:
+    def measure(self, frame) -> float:
         """
         Compute and return a measurement given a list of model instances.
         
