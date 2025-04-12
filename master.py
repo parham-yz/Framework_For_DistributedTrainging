@@ -9,7 +9,7 @@ import sys
 import threading
 import logging
 from queue import Queue
-import utils
+import src.utils as utils
 
 # Setup logging
 logging.basicConfig(filename='process_log.txt', level=logging.INFO,

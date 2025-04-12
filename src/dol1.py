@@ -5,7 +5,7 @@ import copy
 import src.Optimizer_Engines.BCD_engine as BCD_engine
 from src.Architectures.Models import load_resnet18, load_resnet34
 from src.Data.data_imagenet import *
-import utils
+import src.utils as utils
 import src.Buliding_Units.Model_frames as Model_frames
 import src.Buliding_Units.StopperUnit as StopperUnit
 

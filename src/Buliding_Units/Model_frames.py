@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 import copy
 import src.Architectures.Models as Models 
-import utils
+import src.utils as utils
 import signal
 import sys
 import src.Data.data as data
