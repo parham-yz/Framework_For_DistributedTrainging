@@ -9,6 +9,8 @@ except ImportError:
     import GPUtil
 
 
+
+
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import torch
@@ -21,6 +23,10 @@ from torchvision.datasets import ImageFolder
 import argparse
 from tqdm import tqdm
 import copy
+
+import os
+import  FramWork_For_DistributedNNTrainging.source.Frame.MeasurementUnit 
+
 
 def get_max_batch_size(dataset_name, cuda_core=0):
 
@@ -261,3 +267,46 @@ def copy_model(source_model, target_model,device):
     source_state_dict = source_model.state_dict()
     # Load the source state dictionary into the target model
     target_model.load_state_dict(source_state_dict)
+
+
+
+def parse_measurement_units():
+    """
+    Parses the measurement units from the Units.txt file, instantiates the corresponding classes,
+    and returns a list with the measurement unit instances.
+
+    The expected file format is:
+        Measurement Units In Use:
+        - Working_memory_usage
+
+    You can extend the unit_map below to support additional measurement unit classes.
+    """
+    # Set default file path to Units.txt in the same directory as this file.
+    
+    file_path = os.path.join("measurements", "Units.txt")
+    
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"Units file not found: {file_path}")
+
+    # Map valid unit names (as they appear in the file) to the corresponding classes.
+    unit_map = {
+        "Working_memory_usage": FramWork_For_DistributedNNTrainging.source.Frame.MeasurementUnit.Working_memory_usage
+    }
+    
+    measurement_units = []
+    with open(file_path, 'r') as f:
+        lines = f.readlines()
+    
+    # Loop through each line and check for lines that describe a measurement unit.
+    for line in lines:
+        stripped = line.strip()
+        # Look for lines that start with a dash
+        if stripped.startswith("-"):
+            unit_name = stripped[1:].strip()
+            if unit_name in unit_map:
+                # Instantiate the measurement unit and add it to the list.
+                measurement_units.append(unit_map[unit_name]())
+            else:
+                raise ValueError(f"Unknown measurement unit: {unit_name}")
+                
+    return measurement_units

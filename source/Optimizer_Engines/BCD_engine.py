@@ -151,7 +151,7 @@ def train_blockwise_sequential(frame: Model_frames.ImageClassifier_frame_blockwi
 
         # Step 2: Update the main model's blocks with the updated blocks
         communicate_start = time.time()  # Start timing
-        frame.communicate()
+        frame.communicate_withDelay()
         time_spent_in_communicate += time.time() - communicate_start  # Accumulate time
 
         total_time_end = time.time()

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import os
+from Model_frames import Frame
 
 class MeasurementUnit(ABC):
     """
@@ -30,7 +31,7 @@ class MeasurementUnit(ABC):
         self.reporter.flush()
 
     @abstractmethod
-    def measure(self, models: list) -> float:
+    def measure(self, models: Frame) -> float:
         """
         Compute and return a measurement given a list of model instances.
         
@@ -62,3 +63,73 @@ class MeasurementUnit(ABC):
     def __del__(self):
         self.close()
 
+
+
+class Working_memory_usage(MeasurementUnit):
+    """
+    Measurement unit that computes the memory usage of the model and optimizer.
+    It calculates the total memory used by the model parameters and optimizer state,
+    and returns the cumulative memory usage in megabytes (MB).
+    """
+    
+    def __init__(self):
+        super().__init__("Memory Usage Measurement")
+    
+    def measure(self, frame) -> float:
+        """
+        Compute the memory usage for each client.
+        
+        For distributed frames, it computes the memory usage for each client (i.e., each
+        entry in 'distributed_models') by summing the memory used by its model and optimizer.
+        For non-distributed frames, it computes the memory usage for the central model (frame.model)
+        and for each optimizer in frame.optimizers.
+        
+        Returns:
+            float: Total memory usage in megabytes (MB).
+        """
+        total_memory_bytes = 0
+        
+        # Check if the frame uses distributed models (i.e., multiple clients)
+        if hasattr(frame, "distributed_models") and frame.distributed_models:
+            for client, (model, optimizer) in frame.distributed_models.items():
+                total_memory_bytes += self._get_model_memory(model)
+                total_memory_bytes += self._get_optimizer_memory(optimizer)
+
+            total_memory_bytes = total_memory_bytes/len(frame.distributed_models)
+
+        else:
+            # Non-distributed case: use frame.model (if available) and
+            # iterate through the list of optimizers.
+            if hasattr(frame, "model"):
+                total_memory_bytes += self._get_model_memory(frame.model)
+            if hasattr(frame, "optimizers"):
+                for optimizer in frame.optimizers:
+                    total_memory_bytes += self._get_optimizer_memory(optimizer)
+        
+        # Convert the total memory from bytes to megabytes.
+        total_memory_mb = total_memory_bytes / (1024 * 1024)
+        return total_memory_mb
+    
+    def _get_model_memory(self, model) -> int:
+        """
+        Calculate the memory used by the model's parameters.
+        
+        Returns:
+            int: Memory in bytes.
+        """
+        memory = 0
+        for param in model.parameters():
+            memory += param.nelement() * param.element_size()
+        return memory
+    
+    def _get_optimizer_memory(self, optimizer) -> int:
+        """
+        Calculate the memory used by the optimizer's state.
+        
+        Returns:
+            int: Memory in bytes.
+        """
+        memory = 0
+        for state in optimizer.state.values():
+            memory += self._get_memory_of_obj(state)
+        return memory

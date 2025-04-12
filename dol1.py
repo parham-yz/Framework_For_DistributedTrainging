@@ -24,7 +24,8 @@ if __name__ == "__main__":
         "cuda_core": 0,
         "training_mode": "entire",
         "report_sampling_rate" : 10,
-        "model": "ResNet34"
+        "model": "ResNet34",
+        "communication_delay" : 1
     }
 
     H = {
@@ -36,13 +37,18 @@ if __name__ == "__main__":
         "cuda_core": -1,
         "training_mode": "blockwise_sequential",
         "report_sampling_rate" : 10,
-        "model": "linear_nn"
+        "model": "linear_nn",
+        "communication_delay" : 1
     }
     
     # Parse command-line arguments to update hyperparameters
     H = utils.parse_arguments(H)
+    # Parse measurement units from the Units.txt file
+    measurement_units = utils.parse_measurement_units()
+    
     # Generate the model based on the specified training mode
     frame = Model_frames.generate_ModelFrame(H)
+    frame.set_measure_units(measurement_units)
 
     # Train the model using the specified training mode
     if H["training_mode"] == "blockwise":

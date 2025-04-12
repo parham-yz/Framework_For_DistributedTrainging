@@ -8,6 +8,8 @@ import signal
 import sys
 import data
 import gc
+import time
+
 
 class Frame:
     def __init__(self, model, H):
@@ -54,30 +56,12 @@ class Frame:
 
     def run_measurmentUnits(self):
         """
-        Runs each measurement unit by feeding a list of models.
-        
-        The input list is composed of the main model followed by all distributed models 
-        (if available). For distributed frames the main model is typically stored in 
-        'center_model' and distributed models in 'distributed_models', while for non-distributed
-        frames the main model is stored in 'model'.
+        Runs each measurement unit by feeding the frame.
         """
-        models_list = []
-        
-        # Determine the main model: prefer center_model over model
-        if hasattr(self, "center_model"):
-            models_list.append(self.center_model)
-        elif hasattr(self, "model"):
-            models_list.append(self.model)
-        
-        # Append any distributed models if they exist (assumed to be stored as a dict)
-        if hasattr(self, "distributed_models"):
-            for key in sorted(self.distributed_models.keys()):
-                model, _ = self.distributed_models[key]
-                models_list.append(model)
         
         # Feed the models list to each measurement unit
         for measurement_unit in self.measure_units:
-            result = measurement_unit.measure(models_list)
+            result = measurement_unit.measure(self)
             measurement_unit.log_measurement(result)
 
 
@@ -99,12 +83,13 @@ class Disributed_frame(Frame):
         """
         raise NotImplementedError("Subclasses must implement the train() method for Disributed_frame.")
 
-    def communicate(self):
+    def communicate_withDelay(self):
         # Synchronize the blocks with the central model
         for block_idx, block in enumerate(self.distributed_models.keys()):
             model, _ = self.distributed_models[block]
             utils.copy_block(model, self.center_model, block_idx)
 
+        time.sleep(self.H['communication_delay'])
         # Synchronize the central model with the blocks
         for block in self.distributed_models.keys():
             model, _ = self.distributed_models[block]
@@ -268,7 +253,6 @@ def generate_ModelFrame(H):
     nlp_models = [""]
 
     
-
 
 
     ttype = H["training_mode"]
