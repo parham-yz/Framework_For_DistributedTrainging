@@ -3,11 +3,11 @@ import torch.nn as nn
 import torch.optim as optim
 import copy
 import FramWork_For_DistributedNNTrainging.source.Optimizer_Engines.BCD_engine as BCD_engine
-from Models import load_resnet18, load_resnet34
+from FramWork_For_DistributedNNTrainging.source.Architectures.Models import load_resnet18, load_resnet34
 from data_imagenet import *
 import utils
 import FramWork_For_DistributedNNTrainging.source.Frame.Model_frames as Model_frames
-
+import FramWork_For_DistributedNNTrainging.source.Frame.StopperUnit as StopperUnit
 
 
 # Example usage (assuming H and other dependencies are defined)
@@ -49,11 +49,12 @@ if __name__ == "__main__":
     # Generate the model based on the specified training mode
     frame = Model_frames.generate_ModelFrame(H)
     frame.set_measure_units(measurement_units)
+    frame.set_stopper_units([StopperUnit.AccuracyTargetStopper(0.9)])
 
     # Train the model using the specified training mode
     if H["training_mode"] == "blockwise":
         # Train the model blockwise if the training mode is 'blockwise'
-        BCD_engine.train_blockwise(frame)
+        BCD_engine.train_blockwise_distributed(frame)
     elif H["training_mode"] == "blockwise_sequential":
         # Train the entire model if the training mode is 'entire'
         BCD_engine.train_blockwise_sequential(frame)

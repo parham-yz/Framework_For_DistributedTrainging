@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import copy
-import Models 
+import FramWork_For_DistributedNNTrainging.source.Architectures.Models as Models 
 import utils
 import signal
 import sys
@@ -20,11 +20,14 @@ class Frame:
             self.device = torch.device("cpu")
         else:
             self.device = torch.device(f"cuda:{H['cuda_core']}")
+        self.center_model = model.to(self.device)
         self.reporter = utils.Reporter(H)
         self.criterion = nn.CrossEntropyLoss()  # Common loss function
         
         # Initialize the list of measurement units (instances of MeasurementUnit subclasses)
         self.measure_units = []
+        # Initialize the list of stopper units (instances of StopperUnit subclasses)
+        self.stopper_units = []
 
     def setup_dataloaders(self, data_set):
         self.dataset = [(d[0].to(self.device), d[1]) for d in data_set]
@@ -53,6 +56,15 @@ class Frame:
             measure_units (list): List of MeasurementUnit instances.
         """
         self.measure_units = measure_units
+    
+    def set_stopper_units(self, stopper_units: list):
+        """
+        Set the stopper_units units.
+        
+        Args:
+            stopper_units (list): List of StopperUnit instances.
+        """
+        self.stopper_units = stopper_units
 
     def run_measurmentUnits(self):
         """
@@ -68,8 +80,7 @@ class Frame:
 class Disributed_frame(Frame):
     def __init__(self, model, H):
         super().__init__(model, H)
-        self.model = model
-        self.center_model = self.model.to(self.device)
+
         self.K = H['K']
 
         self.distributed_models = {}
@@ -149,8 +160,6 @@ class ImageClassifier_frame_blockwise(Disributed_frame):
         self.loss_history = []
         self.param_deviation = []
 
-        # Move the model to the specified device (e.g., GPU)
-        self.center_model = self.model.to(self.device)
 
         # # Iterate over the blocks of the model
         # for i, block in enumerate(self.center_model.blocks):
@@ -188,8 +197,7 @@ class Regression_frame_blockwis(Disributed_frame):
         self.loss_history = []
         self.param_deviation = []
         
-        # Move the center model to the designated device.
-        self.center_model = self.model.to(self.device)
+
 
         self.init_distributed_models()
 
@@ -214,11 +222,10 @@ class ImageClassifier_frame_entire(Frame):
         self.dataset_name = H["dataset_name"]
         self.loss_history = []
 
-        # Move the model to the specified device (e.g., GPU)
-        self.model = model.to(self.device)
+
 
         # Initialize an optimizer for the entire model
-        self.optimizers = [optim.Adam(self.model.parameters(), lr=self.lr)]
+        self.optimizers = [optim.Adam(self.center_model.parameters(), lr=self.lr)]
 
         # Define the loss function
         self.criterion = nn.CrossEntropyLoss()
@@ -246,6 +253,13 @@ def get_dataset_dimensionality(dataset_name,dataset_type):
     gc.collect()
     
     return input_shape, target_shape
+
+# The following function, `generate_ModelFrame`, is responsible for creating and initializing
+# a model frame based on the hyperparameters and model type specified in the dictionary `H`.
+# It supports different types of models, including image models (e.g., ResNet18, ResNet34),
+# regression models (e.g., linear_nn), and NLP models. The function first determines the
+# input and output shapes of the dataset, then initializes the model accordingly. Finally,
+# it creates the appropriate training frame based on the training mode specified in `H`.
 
 def generate_ModelFrame(H):
     image_models = ["ResNet18","ResNet34"]

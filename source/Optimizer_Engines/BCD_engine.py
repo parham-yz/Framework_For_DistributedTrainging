@@ -3,7 +3,39 @@ import FramWork_For_DistributedNNTrainging.source.Frame.Model_frames as Model_fr
 import concurrent.futures
 import time  # Import the time module
 import multiprocessing
+from FramWork_For_DistributedNNTrainging.source.Frame.StopperUnit import StopperUnit
 
+def log_progress(frame, round_idx, total_time, optimize_block_time, log_deviation=False):
+    """Logs performance on one batch from big_train_loader with optional deviation info."""
+    with torch.no_grad():
+        for batch in frame.big_train_loader:
+            inputs, labels = batch
+            inputs = inputs.to(frame.device)
+            labels = labels.to(frame.device)
+            outputs = frame.center_model(inputs)
+            loss = frame.criterion(outputs, labels)
+            _, predicted = torch.max(outputs, 1)
+            accuracy = (predicted == labels).float().mean().item()
+            # Calculate compute time share (ensuring we avoid division by zero)
+            compute_share = round(optimize_block_time / total_time, 2) if total_time > 0 else 0
+            message = f"Time {round_idx/1000}: Energy = {loss.item()}, Accuracy = {round(accuracy, 2)}, ComputeTimeShare = {compute_share}"
+            if log_deviation:
+                frame.compute_deviation()
+                deviation = sum(frame.param_deviation) / len(frame.param_deviation) if frame.param_deviation else 0
+                message += f", Deviation = {deviation}"
+            frame.reporter.log(message)
+            frame.loss_history.append(loss.item())
+            # Update last known metrics for stopper checks
+            frame.last_loss = loss.item()
+            frame.last_accuracy = accuracy
+            break
+            
+
+def perform_communication(frame, communicate_func):
+    """Executes a communication phase using the provided function and returns the elapsed time."""
+    start = time.time()
+    communicate_func()
+    return time.time() - start
 
 
 def optimzie_block(model, optimizer, K, train_loader, device, criterion):
@@ -21,8 +53,6 @@ def optimzie_block(model, optimizer, K, train_loader, device, criterion):
     Returns:
         The updated model copy after K steps.
     """
-    
-    
     # Perform K local steps
     for _ in range(K):
         for batch in train_loader:
@@ -40,19 +70,15 @@ def optimzie_block(model, optimizer, K, train_loader, device, criterion):
     return model
 
 
-
-
-
-
 # Set the start method for multiprocessing to 'spawn'
 multiprocessing.set_start_method('spawn', force=True)
 
-def train_blockwise(frame):
+def train_blockwise_distributed(frame):
     """
     Trains the model with an inner loop (round) calling optimzie_block for each optimizer in parallel using multiprocessing.
     
     Args:
-        frame: The Classifier_frame_blockwise instance containing model, optimizers, etc.
+        frame: The Classifier_frame_blockwise instance containing model, optimizers, stopper_units, etc.
     """
     device = frame.device
     total_rounds = frame.rounds
@@ -90,39 +116,32 @@ def train_blockwise(frame):
             # Accumulate time spent in optimize_block
             time_spent_in_optimize_block += time.time() - optimize_block_start
 
-            # Communication phase
-            communicate_start = time.time()
-            frame.communicate()
-            time_spent_in_communicate += time.time() - communicate_start
+            # Communication phase refactored using helper function
+            time_spent_in_communicate += perform_communication(frame, frame.communicate)
 
-        
-        # Step 3: Log progress every 100 rounds  
+            # Log progress every report_sampling_rate rounds
+            if round_idx % frame.H["report_sampling_rate"] == 0:
+                total_time = time.time() - total_time_start
+                log_progress(frame, round_idx, total_time, time_spent_in_optimize_block, log_deviation=False)
+                # Check stopper condition after logging progress using stopper_units attribute
+                if hasattr(frame, "stopper_units") and frame.stopper_units:
+                    if any(stopper.should_stop(frame, frame.last_loss, frame.last_accuracy) for stopper in frame.stopper_units):
+                        frame.reporter.log("Early stopping triggered.")
+                        break
+
         total_time_end = time.time()
         total_time = total_time_end - total_time_start
-        with torch.no_grad():  # Disable gradient computation
-            if round_idx % frame.H["report_sampling_rate"] == 0:
-                for batch in frame.big_train_loader:
-                    inputs, labels = batch
-                    inputs = inputs.to(device)
-                    labels = labels.to(device)
-                    outputs = frame.center_model(inputs)
-                    loss = frame.criterion(outputs, labels)
-                    _, predicted = torch.max(outputs, 1)
-                    accuracy = (predicted == labels).float().mean().item()
-                    frame.reporter.log(f"Time {(round_idx)/(1000)}: Energy = {loss.item()}, Accuracy = {round(accuracy, 2)}, ComputeTimeShare = {round(time_spent_in_optimize_block/total_time, 2)}")  # Now using Reporter
-                    frame.loss_history.append(loss.item())
-                    break  # Evaluate on one batch
+        with torch.no_grad():
+            pass
 
     frame.reporter.log("Training completed")
-
-
 
 def train_blockwise_sequential(frame: Model_frames.ImageClassifier_frame_blockwise):
     """
     Trains the model with an inner loop (round) calling train_block for each optimizer.
     
     Args:
-        classifier: The Classifier instance containing model, optimizers, etc.
+        frame: The Classifier instance containing model, optimizers, stopper_units, etc.
     """
     device = frame.device
     iteration = 0
@@ -149,44 +168,29 @@ def train_blockwise_sequential(frame: Model_frames.ImageClassifier_frame_blockwi
             )
             time_spent_in_optimize_block += time.time() - optimize_block_start  # Accumulate time
 
-        # Step 2: Update the main model's blocks with the updated blocks
-        communicate_start = time.time()  # Start timing
-        frame.communicate_withDelay()
-        time_spent_in_communicate += time.time() - communicate_start  # Accumulate time
+        # Step 2: Update the main model's blocks with the updated blocks using helper function.
+        time_spent_in_communicate += perform_communication(frame, frame.communicate_withDelay)
 
-        total_time_end = time.time()
-        total_time = total_time_end - total_time_start
-
-        # Step 3: Log progress every 100 rounds
-        with torch.no_grad():  # Disable gradient computation
-            if round_idx % frame.H["report_sampling_rate"] == 0:
-                for batch in frame.big_train_loader:
-                    inputs, labels = batch
-                    inputs = inputs.to(device)
-                    labels = labels.to(device)
-                    outputs = frame.center_model(inputs)
-                    loss = frame.criterion(outputs, labels)
-                    _, predicted = torch.max(outputs, 1)
-                    accuracy = (predicted == labels).float().mean().item()
-                    frame.compute_deviation()
-                    param_deviation = sum(frame.param_deviation)/len(frame.param_deviation)
-                    frame.reporter.log(f"Time {(round_idx)/(1000)}: Energy = {loss.item()}, Accuracy = {round(accuracy, 2)}, ComputeTimeShare = {round(time_spent_in_optimize_block/total_time, 2)}, Deviation = {param_deviation}")  # Now using Reporter
-                    frame.loss_history.append(loss.item())
-                    break  # Evaluate on one batch
+        total_time = time.time() - total_time_start
+        # Log progress every report_sampling_rate rounds using the helper function (with deviation)
+        if round_idx % frame.H["report_sampling_rate"] == 0:
+            log_progress(frame, round_idx, total_time, time_spent_in_optimize_block, log_deviation=True)
+            # Check stopper condition after logging progress using stopper_units attribute
+            if hasattr(frame, "stopper_units") and frame.stopper_units:
+                if any(stopper.should_stop(frame, frame.last_loss, frame.last_accuracy) for stopper in frame.stopper_units):
+                    frame.reporter.log("Early stopping triggered.")
+                    break
 
         iteration += 1
 
-
-
-
-    frame.reporter.log("Training completed")  # Now using Reporter
+    frame.reporter.log("Training completed")
 
 def train_entire(frame):
     """
     Trains the entire network using a single optimizer, with progress reporting based on iterations.
 
     Args:
-        classifier: The Classifier instance containing model, optimizer, etc.
+        frame: The Classifier instance containing model, optimizer, stopper_units, etc.
     """
     model = frame.model.to(frame.device)
     train_loader = frame.train_loader
@@ -218,6 +222,18 @@ def train_entire(frame):
                 accuracy = (predicted == labels).float().mean().item()
                 reporter.log(f"Time {(round_idx)/(1000)}: Energy = {loss.item()}, Accuracy = {round(accuracy, 2)}")
                 frame.loss_history.append(loss.item())
+                # Update last known metrics for stopper checks
+                frame.last_loss = loss.item()
+                frame.last_accuracy = accuracy
+                # Check stopper condition after logging progress using stopper_units attribute
+                if hasattr(frame, "stopper_units") and frame.stopper_units:
+                    if any(stopper.should_stop(frame, frame.last_loss, frame.last_accuracy) for stopper in frame.stopper_units):
+                        reporter.log("Early stopping triggered.")
+                        break
 
     reporter.log("Training completed")
     print('Finished Training')
+
+
+
+
