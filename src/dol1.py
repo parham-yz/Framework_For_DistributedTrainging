@@ -4,7 +4,6 @@ import torch.optim as optim
 import copy
 import src.Optimizer_Engines.BCD_engine as BCD_engine
 from src.Architectures.Models import load_resnet18, load_resnet34
-from src.Data.data_imagenet import *
 import src.utils as utils
 import src.Buliding_Units.Model_frames as Model_frames
 import src.Buliding_Units.StopperUnit as StopperUnit
@@ -20,14 +19,12 @@ if __name__ == "__main__":
         "step_size": 0.00001,
         "batch_size": 256,
         "rounds": 20000,
-        "K": 1,
-        "dataset_name": "cifar100",
-        "cuda_core": -1,
-        "training_mode": "blockwise_sequential",
-        "report_sampling_rate" : 10,
-        "model": "ResNet18",
-        "communication_delay" : 1,
-        "n_workers": 0.25
+        "dataset_name": "mnist",
+        "cuda_core": 0,
+        "training_mode": "entire",
+        "report_sampling_rate": 10,
+        "model": "linear_nn",
+        "config": [32]*4
     }
 
 
@@ -39,7 +36,7 @@ if __name__ == "__main__":
     
     # Generate the model based on the specified training mode
     frame = Model_frames.generate_ModelFrame(H)
-    frame.set_measure_units(measurement_units)
+    # frame.set_measure_units(measurement_units)
     frame.set_stopper_units([StopperUnit.AccuracyTargetStopper(0.9)])
 
     # Train the model using the specified training mode

@@ -300,7 +300,7 @@ def generate_ModelFrame(H):
         model = Models.load_resnet34(pretrained=pretrained, num_classes=output_shape[0])
     elif model_type == "linear_nn":
         # Load a feedforward network for regression tasks; use defaults if not provided in H.
-        config = [32]*16
+        config = H["config"]
         assert len(input_shape) == 1, "Expected input_shape to have length 1 for linear_nn"
         assert len(output_shape) == 1, "Expected output_shape to have length 1 for linear_nn"
         input_dim = input_shape[0]
