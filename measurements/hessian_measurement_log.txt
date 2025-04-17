@@ -16,3 +16,63 @@ Measurement Description: Hessian Measurement
 Process ID: 73228
 Measurement Description: Hessian Measurement
 
+Process ID: 185442
+Measurement Description: Hessian Measurement
+
+-0.12321
+-0.12321
+-0.12321
+-0.12321
+-0.12321
+Process ID: 188870
+Measurement Description: Hessian Measurement
+
+Process ID: 192056
+Measurement Description: Hessian Measurement
+
+Process ID: 192604
+Measurement Description: Hessian Measurement
+
+Process ID: 195836
+Measurement Description: Hessian Measurement
+
+Process ID: 197580
+Measurement Description: Hessian Measurement
+
+Process ID: 199180
+Measurement Description: Hessian Measurement
+
+-0.12321
+Process ID: 200097
+Measurement Description: Hessian Measurement
+
+-0.12321
+-0.12321
+-0.12321
+-0.12321
+-0.12321
+-0.12321
+-0.12321
+-0.12321
+-0.12321
+-0.12321
+Process ID: 204227
+Measurement Description: Hessian Measurement
+
+Process ID: 206248
+Measurement Description: Hessian Measurement
+
+(0.02614794671535492, -0.702883243560791)
+Process ID: 206782
+Measurement Description: Hessian Measurement
+
+(0.0012952332617715001, 0.02300744131207466)
+(0.009813126176595688, 0.09269490092992783)
+(0.060409240424633026, 0.22257685661315918)
+(0.722217857837677, 2.156005382537842)
+(2.5447936058044434, 6.201155185699463)
+(2.604384422302246, 6.283162593841553)
+(0.8844314813613892, 4.614920616149902)
+(3.331597328186035, 11.634645462036133)
+(2.2701776027679443, 5.204916477203369)
+(3.222539186477661, 7.509493350982666)

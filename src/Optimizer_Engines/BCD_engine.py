@@ -8,7 +8,6 @@ import random
 
 def log_progress(frame, round_idx, total_time, optimize_block_time, log_deviation=False):
     """Logs performance on one batch from big_train_loader with optional deviation info."""
-    frame.run_measurmentUnits()
     with torch.no_grad():
         for batch in frame.big_train_loader:
             inputs, labels = batch
@@ -88,6 +87,7 @@ def train_blockwise_distributed(frame:Model_frames.Disributed_frame):
     total_rounds = frame.rounds
 
     frame.reporter.log("Started the training loop")
+    frame.reporter.log(f"Total rounds: {total_rounds}, number of blocks: {len(frame.distributed_models)}")
 
     # Initialize timing measurements
     total_time_start = time.time()
@@ -122,6 +122,9 @@ def train_blockwise_distributed(frame:Model_frames.Disributed_frame):
 
             # Communication phase refactored using helper function
             time_spent_in_communicate += perform_communication(frame, frame.communicate)
+            # Measurement sampling based on new sampling rate
+            if round_idx % frame.H.get("measurement_sampling_rate", 1) == 0:
+                frame.run_measurmentUnits()
 
             # Log progress every report_sampling_rate rounds
             if round_idx % frame.H["report_sampling_rate"] == 0:
@@ -138,6 +141,7 @@ def train_blockwise_distributed(frame:Model_frames.Disributed_frame):
         with torch.no_grad():
             pass
 
+    frame.reporter.log(f"Training summary: total time = {total_time:.2f}s, optimize time = {time_spent_in_optimize_block:.2f}s, communication time = {time_spent_in_communicate:.2f}s")
     frame.reporter.log("Training completed")
 
 def train_blockwise_sequential(frame: Model_frames.Disributed_frame, share_of_active_workes=-1):
@@ -152,7 +156,8 @@ def train_blockwise_sequential(frame: Model_frames.Disributed_frame, share_of_ac
     device = frame.device
     iteration = 0
 
-    frame.reporter.log("Started the training loop")  # Now using Reporter
+    frame.reporter.log("Started the training loop")
+    frame.reporter.log(f"Total rounds: {frame.rounds}, number of blocks: {len(frame.distributed_models)}")
 
     # Initialize timing measurements
     total_time_start = time.time()
@@ -185,6 +190,9 @@ def train_blockwise_sequential(frame: Model_frames.Disributed_frame, share_of_ac
 
         # Step 2: Update the main model's blocks with the updated blocks using helper function.
         time_spent_in_communicate += perform_communication(frame, frame.communicate_withDelay)
+        # Measurement sampling based on new sampling rate
+        if round_idx % frame.H.get("measurement_sampling_rate", 1) == 0:
+            frame.run_measurmentUnits()
 
         total_time = time.time() - total_time_start
         # Log progress every report_sampling_rate rounds using the helper function (with deviation)
@@ -198,6 +206,9 @@ def train_blockwise_sequential(frame: Model_frames.Disributed_frame, share_of_ac
 
         iteration += 1
 
+    total_time_end = time.time()
+    total_time = total_time_end - total_time_start
+    frame.reporter.log(f"Training summary: total time = {total_time:.2f}s, optimize time = {time_spent_in_optimize_block:.2f}s, communication time = {time_spent_in_communicate:.2f}s")
     frame.reporter.log("Training completed")
 
 def train_entire(frame):
@@ -217,6 +228,7 @@ def train_entire(frame):
     center_model.train()  # Set the center_model to training mode
 
     reporter.log("Started the training loop")
+    reporter.log(f"Total epochs: {frame.rounds}")
     total_time_start = time.time()
     iteration = 0
 
@@ -232,6 +244,10 @@ def train_entire(frame):
         loss.backward()
         optimizer.step()
         iteration += 1
+        # Measurement sampling based on new sampling rate
+        if iteration % frame.H.get("measurement_sampling_rate", 1) == 0:
+            frame.run_measurmentUnits()
+        # Reporting sampling based on report_sampling_rate
         if iteration % frame.H["report_sampling_rate"] == 0:
             total_time = time.time() - total_time_start
             log_progress(frame, round_idx, total_time, 0, log_deviation=False)
@@ -240,5 +256,7 @@ def train_entire(frame):
                     reporter.log("Early stopping triggered.")
                     break
 
-    reporter.log("Training completed")
-    print('Finished Training')
+    total_time_end = time.time()
+    total_time = total_time_end - total_time_start
+    reporter.log(f"Training completed in {total_time:.2f}s over {iteration} iterations")
+    print(f"Finished Training in {total_time:.2f}s over {iteration} iterations")

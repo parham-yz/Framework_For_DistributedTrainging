@@ -2,6 +2,10 @@ from abc import ABC, abstractmethod
 import os
 import torch
 import copy
+import matplotlib.pyplot as plt
+import os
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 class MeasurementUnit(ABC):
@@ -161,15 +165,26 @@ class Hessian_measurement(MeasurementUnit):
         
         criterion = getattr(frame, "criterion", torch.nn.MSELoss())
 
-        hessian = _compute_hessian(model, inputs, targets, criterion)
-        ls = _get_block_parameter_counts(model)
-        hessian_blocks = _decompose_matrix_to_blocks(hessian,ls)
-        
-        diagonal_elements = torch.diag(hessian)
-        diag_row_norm = [sum(hessian_blocks[i]) for i in range(len(hessian_blocks))]
-        off_diagonal_elements = hessian - torch.diag(diagonal_elements)
-        frob_norm_off_diagonal = torch.norm(off_diagonal_elements).item()
-        return frob_norm_off_diagonal / frob_norm_diagonal
+        # --------------------------------------------------------------
+        # Fast spectrum estimation (block‑aware, no full Hessian build)
+        # --------------------------------------------------------------
+        min_eig_diag, max_eig_offdiag = fast_hessian_spectrum(
+            model, inputs, targets, criterion, max_iter=30
+        )
+
+        # Optionally, you might still want to draw the heat‑map as before.
+        # Because that requires the *full* Hessian we skip it by default to
+        # keep the routine lightweight.  Uncomment the following block if the
+        # visualisation is important *and* the model is small enough.
+        # ------------------------------------------------------------------
+        # hessian = _compute_hessian(model, inputs, targets, criterion)
+        # ls = _get_block_parameter_counts(model)
+        # hessian_blocks = _decompose_matrix_to_blocks(hessian, ls)
+        # block_norms = _compute_block_operator_norms(hessian_blocks)
+        # [plotting code…]
+
+        # Return the requested scalars as a tuple.
+        return float(min_eig_diag), float(max_eig_offdiag)
 
 
 def _compute_hessian(model, inputs, targets, criterion, epsilon=1e-4):
@@ -296,3 +311,235 @@ def _get_block_parameter_counts(model):
     num_params = sum(p.numel() for p in block.parameters())
     param_counts.append(num_params)
   return param_counts
+ 
+def _compute_block_operator_norms(block_matrix):
+    """
+    Compute the operator norm (largest singular value) of each block in a block matrix.
+
+    Args:
+        block_matrix (list of list of torch.Tensor): nested list of blocks of shape (n, m).
+
+    Returns:
+        torch.Tensor: a tensor of shape (n, m) where each entry is the operator norm of the
+                      corresponding block.
+    """
+    if not block_matrix:
+        return torch.empty(0)
+    n = len(block_matrix)
+    m = len(block_matrix[0])
+    device = block_matrix[0][0].device
+    norms = torch.zeros((n, m), device=device)
+    for i in range(n):
+        for j in range(m):
+            block = block_matrix[i][j]
+            # compute largest singular value
+            try:
+                op_norm = torch.linalg.norm(block, ord=2)
+            except AttributeError:
+                # fallback to SVD
+                svals = torch.linalg.svdvals(block)
+                op_norm = svals.max()
+            norms[i, j] = op_norm
+    return norms
+
+# -----------------------------------------------------------------------------
+#  Fast Hessian spectrum utilities
+# -----------------------------------------------------------------------------
+
+def _flatten_params(model):
+    """Return a flat 1‑D view of all parameters (with gradients) and a list of
+    slices that map every *block* (as defined by ``model.blocks``) to its
+    position in the flat vector.
+
+    The helper is central to the fast Hessian‑vector‑product routines: we need a
+    deterministic mapping from a *block index* to the contiguous range of
+    coordinates that correspond to that block in the flattened parameter
+    vector.
+    """
+    # Build a flat list of parameters while recording the start/stop indices
+    flat_params: list[torch.Tensor] = []
+    block_slices: list[slice] = []
+
+    cursor = 0
+    for blk in model.blocks:
+        blk_tensors = list(blk.parameters())
+        flat_params.extend(blk_tensors)
+
+        blk_numel = sum(p.numel() for p in blk_tensors)
+        block_slices.append(slice(cursor, cursor + blk_numel))
+        cursor += blk_numel
+
+    # ``torch.nn.utils.parameters_to_vector`` keeps the order of the supplied
+    # iterable, so we can safely flatten the *concatenated* list.
+    flat_vector = torch.nn.utils.parameters_to_vector(flat_params)
+    return flat_vector, block_slices
+
+
+def _make_hvp_fn(model, inputs, targets, criterion):
+    """Return a closure that computes *one* Hessian‑vector product (HVP).
+
+    The closure recreates the backwards graph each call so that the autograd
+    engine does not accumulate computational history across iterations.  Given
+    the small number of HVP calls we expect (≈ few × 10²), the overhead is
+    negligible compared with the cost of the forward and backward passes.
+    """
+
+    # Keep a reference to the *parameter list* once so that we do not have to
+    # traverse ``model.parameters()`` on every invocation.
+    params = list(model.parameters())
+
+    def hvp(vec: torch.Tensor) -> torch.Tensor:
+        """Compute H·vec where *H* is the Hessian of *loss* w.r.t. *params*.
+
+        Args
+        ----
+        vec (torch.Tensor): 1‑D tensor with the same number of elements as the
+            concatenation of ``params``.
+        Returns
+        -------
+        torch.Tensor: the Hessian‑vector product, shape = vec.shape.
+        """
+        if vec.requires_grad:
+            vec = vec.detach()
+
+        # Forward pass & gradient
+        model.zero_grad(set_to_none=True)
+        outputs = model(inputs)
+        loss = criterion(outputs, targets)
+
+        # First‑order gradients (create_graph=True so we can differentiate them)
+        first_grads = torch.autograd.grad(
+            loss, params, create_graph=True, retain_graph=True, allow_unused=False
+        )
+        grad_flat = torch.cat([g.reshape(-1) for g in first_grads])
+
+        # Dot(grad, vec) – scalar
+        grad_dot_vec = torch.dot(grad_flat, vec)
+
+        # Second backward: gradient of the dot product is the HVP.
+        hvp_parts = torch.autograd.grad(
+            grad_dot_vec, params, retain_graph=False, allow_unused=False
+        )
+        hvp_flat = torch.cat([g.reshape(-1) for g in hvp_parts])
+        return hvp_flat.detach()
+
+    return hvp
+
+
+def _power_iteration(matvec, dim, *, max_iter=50, tol=1e-6, device=None):
+    """Compute *largest* eigenvalue of a symmetric operator by power iteration.
+
+    Args
+    ----
+    matvec (callable): function v ↦ A v.
+    dim (int): size of the input vector space.
+    max_iter (int): maximum number of power iterations.
+    tol (float): relative convergence tolerance on the eigenvalue.
+    device: torch device for the work vectors.
+
+    Returns
+    -------
+    (eigval, eigvec): tuple of the dominant eigenvalue (float) and the
+    corresponding eigenvector (torch.Tensor).
+    """
+    rng = torch.Generator(device=device)
+    v = torch.randn(dim, device=device, generator=rng)
+    v = v / v.norm()
+
+    eigval = None
+    for _ in range(max_iter):
+        Av = matvec(v)
+        new_eigval = torch.dot(v, Av)
+        if eigval is not None and torch.isfinite(eigval):
+            if torch.abs(new_eigval - eigval) / (torch.abs(eigval) + 1e-12) < tol:
+                eigval = new_eigval
+                break
+        eigval = new_eigval
+        v = Av / Av.norm()
+
+    return eigval.item(), v.detach()
+
+
+def fast_hessian_spectrum(model, inputs, targets, criterion, *, max_iter=50):
+    """Efficiently estimate two scalar quantities from the Hessian *H*:
+
+        1.  λ_min = min eigval(diag(H))   – the smallest eigenvalue of the *block‑diagonal* part.
+        2.  λ_max = max eigval(H − diag(H)) – the largest eigenvalue of the off‑diagonal part.
+
+    The implementation *never* materialises the full Hessian.  It relies only
+    on Hessian‑vector products (HVPs) which are computed via automatic
+    differentiation.  The block structure is defined by ``model.blocks`` – each
+    entry in that iterable is treated as one block.  All parameters belonging
+    to a given block are contiguous in the flattened parameter vector, so the
+    block‑diagonal projector is cheap to apply.
+    """
+
+    device = next(model.parameters()).device
+
+    # ---------------------------------------------------------------------
+    # Pre‑computation:  flatten parameters and build slice indices per block
+    # ---------------------------------------------------------------------
+    _, block_slices = _flatten_params(model)
+    total_params = block_slices[-1].stop
+
+    # Create HVP closure
+    hvp_fn = _make_hvp_fn(model, inputs, targets, criterion)
+
+    # ---------------------------------------------------------------
+    # Helper:  block‑diagonal Hessian‑vector product  (diag(H)·v)
+    # ---------------------------------------------------------------
+    def diag_hvp(v: torch.Tensor) -> torch.Tensor:
+        out = torch.zeros_like(v)
+        # We avoid an extra ``detach`` here because ``v`` is already detached in
+        # the power‑iteration routines and we never build a computational graph
+        # inside this helper.
+        for sl in block_slices:
+            if sl.stop - sl.start == 0:
+                continue
+            v_block = v[sl]
+            if v_block.abs().sum() == 0:
+                continue  # Skip empty vectors to save work
+
+            # Build a *sparse* full‑length vector with only the current block
+            w = torch.zeros(total_params, device=device)
+            w[sl] = v_block
+            out_block = hvp_fn(w)[sl]
+            out[sl] = out_block  # No need to clone – ``out`` is distinct.
+        return out
+
+    # ---------------------------------------------------------------
+    # λ_min  (diag(H)) – iterate *per block* on the *negated* operator to get
+    # the smallest eigenvalue.
+    # ---------------------------------------------------------------
+    min_eig_diag = float("inf")
+    for sl in block_slices:
+        m = sl.stop - sl.start
+        if m == 0:
+            continue
+
+        # Build matvec for the *negated* block: v ↦ - (diag(H) v)
+        def block_neg_matvec(v_local, sl=sl):  # default arg binds slice
+            full_v = torch.zeros(total_params, device=device)
+            full_v[sl] = v_local
+            # Extract only the block component after HVP
+            res = -hvp_fn(full_v)[sl]
+            return res
+
+        eigval_neg, _ = _power_iteration(block_neg_matvec, m, max_iter=max_iter, device=device)
+        # Convert back to *actual* eigenvalue of the block
+        min_eig_diag = min(min_eig_diag, -eigval_neg)
+
+    # -----------------------------------------------------------------
+    # λ_max  of  H − diag(H)  via power iteration with a custom matvec.
+    # Each iteration requires  (1 + #blocks_nonzero)  HVPs.
+    # -----------------------------------------------------------------
+    def offdiag_matvec(v: torch.Tensor) -> torch.Tensor:
+        # Full Hessian‑vector product
+        Hv = hvp_fn(v)
+        # Subtract the block‑diagonal piece
+        diagHv = diag_hvp(v)
+        return Hv - diagHv
+
+    max_eig_offdiag, _ = _power_iteration(offdiag_matvec, total_params, max_iter=max_iter, device=device)
+
+    return min_eig_diag, max_eig_offdiag

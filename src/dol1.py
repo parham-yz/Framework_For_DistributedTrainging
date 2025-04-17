@@ -22,9 +22,10 @@ if __name__ == "__main__":
         "dataset_name": "mnist",
         "cuda_core": 0,
         "training_mode": "entire",
-        "report_sampling_rate": 10,
+        "report_sampling_rate": 100,
+        "measurement_sampling_rate": 2000-1,
         "model": "cnn",
-        "config": [8]*4
+        "config": [16]*2
     }
 
 

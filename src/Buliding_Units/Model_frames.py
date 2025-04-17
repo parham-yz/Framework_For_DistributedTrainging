@@ -67,14 +67,22 @@ class Frame:
         self.stopper_units = stopper_units
 
     def run_measurmentUnits(self):
-        """
+        """   
         Runs each measurement unit by feeding the frame.
         """
-        
-        # Feed the models list to each measurement unit
+        # Log start of all measurement units
+        self.reporter.log("Starting measurement units")
+        # Run each measurement unit by feeding the frame and reporting results
         for measurement_unit in self.measure_units:
+            unit_name = measurement_unit.__class__.__name__
+            # Log before measurement
+            self.reporter.log(f"Starting measurement: {unit_name}")
+            # Perform measurement
             result = measurement_unit.measure(self)
+            # Log to the unit's own measurement log
             measurement_unit.log_measurement(result)
+        # Log completion of all measurement units
+        self.reporter.log("Finished measurement units")
 
 
 class Disributed_frame(Frame):
