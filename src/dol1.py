@@ -23,9 +23,9 @@ if __name__ == "__main__":
         "cuda_core": 0,
         "training_mode": "entire",
         "report_sampling_rate": 100,
-        "measurement_sampling_rate": 2000-1,
+        "measurement_sampling_rate": 4000-1,
         "model": "cnn",
-        "config": [16]*2
+        "config": [32]*5
     }
 
 

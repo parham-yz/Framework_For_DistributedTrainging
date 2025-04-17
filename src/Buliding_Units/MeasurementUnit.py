@@ -543,3 +543,146 @@ def fast_hessian_spectrum(model, inputs, targets, criterion, *, max_iter=50):
     max_eig_offdiag, _ = _power_iteration(offdiag_matvec, total_params, max_iter=max_iter, device=device)
 
     return min_eig_diag, max_eig_offdiag
+
+# =============================================================================
+#  Measurement: Block‑wise off‑diagonal singular values of Hessian
+# =============================================================================
+
+
+class HessianBlockInteractionMeasurement(MeasurementUnit):
+    """Measurement unit that builds a *block interaction matrix* H′ of size
+    (B × B), where *B* is the number of parameter blocks in ``model.blocks``.
+
+    •  H′[i, i] = 0.
+    •  For i ≠ j, H′[i, j] = σ_max(H_ij), the largest singular value of the
+       off‑diagonal Hessian block that couples block *i* with block *j*.
+
+    The class relies only on Hessian‑vector products and therefore scales to
+    large models (millions of parameters) as long as the number of blocks B is
+    modest (2 – 12 as in your use‑case).
+    A heat‑map of H′ is stored in
+        figures/Measurements/Hessian_Measurement/block_offdiag_eig_heatmap.pdf
+    """
+
+    def __init__(self, max_iter: int = 30):
+        super().__init__("Hessian Block Interaction Measurement")
+        self.max_iter = max_iter
+
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _diag_hvp_two_blocks(hvp_fn, slice_i, slice_j, total_dim, v_full, buffer):
+        """Compute (diag H)·v, but only for blocks *i* and *j*.
+
+        Args
+        ----
+        hvp_fn: function performing one Hessian‑vector product
+        slice_i, slice_j: slices corresponding to blocks i and j
+        total_dim: full parameter dimension
+        v_full (Tensor): full‑length vector containing the current iterate
+        buffer (Tensor): pre‑allocated tensor for temporary vectors
+        """
+        # Contribution from block i
+        buffer.zero_()
+        buffer[slice_i] = v_full[slice_i]
+        diag_i = hvp_fn(buffer)[slice_i]
+
+        # Contribution from block j
+        buffer.zero_()
+        buffer[slice_j] = v_full[slice_j]
+        diag_j = hvp_fn(buffer)[slice_j]
+
+        out = torch.zeros_like(v_full)
+        out[slice_i] = diag_i
+        out[slice_j] = diag_j
+        return out
+
+    def _pair_sigma_max(self, hvp_fn, slice_i, slice_j, total_dim, device):
+        """Return σ_max(H_ij) via power iteration on the symmetric matrix
+        M = [[0, H_ij], [H_ji, 0]].
+        """
+        dim_i = slice_i.stop - slice_i.start
+        dim_j = slice_j.stop - slice_j.start
+        sub_dim = dim_i + dim_j
+
+        # Pre‑allocated tensors to minimise allocations inside matvec
+        full_vec = torch.zeros(total_dim, device=device)
+        buffer = torch.zeros_like(full_vec)
+
+        def matvec(local_v):
+            # local_v is concatenation of (v_i, v_j)
+            v_i = local_v[:dim_i]
+            v_j = local_v[dim_i:]
+
+            full_vec.zero_()
+            full_vec[slice_i] = v_i
+            full_vec[slice_j] = v_j
+
+            Hv = hvp_fn(full_vec)
+            diagHv = self._diag_hvp_two_blocks(
+                hvp_fn, slice_i, slice_j, total_dim, full_vec, buffer
+            )
+            off = Hv - diagHv
+
+            return torch.cat([off[slice_i], off[slice_j]])
+
+        eigval, _ = _power_iteration(matvec, sub_dim, max_iter=self.max_iter, device=device)
+        return abs(eigval)
+
+    # ------------------------------------------------------------------
+    # MeasurementUnit interface implementation
+    # ------------------------------------------------------------------
+
+    def measure(self, frame):
+        model = frame.center_model
+        device = next(model.parameters()).device
+
+        # Fetch a single mini‑batch
+        data_iter = iter(frame.train_loader)
+        try:
+            inputs, targets = next(data_iter)
+        except StopIteration:
+            return torch.tensor([])
+
+        inputs, targets = inputs.to(device), targets.to(device)
+        criterion = getattr(frame, "criterion", torch.nn.MSELoss())
+
+        # Prepare HVP function and block slices
+        _, block_slices = _flatten_params(model)
+        total_dim = block_slices[-1].stop
+        B = len(block_slices)
+
+        hvp_fn = _make_hvp_fn(model, inputs, targets, criterion)
+
+        # Allocate result matrix H′
+        Hprime = torch.zeros(B, B, device=device)
+
+        for i in range(B):
+            for j in range(i + 1, B):
+                sigma = self._pair_sigma_max(
+                    hvp_fn, block_slices[i], block_slices[j], total_dim, device
+                )
+                Hprime[i, j] = sigma
+                Hprime[j, i] = sigma
+
+        # ------------------ visualisation ------------------
+        fig_dir = os.path.join("figures", "Measurements", "Hessian_Measurement")
+        os.makedirs(fig_dir, exist_ok=True)
+
+        plt.figure(figsize=(6, 5))
+        plt.imshow(Hprime.cpu().numpy(), cmap="magma", interpolation="nearest")
+        plt.colorbar()
+        plt.title("Block interaction (σ_max of off‑diag Hessian blocks)")
+        plt.tight_layout()
+        plt.savefig(os.path.join(fig_dir, "block_offdiag_eig_heatmap.pdf"))
+        plt.close()
+
+        return Hprime.detach()
+
+    # Override logger to handle matrix output
+    def log_measurement(self, measurement):
+        array_str = np.array2string(measurement.cpu().numpy(), precision=6, separator=", ")
+        self.reporter.write(array_str + "\n")
+        self.reporter.flush()
