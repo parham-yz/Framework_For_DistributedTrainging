@@ -71,7 +71,9 @@ class Frame:
         Runs each measurement unit by feeding the frame.
         """
         # Log start of all measurement units
+        import time as _time
         self.reporter.log("Starting measurement units")
+        _t0 = _time.perf_counter()
         # Run each measurement unit by feeding the frame and reporting results
         for measurement_unit in self.measure_units:
             unit_name = measurement_unit.__class__.__name__
@@ -81,8 +83,9 @@ class Frame:
             result = measurement_unit.measure(self)
             # Log to the unit's own measurement log
             measurement_unit.log_measurement(result)
-        # Log completion of all measurement units
-        self.reporter.log("Finished measurement units")
+        # Log completion of all measurement units with timing
+        elapsed = _time.perf_counter() - _t0
+        self.reporter.log(f"Finished measurement units , took {elapsed:.2f} seconds")
 
 
 class Disributed_frame(Frame):
@@ -252,8 +255,21 @@ def get_dataset_dimensionality(dataset_name,dataset_type):
     elif dataset_type == 'regression':
         dataset = data.generate_regressiondata(dataset_name)
 
-    # Determine the input and target shapes of the dataset
-    input_shape = dataset.data[0].shape
+    # Determine the *transformed* input shape rather than raw stored data.
+    try:
+        # Most torchvision datasets return (image, label) tuples and apply the
+        # defined transform inside __getitem__. Fetch a single sample to inspect
+        # the true tensor shape that the model will receive.
+        sample_input = dataset[0][0]
+        # If the transform returns PIL image instead of tensor, convert to tensor
+        if hasattr(sample_input, "shape"):
+            input_shape = sample_input.shape
+        else:
+            # Fallback: use raw data attribute as before.
+            input_shape = dataset.data[0].shape
+    except Exception:
+        # Fallback for datasets that don’t support indexing like this.
+        input_shape = dataset.data[0].shape
 
     dataset.targets = torch.tensor(dataset.targets)
     if dataset.targets.dim() == 1:
@@ -325,8 +341,44 @@ def generate_ModelFrame(H):
         assert len(output_shape) == 1, "Expected output_shape to have length 1 for cnn"
         output_dim = output_shape[0]
         activation = nn.ReLU()
-        final_activation = nn.Softmax()
+        final_activation = None
         model = Models.load_feedforward_cnn(config, output_dim, activation, final_activation)
+
+    # ------------------------------------------------------------------
+    # Ensemble of feed‑forward CNNs
+    # ------------------------------------------------------------------
+    elif model_type in ["cnn_ensemble", "feedforward_cnn_ensemble"]:
+        configs = H["config"]  # 2‑D list of conv channels per sub‑model
+        assert len(output_shape) == 1, "Expected output_shape to have length 1 for CNN ensemble"
+        output_dim = output_shape[0]
+
+        in_channels = input_shape[0] if len(input_shape) > 0 else 3  # fallback to 3
+        activation = nn.ReLU()
+        final_activation = None
+
+        model = Models.load_feedforward_cnn_ensemble(
+            configs, in_channels, output_dim, activation, final_activation
+        )
+
+    # ------------------------------------------------------------------
+    # Ensemble of feed‑forward networks (vector input)
+    # ------------------------------------------------------------------
+    elif model_type in [ "feedforward_ensemble"]:
+        configs = H["config"]  # 2‑D list
+        assert len(input_shape) == 1, "Expected input_shape to have length 1 for ensemble feed‑forward model"
+        assert len(output_shape) == 1, "Expected output_shape to have length 1 for ensemble feed‑forward model"
+
+        input_dim = input_shape[0]
+        output_dim = output_shape[0]
+
+        # Keep same activation choices as linear_nn (completely linear by default). Users can
+        # still override by passing a different 'activation' in *H* later if desired.
+        activation = nn.ReLU()
+        final_activation = nn.Identity()
+
+        model = Models.load_feedforward_ensemble(
+            configs, input_dim, output_dim, activation, final_activation
+        )
 
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
@@ -339,12 +391,11 @@ def generate_ModelFrame(H):
 
     elif ttype == "blockwise" or ttype == "blockwise_sequential":
 
-        if model_type in REGRESSION_DATASETS:
-
+        # Select appropriate distributed training frame based on *dataset* type,
+        # not the *model* type.
+        if dataset_name in REGRESSION_DATASETS:
             frame = Regression_frame_blockwis(model, H)
-
-        elif model_type in IMAGE_DATASETS:
-
+        elif dataset_name in IMAGE_DATASETS:
             frame = ImageClassifier_frame_blockwise(model, H)
     else:
         raise ValueError(f"Unknown training type: {ttype}")

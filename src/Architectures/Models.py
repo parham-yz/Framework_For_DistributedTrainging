@@ -85,3 +85,61 @@ def load_feedforward_cnn(config, output_dim, activation, final_activation):
     model = FeedForwardCNN(config,3, output_dim, activation, final_activation)
 
     return model
+
+
+# -----------------------------------------------------------------------------
+# Ensemble Feed‑Forward loader
+# -----------------------------------------------------------------------------
+
+
+def load_feedforward_ensemble(configs, input_dim, output_dim, activation, final_activation=None):
+    """Load an ensemble of feed‑forward networks.
+
+    Args
+    ----
+    configs : list[list[int]]
+        2‑D list where each inner list is passed to an individual FeedForwardNetwork.
+    input_dim : int
+        Dimensionality of input features.
+    output_dim : int
+        Dimensionality of output.
+    activation : callable
+        Activation for hidden layers.
+    final_activation : callable | None
+        Activation for the final layer.
+    """
+
+    from src.Architectures.feedforward_nn import EnsembleFeedForwardNetwork
+
+    return EnsembleFeedForwardNetwork(
+        configs, input_dim, output_dim, activation, final_activation
+    )
+
+
+# -----------------------------------------------------------------------------
+# Ensemble CNN loader
+# -----------------------------------------------------------------------------
+
+
+def load_feedforward_cnn_ensemble(configs, in_channels, output_dim, activation, final_activation=None):
+    """Load an ensemble of feed‑forward CNNs.
+
+    Args
+    ----
+    configs : list[list[int]]
+        2‑D list with convolutional hidden channel counts per sub‑model.
+    in_channels : int
+        Number of input channels in the images.
+    output_dim : int
+        Number of output units/classes.
+    activation : callable
+        Hidden activation.
+    final_activation : callable | None
+        Activation for the final layer.
+    """
+
+    from src.Architectures.feedforward_nn import EnsembleFeedForwardCNN
+
+    return EnsembleFeedForwardCNN(
+        configs, in_channels, output_dim, activation, final_activation
+    )

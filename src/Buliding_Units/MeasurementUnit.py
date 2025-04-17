@@ -564,9 +564,36 @@ class HessianBlockInteractionMeasurement(MeasurementUnit):
         figures/Measurements/Hessian_Measurement/block_offdiag_eig_heatmap.pdf
     """
 
-    def __init__(self, max_iter: int = 30):
+    def __init__(self, max_iter: int = 30, scale_offdiag: bool = True):
+        """Create the measurement unit.
+
+        Parameters
+        ----------
+        max_iter : int, default=30
+            Power‑iteration steps used to estimate each block singular value.
+        scale_offdiag : bool, default=False
+            If *True*, each row *i* of the returned matrix H′ is divided by the
+            diagonal entry H′[i,i].  This normalises the self‑interaction to 1
+            and expresses off‑diagonal couplings relative to it.
+        """
+
         super().__init__("Hessian Block Interaction Measurement")
         self.max_iter = max_iter
+        self.scale_offdiag = scale_offdiag
+
+        # ------------------------------------------------------------------
+        # Prepare figure directory: clear old content once per session
+        # ------------------------------------------------------------------
+        self._fig_dir = os.path.join("figures", "Measurements", "Hessian_Measurement")
+        if os.path.isdir(self._fig_dir):
+            for f in os.listdir(self._fig_dir):
+                existing = os.path.join(self._fig_dir, f)
+                if os.path.isfile(existing):
+                    os.remove(existing)
+        else:
+            os.makedirs(self._fig_dir, exist_ok=True)
+
+        self._fig_counter = 0  # enumerate successive calls
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -631,6 +658,20 @@ class HessianBlockInteractionMeasurement(MeasurementUnit):
         eigval, _ = _power_iteration(matvec, sub_dim, max_iter=self.max_iter, device=device)
         return abs(eigval)
 
+    def _block_sigma_max(self, hvp_fn, slice_i, total_dim, device):
+        """Largest eigenvalue magnitude of the *diagonal* block H_ii."""
+        dim_i = slice_i.stop - slice_i.start
+
+        full_vec = torch.zeros(total_dim, device=device)
+
+        def matvec(v_local):
+            full_vec.zero_()
+            full_vec[slice_i] = v_local
+            return hvp_fn(full_vec)[slice_i]
+
+        eigval, _ = _power_iteration(matvec, dim_i, max_iter=self.max_iter, device=device)
+        return abs(eigval)
+
     # ------------------------------------------------------------------
     # MeasurementUnit interface implementation
     # ------------------------------------------------------------------
@@ -659,6 +700,13 @@ class HessianBlockInteractionMeasurement(MeasurementUnit):
         # Allocate result matrix H′
         Hprime = torch.zeros(B, B, device=device)
 
+        # Diagonal blocks
+        for i in range(B):
+            Hprime[i, i] = self._block_sigma_max(
+                hvp_fn, block_slices[i], total_dim, device
+            )
+
+        # Off‑diagonal blocks (compute only for i<j, symmetry exploited)
         for i in range(B):
             for j in range(i + 1, B):
                 sigma = self._pair_sigma_max(
@@ -668,16 +716,26 @@ class HessianBlockInteractionMeasurement(MeasurementUnit):
                 Hprime[j, i] = sigma
 
         # ------------------ visualisation ------------------
-        fig_dir = os.path.join("figures", "Measurements", "Hessian_Measurement")
-        os.makedirs(fig_dir, exist_ok=True)
+        # Optional scaling of rows by their diagonal terms
+        if self.scale_offdiag:
+            for i in range(B):
+                diag_val = Hprime[i, i].abs().clamp_min(1e-12)  # avoid div‑zero
+                Hprime[i] = Hprime[i] / diag_val
+
+        arr = Hprime.cpu().numpy()
+        # Zero out lower triangle for visual clarity
+        arr_plot = np.triu(arr)
 
         plt.figure(figsize=(6, 5))
-        plt.imshow(Hprime.cpu().numpy(), cmap="magma", interpolation="nearest")
+        plt.imshow(arr_plot, cmap="Greens", interpolation="nearest")
         plt.colorbar()
-        plt.title("Block interaction (σ_max of off‑diag Hessian blocks)")
+        plt.title("Block interaction matrix σ_max (upper‑triangular)")
         plt.tight_layout()
-        plt.savefig(os.path.join(fig_dir, "block_offdiag_eig_heatmap.pdf"))
+        filename = f"block_offdiag_eig_heatmap_{self._fig_counter:03d}.pdf"
+        plt.savefig(os.path.join(self._fig_dir, filename))
         plt.close()
+
+        self._fig_counter += 1
 
         return Hprime.detach()
 

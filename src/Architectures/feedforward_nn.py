@@ -140,3 +140,159 @@ class FeedForwardCNN(nn.Module):
         for block in self.blocks:
             x = block(x)
         return x
+
+
+# ======================================================================================
+# Ensemble of Feed‑Forward Networks
+# ======================================================================================
+
+
+class EnsembleFeedForwardNetwork(nn.Module):
+    """Ensemble that averages the outputs of several ``FeedForwardNetwork`` models.
+
+    Parameters
+    ----------
+    configs : list[list[int]]
+        A *2‑D* list where each inner list contains the hidden sizes for one
+        sub‑model. Example: ``[[128, 64], [256, 128, 64]]`` creates two
+        feed‑forward networks.
+    input_dim : int
+        Dimensionality of the input features.
+    output_dim : int
+        Dimensionality of the output (number of classes or regression targets).
+    activation : callable
+        Activation function used in hidden layers.
+    final_activation : callable | None, default = None
+        Activation function for the final layer.
+    """
+
+    def __init__(self, configs, input_dim, output_dim, activation, final_activation=None,
+                 voting_method: str = "random"):
+        super().__init__()
+
+        # Validate *configs*
+        if not isinstance(configs, (list, tuple)) or len(configs) == 0:
+            raise ValueError("`configs` must be a non‑empty 2‑D list of configurations.")
+
+        for cfg in configs:
+            if not isinstance(cfg, (list, tuple)) or len(cfg) == 0:
+                raise ValueError(
+                    "Each element of `configs` must be a non‑empty list/tuple of integers."
+                )
+
+        # Build sub‑models
+        self.voting_method = voting_method.lower()
+
+        if self.voting_method not in {"average", "random"}:
+            raise ValueError("voting_method must be 'average' or 'random'")
+
+        self.models = nn.ModuleList(
+            [
+                FeedForwardNetwork(
+                    list(cfg),  # ensure each cfg is a list, copy to avoid mutations
+                    input_dim,
+                    output_dim,
+                    activation,
+                    final_activation,
+                )
+                for cfg in configs
+            ]
+        )
+
+        # Concatenate blocks from all sub‑models to keep compatibility with utilities
+        # that expect a single `blocks` attribute.
+        self.blocks = nn.ModuleList()
+        for model in self.models:
+            self.blocks.extend(model.blocks)
+
+    # ------------------------------------------------------------------
+    # Forward
+    # ------------------------------------------------------------------
+    def forward(self, x):
+        """Return ensemble prediction according to *voting_method*."""
+
+        outputs = [m(x) for m in self.models]
+        out_stack = torch.stack(outputs, dim=0)  # (E, B, D)
+
+        if self.voting_method == "average":
+            return out_stack.mean(dim=0)
+
+        # Random voting: choose one sub‑model per sample uniformly at random.
+        E, B, _ = out_stack.shape
+        rand_idx = torch.randint(0, E, (B,), device=out_stack.device)
+        mask = torch.nn.functional.one_hot(rand_idx, num_classes=E).float()  # (B, E)
+        mask = mask.permute(1, 0).unsqueeze(-1)  # (E, B, 1)
+        selected = (out_stack * mask).sum(dim=0)  # (B, D)
+        return selected
+
+
+# ======================================================================================
+# Ensemble of Feed‑Forward CNNs
+# ======================================================================================
+
+
+class EnsembleFeedForwardCNN(nn.Module):
+    """Ensemble that averages outputs from several ``FeedForwardCNN`` models.
+
+    Parameters
+    ----------
+    configs : list[list[int]]
+        A 2‑D list where each inner list contains the out‑channels for the
+        convolutional blocks of one sub‑model.
+    in_channels : int
+        Number of channels of the input images.
+    output_dim : int
+        Dimensionality of the output (e.g. number of classes).
+    activation : callable
+        Activation function for hidden conv blocks.
+    final_activation : callable | None
+        Activation for the final fully‑connected layer.
+    """
+
+    def __init__(self, configs, in_channels, output_dim, activation, final_activation=None,
+                 voting_method: str = "random"):
+        super().__init__()
+
+        # Validate configs
+        if not isinstance(configs, (list, tuple)) or len(configs) == 0:
+            raise ValueError("`configs` must be a non‑empty 2‑D list of configurations.")
+        for cfg in configs:
+            if not isinstance(cfg, (list, tuple)) or len(cfg) == 0:
+                raise ValueError("Each configuration in `configs` must be a non‑empty list/tuple.")
+
+        # Build sub‑models
+        self.voting_method = voting_method.lower()
+
+        if self.voting_method not in {"average", "random"}:
+            raise ValueError("voting_method must be 'average' or 'random'")
+
+        self.models = nn.ModuleList(
+            [
+                FeedForwardCNN(
+                    list(cfg),  # ensure copy
+                    in_channels,
+                    output_dim,
+                    activation,
+                    final_activation,
+                )
+                for cfg in configs
+            ]
+        )
+
+        # Flatten blocks of all sub‑models
+        self.blocks = nn.ModuleList()
+        for m in self.models:
+            self.blocks.extend(m.blocks)
+
+    def forward(self, x):
+        outputs = [m(x) for m in self.models]
+        out_stack = torch.stack(outputs, dim=0)  # (E, B, D)
+
+        if self.voting_method == "average":
+            return out_stack.mean(dim=0)
+
+        # Random voting (uniform) per sample
+        E, B, _ = out_stack.shape
+        rand_idx = torch.randint(0, E, (B,), device=out_stack.device)
+        mask = torch.nn.functional.one_hot(rand_idx, num_classes=E).float().permute(1, 0).unsqueeze(-1)
+        return (out_stack * mask).sum(dim=0)

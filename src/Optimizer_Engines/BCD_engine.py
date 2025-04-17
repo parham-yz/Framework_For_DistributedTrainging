@@ -123,7 +123,7 @@ def train_blockwise_distributed(frame:Model_frames.Disributed_frame):
             # Communication phase refactored using helper function
             time_spent_in_communicate += perform_communication(frame, frame.communicate)
             # Measurement sampling based on new sampling rate
-            if round_idx % frame.H.get("measurement_sampling_rate", 1) == 0:
+            if round_idx % frame.H.get("measurement_sampling_rate", 1) == 1:
                 frame.run_measurmentUnits()
 
             # Log progress every report_sampling_rate rounds
@@ -191,7 +191,7 @@ def train_blockwise_sequential(frame: Model_frames.Disributed_frame, share_of_ac
         # Step 2: Update the main model's blocks with the updated blocks using helper function.
         time_spent_in_communicate += perform_communication(frame, frame.communicate_withDelay)
         # Measurement sampling based on new sampling rate
-        if round_idx % frame.H.get("measurement_sampling_rate", 1) == 0:
+        if round_idx % frame.H.get("measurement_sampling_rate", 1) == 1:
             frame.run_measurmentUnits()
 
         total_time = time.time() - total_time_start
@@ -245,7 +245,7 @@ def train_entire(frame):
         optimizer.step()
         iteration += 1
         # Measurement sampling based on new sampling rate
-        if iteration % frame.H.get("measurement_sampling_rate", 1) == 0:
+        if iteration % frame.H.get("measurement_sampling_rate", 1) == 1:
             frame.run_measurmentUnits()
         # Reporting sampling based on report_sampling_rate
         if iteration % frame.H["report_sampling_rate"] == 0:
