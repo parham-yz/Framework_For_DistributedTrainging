@@ -1,12 +1,15 @@
 import logging
 try:
     import GPUtil
+    import inspect
+    import src.Buliding_Units.MeasurementUnit as MeasurementUnit
 except ImportError:
     import subprocess
     import sys
     logging.info("GPUtil not found. Installing GPUtil...")
     subprocess.check_call([sys.executable, "-m", "pip", "install", "GPUtil"])
     import GPUtil
+
 
 
 
@@ -289,10 +292,13 @@ def parse_measurement_units():
         raise FileNotFoundError(f"Units file not found: {file_path}")
 
     # Map valid unit names (as they appear in the file) to the corresponding classes.
+
+
+    # Dynamically find all classes in MeasurementUnit that are subclasses of MeasurementUnit
     unit_map = {
-        "Working_memory_usage": MeasurementUnit.Working_memory_usage
+        cls.__name__: cls for _, cls in inspect.getmembers(MeasurementUnit, inspect.isclass)
+        if issubclass(cls, MeasurementUnit.MeasurementUnit) and cls is not MeasurementUnit.MeasurementUnit
     }
-    
     measurement_units = []
     with open(file_path, 'r') as f:
         lines = f.readlines()
@@ -307,6 +313,7 @@ def parse_measurement_units():
                 # Instantiate the measurement unit and add it to the list.
                 measurement_units.append(unit_map[unit_name]())
             else:
+                print(unit_map)
                 raise ValueError(f"Unknown measurement unit: {unit_name}")
                 
     return measurement_units

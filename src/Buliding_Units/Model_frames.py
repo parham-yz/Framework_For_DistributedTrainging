@@ -231,7 +231,7 @@ class ImageClassifier_frame_entire(Frame):
         self.criterion = nn.CrossEntropyLoss()
 
         # Create a data loader for the training set
-        dataset= data.generate_regressiondata(self.dataset_name)
+        dataset= data.generate_imagedata(self.dataset_name)
         self.setup_dataloaders(dataset)
 
 
@@ -246,7 +246,9 @@ def get_dataset_dimensionality(dataset_name,dataset_type):
 
     # Determine the input and target shapes of the dataset
     input_shape = dataset.data[0].shape
-    if isinstance(dataset.targets, list):
+
+    dataset.targets = torch.tensor(dataset.targets)
+    if dataset.targets.dim() == 1:
         target_shape = (1,)
     else:
         target_shape = dataset.targets[0].shape
@@ -271,23 +273,21 @@ def get_dataset_dimensionality(dataset_name,dataset_type):
 # it creates the appropriate training frame based on the training mode specified in `H`.
 
 def generate_ModelFrame(H):
-    image_models = ["ResNet18","ResNet34"]
-    regression_models = ["linear_nn"]
-    nlp_models = [""]
 
-    
-
+    from src.Data.data import IMAGE_DATASETS, REGRESSION_DATASETS, NLP_DATASETS
 
     ttype = H["training_mode"]
     model_type = H.get("model", "ResNet18")  # Default to ResNet18 if not specified
-    
-    if model_type in image_models:
-        input_shape, output_shape = get_dataset_dimensionality(H["dataset_name"],'image')
-        
-    elif model_type in regression_models:
-        input_shape, output_shape = get_dataset_dimensionality(H["dataset_name"],'regression')
-    elif model_type in nlp_models:
-        input_shape, output_shape = get_dataset_dimensionality(H["dataset_name"],'nlp')
+    dataset_name = H["dataset_name"]
+
+    if dataset_name in IMAGE_DATASETS:
+        input_shape, output_shape = get_dataset_dimensionality(dataset_name, 'image')
+    elif dataset_name in REGRESSION_DATASETS:
+        input_shape, output_shape = get_dataset_dimensionality(dataset_name, 'regression')
+    elif dataset_name in NLP_DATASETS:
+        input_shape, output_shape = get_dataset_dimensionality(dataset_name, 'nlp')
+    else:
+        raise ValueError(f"Unsupported dataset name: {dataset_name}")
 
     pretrained = False
 
@@ -295,9 +295,11 @@ def generate_ModelFrame(H):
     model = None
     if model_type == "ResNet18":
         model = Models.load_resnet18(pretrained=pretrained, num_classes=output_shape[0])
+
     elif model_type == "ResNet34":
         print(f"\n\n\nin_features: {input_shape}, num_classes: {output_shape}\n\n\n")
         model = Models.load_resnet34(pretrained=pretrained, num_classes=output_shape[0])
+
     elif model_type == "linear_nn":
         # Load a feedforward network for regression tasks; use defaults if not provided in H.
         config = H["config"]
@@ -308,6 +310,16 @@ def generate_ModelFrame(H):
         activation = nn.Identity()
         final_activation = nn.Identity()
         model = Models.load_feedforward(config, input_dim, output_dim, activation, final_activation)
+
+    elif model_type == "cnn":
+        # Load a feedforward network for regression tasks; use defaults if not provided in H.
+        config = H["config"]
+        assert len(output_shape) == 1, "Expected output_shape to have length 1 for cnn"
+        output_dim = output_shape[0]
+        activation = nn.ReLU()
+        final_activation = nn.Softmax()
+        model = Models.load_feedforward_cnn(config, output_dim, activation, final_activation)
+
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
     
@@ -319,11 +331,11 @@ def generate_ModelFrame(H):
 
     elif ttype == "blockwise" or ttype == "blockwise_sequential":
 
-        if model_type in regression_models:
+        if model_type in REGRESSION_DATASETS:
 
             frame = Regression_frame_blockwis(model, H)
 
-        elif model_type in image_models:
+        elif model_type in IMAGE_DATASETS:
 
             frame = ImageClassifier_frame_blockwise(model, H)
     else:

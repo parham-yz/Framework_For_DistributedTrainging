@@ -23,8 +23,8 @@ if __name__ == "__main__":
         "cuda_core": 0,
         "training_mode": "entire",
         "report_sampling_rate": 10,
-        "model": "linear_nn",
-        "config": [32]*4
+        "model": "cnn",
+        "config": [8]*4
     }
 
 
@@ -36,7 +36,7 @@ if __name__ == "__main__":
     
     # Generate the model based on the specified training mode
     frame = Model_frames.generate_ModelFrame(H)
-    # frame.set_measure_units(measurement_units)
+    frame.set_measure_units(measurement_units)
     frame.set_stopper_units([StopperUnit.AccuracyTargetStopper(0.9)])
 
     # Train the model using the specified training mode

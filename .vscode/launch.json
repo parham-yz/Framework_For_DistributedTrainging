@@ -2,13 +2,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Module",
+            "name": "Python: Module Debug",
             "type": "python",
             "request": "launch",
-            "module": "src.dol1",  // Corrected module name
+            "module": "src.dol1",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
-            "justMyCode": true
+            "justMyCode": false
         }
     ]
 }

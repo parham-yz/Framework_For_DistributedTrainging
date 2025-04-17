@@ -64,3 +64,24 @@ def load_feedforward(config, input_dim, output_dim, activation, final_activation
     model = FeedForwardNetwork(config, input_dim, output_dim, activation, final_activation)
 
     return model
+
+
+def load_feedforward_cnn(config, output_dim, activation, final_activation):
+    """
+    Load a FeedForwardNetwork model with the specified configuration.
+
+    Args:
+        config (list of int): Each integer specifies the number of units in a hidden layer.
+        input_dim (int): The dimensionality of the input features.
+        output_dim (int): The number of output classes.
+        activation (callable): The activation function to use in each block.
+        final_activation (callable, optional): The activation function to use in the final block.
+        pretrained_weights (str, optional): Path to the pretrained weights file.
+
+    Returns:
+        FeedForwardNetwork: An instance of the FeedForwardNetwork model.
+    """
+    # Initialize the feedforward network
+    model = FeedForwardCNN(config,3, output_dim, activation, final_activation)
+
+    return model

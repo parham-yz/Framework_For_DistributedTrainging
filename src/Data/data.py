@@ -1,18 +1,13 @@
 
-
 import torchvision.transforms as transforms
 from torchvision import datasets
 from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader
-
-
-
-
-# from torchtext.data.utils import get_tokenizer
-# from torchtext.vocab import build_vocab_from_iterator
-# from torchtext.datasets import IMDB
-# from torch.utils.data.dataset import to_map_style_dataset
 import torch
+
+IMAGE_DATASETS = ["mnist", "mnist_flat", "cifar10", "cifar100", "svhn", "imagenet"]
+REGRESSION_DATASETS = ["ones"]
+NLP_DATASETS = ["imdb"]
 
 def generate_imagedata(dataset_name):
     # Define common transformations including resizing
@@ -27,6 +22,16 @@ def generate_imagedata(dataset_name):
             transforms.Normalize((0.5,), (0.5,))
         ])
         train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
+        return train_set  # Return the dataset directly
+    
+    elif dataset_name == "mnist_flat":
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,), (0.5,)),
+            transforms.Lambda(lambda x: x.view(-1))  # Flatten the image after normalization
+        ])
+        train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
+        train_set.data = train_set.data.view(-1,28*28)
         return train_set  # Return the dataset directly
     
     elif dataset_name == "cifar10":

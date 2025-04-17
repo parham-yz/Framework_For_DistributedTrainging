@@ -8,6 +8,7 @@ import random
 
 def log_progress(frame, round_idx, total_time, optimize_block_time, log_deviation=False):
     """Logs performance on one batch from big_train_loader with optional deviation info."""
+    frame.run_measurmentUnits()
     with torch.no_grad():
         for batch in frame.big_train_loader:
             inputs, labels = batch
@@ -29,6 +30,8 @@ def log_progress(frame, round_idx, total_time, optimize_block_time, log_deviatio
             # Update last known metrics for stopper checks
             frame.last_loss = loss.item()
             frame.last_accuracy = accuracy
+
+            
             break
             
 
@@ -204,16 +207,17 @@ def train_entire(frame):
     Args:
         frame: The Classifier instance containing model, optimizer, stopper_units, etc.
     """
-    model = frame.model.to(frame.device)
+    center_model = frame.center_model.to(frame.device)
     train_loader = frame.train_loader
     criterion = frame.criterion
     optimizer = frame.optimizers[0]
     device = frame.device
     reporter = frame.reporter  # Assuming the classifier has a reporter attribute
 
-    model.train()  # Set the model to training mode
+    center_model.train()  # Set the center_model to training mode
 
     reporter.log("Started the training loop")
+    total_time_start = time.time()
     iteration = 0
 
     for round_idx in range(frame.rounds):
@@ -222,30 +226,19 @@ def train_entire(frame):
 
         optimizer.zero_grad()
 
-        outputs = model(inputs)
+        outputs = center_model(inputs)
         loss = criterion(outputs, labels)
 
         loss.backward()
         optimizer.step()
         iteration += 1
-        with torch.no_grad():
-            if iteration % frame.H["report_sampling_rate"] == 0:
-                _, predicted = torch.max(outputs, 1)
-                accuracy = (predicted == labels).float().mean().item()
-                reporter.log(f"Time {(round_idx)/(1000)}: Energy = {loss.item()}, Accuracy = {round(accuracy, 2)}")
-                frame.loss_history.append(loss.item())
-                # Update last known metrics for stopper checks
-                frame.last_loss = loss.item()
-                frame.last_accuracy = accuracy
-                # Check stopper condition after logging progress using stopper_units attribute
-                if hasattr(frame, "stopper_units") and frame.stopper_units:
-                    if any(stopper.should_stop(frame, frame.last_loss, frame.last_accuracy) for stopper in frame.stopper_units):
-                        reporter.log("Early stopping triggered.")
-                        break
+        if iteration % frame.H["report_sampling_rate"] == 0:
+            total_time = time.time() - total_time_start
+            log_progress(frame, round_idx, total_time, 0, log_deviation=False)
+            if hasattr(frame, "stopper_units") and frame.stopper_units:
+                if any(stopper.should_stop(frame, frame.last_loss, frame.last_accuracy) for stopper in frame.stopper_units):
+                    reporter.log("Early stopping triggered.")
+                    break
 
     reporter.log("Training completed")
     print('Finished Training')
-
-
-
-

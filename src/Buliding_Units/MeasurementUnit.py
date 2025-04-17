@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
 import os
+import torch
+import copy
+
 
 class MeasurementUnit(ABC):
     """
@@ -135,7 +138,7 @@ class Working_memory_usage(MeasurementUnit):
 
 
 
-class HessianMeasurement(MeasurementUnit):
+class Hessian_measurement(MeasurementUnit):
     """
     Measurement unit that approximates the full Hessian of the loss function for the model using 
     Hessian-vector products (HVPs) with finite differences. A single batch from the training loader 
@@ -145,14 +148,10 @@ class HessianMeasurement(MeasurementUnit):
     def __init__(self):
         super().__init__("Hessian Measurement")
     
+    
     def measure(self, frame) -> float:
-        import torch  # Required for tensor operations
-        
-        # Use the central model from the frame
         model = frame.center_model
         device = next(model.parameters()).device
-        
-        # Get a single batch from the training loader
         data_iter = iter(frame.train_loader)
         try:
             inputs, targets = next(data_iter)
@@ -160,52 +159,140 @@ class HessianMeasurement(MeasurementUnit):
             return 0.0
         inputs, targets = inputs.to(device), targets.to(device)
         
-        # Set model to evaluation mode
-        model.eval()
-        
-        # Get the loss function from the frame or fallback to MSELoss
         criterion = getattr(frame, "criterion", torch.nn.MSELoss())
+
+        hessian = _compute_hessian(model, inputs, targets, criterion)
+        ls = _get_block_parameter_counts(model)
+        hessian_blocks = _decompose_matrix_to_blocks(hessian,ls)
         
-        # Save the original parameters as a flattened vector
-        original_vector = torch.nn.utils.parameters_to_vector(model.parameters()).detach()
-        n_params = original_vector.numel()
-        epsilon = 1e-4  # finite difference step size
+        diagonal_elements = torch.diag(hessian)
+        diag_row_norm = [sum(hessian_blocks[i]) for i in range(len(hessian_blocks))]
+        off_diagonal_elements = hessian - torch.diag(diagonal_elements)
+        frob_norm_off_diagonal = torch.norm(off_diagonal_elements).item()
+        return frob_norm_off_diagonal / frob_norm_diagonal
+
+
+def _compute_hessian(model, inputs, targets, criterion, epsilon=1e-4):
+    """
+    Computes the Hessian matrix of the loss with respect to the model parameters using finite differences.
+    
+    Inputs:
+      model:        The neural network model (a torch.nn.Module).
+      inputs:       Tensor of input data to the model.
+      targets:      Tensor of target outputs corresponding to the inputs.
+      criterion:    Loss function used to compute the loss between model outputs and targets.
+      epsilon:      Small perturbation value for finite difference approximation (default is 1e-4).
+    """
+    device = next(model.parameters()).device
+    
+    # Save original parameters as a flattened vector
+    original_vector = torch.nn.utils.parameters_to_vector(model.parameters()).detach()
+    n_params = original_vector.numel()
+    
+    # Compute baseline loss and its gradient
+    model.zero_grad()
+    outputs = model(inputs)
+    loss = criterion(outputs, targets)
+    grad = torch.autograd.grad(loss, model.parameters(), create_graph=False)
+    grad_vec = torch.nn.utils.parameters_to_vector(grad).detach()
+    
+    # Initialize Hessian matrix
+    H = torch.zeros(n_params, n_params, device=device)
+    for i in range(n_params):
+        perturb = torch.zeros_like(original_vector)
+        perturb[i] = epsilon
+        perturbed_vector = original_vector + perturb
+        # Update model parameters with the perturbed vector
+        torch.nn.utils.vector_to_parameters(perturbed_vector, model.parameters())
         
-        # Compute the baseline loss and its gradient
-        outputs = model(inputs)
-        loss = criterion(outputs, targets)
-        grad0 = torch.autograd.grad(loss, model.parameters(), create_graph=False)
-        grad0_vec = torch.nn.utils.parameters_to_vector(grad0).detach()
+        model.zero_grad()
+        outputs_perturbed = model(inputs)
+        loss_perturbed = criterion(outputs_perturbed, targets)
+        grad_perturbed = torch.autograd.grad(loss_perturbed, model.parameters(), create_graph=False)
+        grad_perturbed_vec = torch.nn.utils.parameters_to_vector(grad_perturbed).detach()
         
-        # Initialize a Hessian matrix (n_params x n_params)
-        H = torch.zeros(n_params, n_params, device=device)
-        
-        # Compute each column of the Hessian using finite differences
-        for i in range(n_params):
-            perturb = torch.zeros_like(original_vector)
-            perturb[i] = epsilon
-            perturbed_vector = original_vector + perturb
-            # Update model parameters with the perturbed vector
-            torch.nn.utils.vector_to_parameters(perturbed_vector, model.parameters())
-            
-            model.zero_grad()
-            outputs_perturbed = model(inputs)
-            loss_perturbed = criterion(outputs_perturbed, targets)
-            grad_perturbed = torch.autograd.grad(loss_perturbed, model.parameters(), create_graph=False)
-            grad_perturbed_vec = torch.nn.utils.parameters_to_vector(grad_perturbed).detach()
-            
-            # Approximate the i-th Hessian column via finite differences
-            hvp = (grad_perturbed_vec - grad0_vec) / epsilon
-            H[:, i] = hvp
-        
-        # Restore original parameters
-        torch.nn.utils.vector_to_parameters(original_vector, model.parameters())
-        
-        # Write the Hessian to the log with markers before and after
-        self.reporter.write("\n hessian begins:\n")
-        self.reporter.write(str(H.tolist()))
-        self.reporter.write("\n hessian ends \n")
-        
-        # Return a summary value (the Frobenius norm of the Hessian)
-        frob_norm = torch.norm(H).item()
-        return frob_norm
+        hvp = (grad_perturbed_vec - grad_vec) / epsilon
+        H[:, i] = hvp
+    
+    # Restore original parameters
+    torch.nn.utils.vector_to_parameters(original_vector, model.parameters())
+    return H
+
+def _decompose_matrix_to_blocks(H, l):
+    """
+    Decomposes a square PyTorch tensor H into block tensors based on a list of integers l.
+
+    Args:
+        H (torch.Tensor): The n*n square PyTorch tensor to decompose.
+                          Requires H.dim() == 2.
+        l (list of int): A list of positive integers [l1, l2, ...]
+                         representing the dimensions of the square diagonal blocks.
+                         The sum of elements in l must equal n.
+
+    Returns:
+        list of lists of torch.Tensor:
+            A nested list representing the block tensor H'.
+            H'[i][j] is the block (a torch.Tensor) at the i-th block row
+            and j-th block column.
+            Returns None if the input is invalid.
+
+    Raises:
+        ValueError: If inputs are invalid (e.g., H is not a 2D tensor, H is not square,
+                    sum of l != n, l contains non-positive integers).
+        TypeError: If H is not a PyTorch tensor.
+    """
+    # --- Input Validation ---
+    if not isinstance(H, torch.Tensor):
+      raise TypeError(f"Input H must be a PyTorch tensor (got {type(H)}).")
+
+    if H.dim() != 2:
+        raise ValueError(f"Input tensor H must be 2-dimensional (got {H.dim()} dimensions).")
+
+    n_rows, n_cols = H.shape
+    if n_rows != n_cols:
+        raise ValueError(f"Input tensor H must be square (got shape {H.shape}).")
+
+    n = n_rows
+
+    if not isinstance(l, list) or not all(isinstance(x, int) and x > 0 for x in l):
+        raise ValueError("Input l must be a list of positive integers.")
+
+    if sum(l) != n:
+        raise ValueError(f"The sum of elements in l ({sum(l)}) must equal the dimension of H ({n}).")
+
+    # --- Block Decomposition ---
+    block_matrix = []
+    # Use torch.cumsum for indices calculation
+    indices = torch.tensor([0] + l).cumsum(dim=0) # Start indices [0, l1, l1+l2, ...]
+
+    for i in range(len(l)):
+        block_row = []
+        rows = slice(indices[i].item(), indices[i+1].item()) # Row slice for the i-th block row
+
+        for j in range(len(l)):
+            cols = slice(indices[j].item(), indices[j+1].item()) # Column slice for the j-th block col
+
+            # Extract the block using tensor slicing
+            block = H[rows, cols]
+            block_row.append(block)
+
+        block_matrix.append(block_row)
+
+    return block_matrix
+
+def _get_block_parameter_counts(model):
+  """
+  Calculates the number of parameters for each layer in a PyTorch model.
+
+  Args:
+    model: A PyTorch nn.Module object.
+
+  Returns:
+    A list of integers, where each integer represents the number of
+    parameters in the corresponding layer of the model.
+  """
+  param_counts = []
+  for block in model.blocks:
+    num_params = sum(p.numel() for p in block.parameters())
+    param_counts.append(num_params)
+  return param_counts
