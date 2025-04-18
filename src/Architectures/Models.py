@@ -66,7 +66,7 @@ def load_feedforward(config, input_dim, output_dim, activation, final_activation
     return model
 
 
-def load_feedforward_cnn(config, output_dim, activation, final_activation):
+def load_feedforward_cnn(config,input_dim, output_dim, activation, final_activation):
     """
     Load a FeedForwardNetwork model with the specified configuration.
 
@@ -82,9 +82,35 @@ def load_feedforward_cnn(config, output_dim, activation, final_activation):
         FeedForwardNetwork: An instance of the FeedForwardNetwork model.
     """
     # Initialize the feedforward network
-    model = FeedForwardCNN(config,3, output_dim, activation, final_activation)
+    model = FeedForwardCNN(config,input_dim, output_dim, activation, final_activation)
 
     return model
+
+
+# -----------------------------------------------------------------------------
+# Residual Feed‑Forward CNN loader
+# -----------------------------------------------------------------------------
+
+
+def load_residual_feedforward_cnn(
+    config,
+    in_channels,
+    output_dim,
+    activation,
+    beta: float = 1.0,
+    final_activation=None,
+):
+    """Instantiate ``ResidualFeedForwardCNN``.
+
+    This helper mirrors the signature of ``load_feedforward_cnn`` with one extra
+    *beta* argument for the residual weighting.
+    """
+
+    from src.Architectures.feedforward_nn import ResidualFeedForwardCNN
+
+    return ResidualFeedForwardCNN(
+        config, in_channels, output_dim, activation, beta, final_activation
+    )
 
 
 # -----------------------------------------------------------------------------

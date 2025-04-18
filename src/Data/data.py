@@ -11,6 +11,7 @@ import random
 IMAGE_DATASETS = [
     "mnist",
     "mini_mnist",  # new – 5 000 examples (500 per class) uniformly sampled from MNIST
+    "mini_mnist_8chanel",  # 5 000 examples, each duplicated across 8 channels (28×28)
     "mnist_flat",
     "cifar10",
     "cifar100",
@@ -82,6 +83,41 @@ def generate_imagedata(dataset_name):
 
         # Expose `.data` and `.targets` attributes (needed by helper utilities
         # such as `get_dataset_dimensionality`).
+        mini_train_set.data = full_train_set.data[subset_indices]
+        mini_train_set.targets = targets[subset_indices]
+
+        return mini_train_set
+
+    elif dataset_name == "mini_mnist_8chanel":
+        """Stratified 5 k subset of MNIST with each image expanded to 8 channels.
+
+        The underlying grayscale image is replicated across 8 identical
+        feature maps, producing tensors of shape (8, 28, 28).
+        """
+
+        import random
+
+        transform = transforms.Compose(
+            [
+                transforms.ToTensor(),  # produces (1, H, W)
+                transforms.Lambda(lambda x: x.repeat(8, 1, 1)),  # (8, H, W)
+                transforms.Normalize((0.5,) * 8, (0.5,) * 8),
+            ]
+        )
+
+        full_train_set = datasets.MNIST(root="./data", train=True, download=True, transform=transform)
+
+        targets = full_train_set.targets  # torch.Tensor of length 60 000
+        subset_indices = []
+        samples_per_class = 500
+
+        for cls in range(10):
+            cls_idx = (targets == cls).nonzero(as_tuple=False).flatten().tolist()
+            subset_indices.extend(random.sample(cls_idx, samples_per_class))
+
+        random.shuffle(subset_indices)
+
+        mini_train_set = torch.utils.data.Subset(full_train_set, subset_indices)
         mini_train_set.data = full_train_set.data[subset_indices]
         mini_train_set.targets = targets[subset_indices]
 

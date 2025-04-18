@@ -183,7 +183,7 @@ class Hessian_measurement(MeasurementUnit):
         return block_norms
 
 
-def _compute_hessian(model, inputs, targets, criterion, epsilon=1e-4):
+def _compute_hessian(model, inputs, targets, criterion, epsilon=1e-3):
     """
     Computes the Hessian matrix of the loss with respect to the model parameters using finite differences.
     
@@ -730,9 +730,9 @@ class HessianBlockInteractionMeasurement(MeasurementUnit):
 def _save_heatmap(matrix,fig_dir,filename):
             # Optional scaling of rows by their diagonal terms
             
-            for i in range(matrix.size(0)):
-                diag_val = matrix[i, i].abs().clamp_min(1e-12)  # avoid div‑zero
-                matrix[i] = matrix[i] / diag_val
+            # for i in range(matrix.size(0)):
+            #     diag_val = matrix[i, i].abs().clamp_min(1e-12)  # avoid div‑zero
+            #     matrix[i] = matrix[i] / diag_val
 
             arr = matrix.cpu().numpy()
             # Zero out lower triangle for visual clarity

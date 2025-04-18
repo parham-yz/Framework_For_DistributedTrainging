@@ -19,14 +19,15 @@ if __name__ == "__main__":
     H = {
         "step_size": 0.01,
         "batch_size": 256,
-        "rounds": 10000,
-        "dataset_name": "mini_mnist",
+        "rounds": 20000,
+        "dataset_name": "mini_mnist_8chanel",
         "cuda_core": 0,
         "training_mode": "entire",
         "report_sampling_rate": 100,
         "measurement_sampling_rate": 5000-1,
         "model": "cnn",
-        "config": [16]*2
+        "config": [8]*5,
+        "beta": 0.5
     }
 
 
@@ -43,7 +44,9 @@ if __name__ == "__main__":
     # frame.set_stopper_units([StopperUnit.AccuracyTargetStopper(0.9)])
     init_elapsed = time.perf_counter() - _t0
     frame.reporter.log(f"Frame initialization and attribute setup took {init_elapsed:.2f} seconds")
-
+    # Report total number of parameters in the model
+    total_params = sum(p.numel() for p in frame.center_model.parameters())
+    frame.reporter.log(f"Total number of parameters: {total_params:,}")
     # Train the model using the specified training mode
     if H["training_mode"] == "blockwise":
         # Train the model blockwise if the training mode is 'blockwise'

@@ -340,9 +340,32 @@ def generate_ModelFrame(H):
         config = H["config"]
         assert len(output_shape) == 1, "Expected output_shape to have length 1 for cnn"
         output_dim = output_shape[0]
+        input_dim = input_shape[0]
         activation = nn.ReLU()
         final_activation = None
-        model = Models.load_feedforward_cnn(config, output_dim, activation, final_activation)
+        model = Models.load_feedforward_cnn(config,input_dim, output_dim, activation, final_activation)
+
+    # ------------------------------------------------------------------
+    # Residual Feed‑Forward CNN
+    # ------------------------------------------------------------------
+    elif model_type in ["residual_cnn", "residual_feedforward_cnn"]:
+        config = H["config"]
+        beta = H.get("beta", 1.0)
+        assert len(output_shape) == 1, "Expected output_shape to have length 1 for residual_cnn"
+        output_dim = output_shape[0]
+        activation = nn.ReLU()
+        final_activation = None
+
+        in_channels = input_shape[0] if len(input_shape) > 0 else 3
+
+        model = Models.load_residual_feedforward_cnn(
+            config,
+            in_channels,
+            output_dim,
+            activation,
+            beta,
+            final_activation,
+        )
 
     # ------------------------------------------------------------------
     # Ensemble of feed‑forward CNNs

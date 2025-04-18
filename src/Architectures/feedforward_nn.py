@@ -86,6 +86,52 @@ class ConvBlock(nn.Module):
         x = self.conv(x)
         x = self.activation(x)
         return x
+
+# -----------------------------------------------------------------------------
+# Residual Convolutional Block
+# -----------------------------------------------------------------------------
+
+
+class ResidualConvBlock(nn.Module):
+    """A convolutional block with a weighted residual (skip) connection.
+
+    The output is computed as
+
+        y = beta * f(x) + (1 - beta) * g(x)
+
+    where *f* is a 3×3 convolution followed by *activation* and *g* is either
+    the identity (if ``in_channels == out_channels``) or a 1×1 convolution used
+    to match the channel dimension. *beta* is a scalar in \[0, 1\].
+    """
+
+    def __init__(self, in_channels, out_channels, activation, beta: float = 1.0):
+        super().__init__()
+
+        if not (0.0 <= beta <= 1.0):
+            raise ValueError("beta must be in the range [0, 1]")
+
+        self.beta = beta
+        self.activation = activation
+
+        # Main 3×3 convolution
+        self.conv = nn.Conv2d(
+            in_channels,
+            out_channels,
+            kernel_size=3,
+            padding=1,
+            bias=True,
+        )
+
+        # Skip connection (identity if possible, otherwise 1×1 conv to match channels)
+        if in_channels == out_channels:
+            self.skip = nn.Identity()
+        else:
+            raise Exception(f"{in_channels}, {out_channels}, dont match! for residual connection.")
+
+    def forward(self, x):
+        out = self.activation(self.conv(x))
+        skip_out = self.skip(x)
+        return self.beta * out + (1.0 - self.beta) * skip_out
     
 # Final block: maps the last hidden layer to the output logits, with an optional activation function
 class FinalBlockCnn(nn.Module):
@@ -137,6 +183,66 @@ class FeedForwardCNN(nn.Module):
         Returns:
             torch.Tensor: Output tensor of shape (batch_size, output_dim).
         """
+        for block in self.blocks:
+            x = block(x)
+        return x
+
+
+# -----------------------------------------------------------------------------
+# Residual Feed‑Forward CNN
+# -----------------------------------------------------------------------------
+
+
+class ResidualFeedForwardCNN(nn.Module):
+    """Feed‑forward CNN where each block includes a weighted residual skip.
+
+    Parameters
+    ----------
+    config : list[int]
+        Output channels of each residual convolution block.
+    in_channels : int
+        Input image channels.
+    output_dim : int
+        Dimensionality of the output (e.g. number of classes).
+    activation : callable
+        Activation applied after each convolution.
+    beta : float, default = 1.0
+        Weight of the main path output vs. the skip connection. Must be in
+        [0, 1].  ``0`` reduces to pure skip (identity) while ``1`` recovers the
+        vanilla feed‑forward CNN.
+    final_activation : callable | None, default = None
+        Activation for the final linear layer.
+    """
+
+    def __init__(
+        self,
+        config,
+        in_channels,
+        output_dim,
+        activation,
+        beta: float = 1.0,
+        final_activation=None,
+    ):
+        super().__init__()
+
+        self.blocks = nn.ModuleList()
+
+        # Initial residual block
+        self.blocks.append(ResidualConvBlock(in_channels, config[0], activation, beta))
+
+        # Subsequent residual blocks
+        for i in range(1, len(config)):
+            self.blocks.append(
+                ResidualConvBlock(config[i - 1], config[i], activation, beta)
+            )
+
+        # Final classification block
+        self.blocks.append(FinalBlockCnn(config[-1], output_dim, final_activation))
+
+    # ------------------------------------------------------------------
+    # Forward
+    # ------------------------------------------------------------------
+    def forward(self, x):
         for block in self.blocks:
             x = block(x)
         return x
