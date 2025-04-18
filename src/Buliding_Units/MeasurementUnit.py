@@ -151,40 +151,36 @@ class Hessian_measurement(MeasurementUnit):
     """
     def __init__(self):
         super().__init__("Hessian Measurement")
-    
-    
-    def measure(self, frame) -> float:
+        self._fig_counter = 0
+        self._fig_dir = os.path.join("figures", "Measurements", "Hessian_Measurement")
+   
+    def measure(self, frame):
         model = frame.center_model
         device = next(model.parameters()).device
         data_iter = iter(frame.train_loader)
         try:
             inputs, targets = next(data_iter)
         except StopIteration:
-            return 0.0
+            return []
+
         inputs, targets = inputs.to(device), targets.to(device)
-        
         criterion = getattr(frame, "criterion", torch.nn.MSELoss())
 
-        # --------------------------------------------------------------
-        # Fast spectrum estimation (block‑aware, no full Hessian build)
-        # --------------------------------------------------------------
-        min_eig_diag, max_eig_offdiag = fast_hessian_spectrum(
-            model, inputs, targets, criterion, max_iter=30
-        )
+        # Compute the full Hessian matrix via finite differences
+        H = _compute_hessian(model, inputs, targets, criterion)
+        # Get block‐wise parameter counts for the model
+        ls = _get_block_parameter_counts(model)
+        # Split the Hessian into parameter blocks
+        H_blocks = _decompose_matrix_to_blocks(H, ls)
+        # Compute the operator norm of each block
+        block_norms = _compute_block_operator_norms(H_blocks)
 
-        # Optionally, you might still want to draw the heat‑map as before.
-        # Because that requires the *full* Hessian we skip it by default to
-        # keep the routine lightweight.  Uncomment the following block if the
-        # visualisation is important *and* the model is small enough.
-        # ------------------------------------------------------------------
-        # hessian = _compute_hessian(model, inputs, targets, criterion)
-        # ls = _get_block_parameter_counts(model)
-        # hessian_blocks = _decompose_matrix_to_blocks(hessian, ls)
-        # block_norms = _compute_block_operator_norms(hessian_blocks)
-        # [plotting code…]
+        filename = f"block_offdiag_eig_heatmap_{self._fig_counter:03d}.pdf"
+        _save_heatmap(block_norms,self._fig_dir,filename)
 
-        # Return the requested scalars as a tuple.
-        return float(min_eig_diag), float(max_eig_offdiag)
+        self._fig_counter += 1
+
+        return block_norms
 
 
 def _compute_hessian(model, inputs, targets, criterion, epsilon=1e-4):
@@ -715,25 +711,10 @@ class HessianBlockInteractionMeasurement(MeasurementUnit):
                 Hprime[i, j] = sigma
                 Hprime[j, i] = sigma
 
-        # ------------------ visualisation ------------------
-        # Optional scaling of rows by their diagonal terms
-        if self.scale_offdiag:
-            for i in range(B):
-                diag_val = Hprime[i, i].abs().clamp_min(1e-12)  # avoid div‑zero
-                Hprime[i] = Hprime[i] / diag_val
+        
 
-        arr = Hprime.cpu().numpy()
-        # Zero out lower triangle for visual clarity
-        arr_plot = np.triu(arr)
-
-        plt.figure(figsize=(6, 5))
-        plt.imshow(arr_plot, cmap="Greens", interpolation="nearest")
-        plt.colorbar()
-        plt.title("Block interaction matrix σ_max (upper‑triangular)")
-        plt.tight_layout()
         filename = f"block_offdiag_eig_heatmap_{self._fig_counter:03d}.pdf"
-        plt.savefig(os.path.join(self._fig_dir, filename))
-        plt.close()
+        _save_heatmap(Hprime,self._fig_dir,filename)
 
         self._fig_counter += 1
 
@@ -744,3 +725,23 @@ class HessianBlockInteractionMeasurement(MeasurementUnit):
         array_str = np.array2string(measurement.cpu().numpy(), precision=6, separator=", ")
         self.reporter.write(array_str + "\n")
         self.reporter.flush()
+
+
+def _save_heatmap(matrix,fig_dir,filename):
+            # Optional scaling of rows by their diagonal terms
+            
+            for i in range(matrix.size(0)):
+                diag_val = matrix[i, i].abs().clamp_min(1e-12)  # avoid div‑zero
+                matrix[i] = matrix[i] / diag_val
+
+            arr = matrix.cpu().numpy()
+            # Zero out lower triangle for visual clarity
+            arr_plot = np.triu(arr)
+
+            plt.figure(figsize=(6, 5))
+            plt.imshow(arr_plot, cmap="Greens", interpolation="nearest")
+            plt.colorbar()
+            plt.title("Block interaction matrix σ_max (upper‑triangular)")
+            plt.tight_layout()
+            plt.savefig(os.path.join(fig_dir, filename))
+            plt.close()

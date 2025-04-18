@@ -4,8 +4,19 @@ from torchvision import datasets
 from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader
 import torch
+import random
 
-IMAGE_DATASETS = ["mnist", "mnist_flat", "cifar10", "cifar100", "svhn", "imagenet"]
+# List of supported image datasets. "mini_mnist" is a stratified 5‑k sample of the
+# standard MNIST training split (introduced for faster experimentation).
+IMAGE_DATASETS = [
+    "mnist",
+    "mini_mnist",  # new – 5 000 examples (500 per class) uniformly sampled from MNIST
+    "mnist_flat",
+    "cifar10",
+    "cifar100",
+    "svhn",
+    "imagenet",
+]
 REGRESSION_DATASETS = ["ones"]
 NLP_DATASETS = ["imdb"]
 
@@ -24,6 +35,58 @@ def generate_imagedata(dataset_name):
         train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
         return train_set  # Return the dataset directly
     
+    elif dataset_name == "mini_mnist":
+        """Return a stratified subset (500 samples per class, total 5 000) of the
+        MNIST training split. The transform is identical to the full MNIST case
+        so models can be swapped without further changes.
+        """
+
+        import random
+
+        # Keep identical preprocessing as for the regular MNIST variant so that
+        # downstream architectures receive 3×32×32 tensors.
+        transform = transforms.Compose([
+            transforms.Grayscale(num_output_channels=3),
+            resize_transform,
+            to_tensor_transform,
+            transforms.Normalize((0.5,), (0.5,)),
+        ])
+
+        full_train_set = datasets.MNIST(
+            root="./data", train=True, download=True, transform=transform
+        )
+
+        # Build stratified indices: 500 examples for each of the 10 classes.
+        targets = full_train_set.targets  # Tensor of shape (60000,)
+        subset_indices = []
+        samples_per_class = 500
+
+        for cls in range(10):
+            cls_indices = (targets == cls).nonzero(as_tuple=False).flatten().tolist()
+            # Ensure reproducibility across runs by fixing the RNG seed here if the
+            # caller has *not* already set it. We opt for deterministic sampling
+            # relying on the global random module state.
+            if len(cls_indices) < samples_per_class:
+                raise ValueError(
+                    f"Requested {samples_per_class} samples for class {cls}, "
+                    f"but only {len(cls_indices)} are available."
+                )
+            subset_indices.extend(random.sample(cls_indices, samples_per_class))
+
+        # Shuffle the combined indices so that subsequent DataLoader shuffling is
+        # optional (helps when shuffle=False is used for debugging).
+        random.shuffle(subset_indices)
+
+        # Create a subset dataset
+        mini_train_set = torch.utils.data.Subset(full_train_set, subset_indices)
+
+        # Expose `.data` and `.targets` attributes (needed by helper utilities
+        # such as `get_dataset_dimensionality`).
+        mini_train_set.data = full_train_set.data[subset_indices]
+        mini_train_set.targets = targets[subset_indices]
+
+        return mini_train_set
+
     elif dataset_name == "mnist_flat":
         transform = transforms.Compose([
             transforms.ToTensor(),

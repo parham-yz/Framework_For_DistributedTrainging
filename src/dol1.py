@@ -17,16 +17,16 @@ import time
 
 if __name__ == "__main__":
     H = {
-        "step_size": 0.001,
+        "step_size": 0.01,
         "batch_size": 256,
-        "rounds": 15000,
-        "dataset_name": "mnist",
+        "rounds": 10000,
+        "dataset_name": "mini_mnist",
         "cuda_core": 0,
         "training_mode": "entire",
-        "report_sampling_rate": 1000,
+        "report_sampling_rate": 100,
         "measurement_sampling_rate": 5000-1,
-        "model": "cnn_ensemble",
-        "config": [[16]*1]*3
+        "model": "cnn",
+        "config": [16]*2
     }
 
 
