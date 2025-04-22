@@ -43,7 +43,8 @@ if __name__ == "__main__":
         "beta":0.5,
         "K":1,
         "communication_delay":0,
-        "n_workers":1
+        "n_workers":1,
+        "reports_dir":"default_path"
     }
 
 

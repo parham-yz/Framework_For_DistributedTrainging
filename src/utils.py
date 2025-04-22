@@ -98,13 +98,17 @@ class Reporter:
         hyperparameters_str = json.dumps(hyperparameters, sort_keys=True)
         hash_object = hashlib.md5(hyperparameters_str.encode())
         hash_hex = hash_object.hexdigest()[:8]
-        self.log_filename = os.path.join("reports", f"R{hash_hex}.txt")
+        
+        reports_subdir = hyperparameters.get("reports_dir", "default_path")
+        reports_path = os.path.join("reports", reports_subdir)
+        self.log_filename = os.path.join(reports_path, f"R{hash_hex}.txt")
+        self.reports_path = reports_path
         self.ensure_log_file()
 
     def ensure_log_file(self):
         # Create the reports directory if it doesn't exist
-        if not os.path.exists("reports"):
-            os.makedirs("reports")
+        if not os.path.exists(self.reports_path):
+            os.makedirs(self.reports_path)
         
         # Remove the report file if it already exists
         if os.path.exists(self.log_filename):

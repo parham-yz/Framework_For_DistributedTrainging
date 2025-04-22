@@ -28,6 +28,7 @@ cleanup() {
 trap cleanup INT TERM
 
 # Hyperparameters
+REPORTS_DIR_NAME="mnist_cnn"  # You can change this value as needed
 KS=(1 2 5 10 50 100)
 STEPS=(0.001 0.0001 0.00001 0.000001 0.0000001) # 5 step sizes
 NUM_GPUS=8             # Total number of GPUs available
@@ -52,8 +53,8 @@ echo "Batch chunk size: $BATCH_CHUNK_SIZE"
 echo "Number of batches: $(( (TOTAL_EXPERIMENTS + BATCH_CHUNK_SIZE - 1) / BATCH_CHUNK_SIZE ))" # Ceiling division
 
 echo "Cleaning up reports directory..."
-mkdir -p reports
-rm -rf reports/*
+mkdir -p "$REPORTS_DIR_NAME"
+rm -rf "$REPORTS_DIR_NAME"/*
 
 echo "Starting CIFAR-100/ResNet18 grid with dynamic batching..."
 
@@ -97,7 +98,8 @@ for (( i=0; i<TOTAL_EXPERIMENTS; i+=BATCH_CHUNK_SIZE )); do
       --K "$current_k" \
       --cuda_core "$GPU" \
       --config "[128,128,128,128,128,128]" \
-      --report_sampling_rate "$REPORT_RATE" &
+      --report_sampling_rate "$REPORT_RATE" \
+      --reports_dir "$REPORTS_DIR_NAME" &
 
     PIDS+=("$!")
     batch_task_counter=$(( batch_task_counter + 1 )) # Increment batch task counter
@@ -115,4 +117,4 @@ for (( i=0; i<TOTAL_EXPERIMENTS; i+=BATCH_CHUNK_SIZE )); do
 done
 
 echo "All $TOTAL_EXPERIMENTS CIFAR-100/ResNet18 experiments completed."
-echo "Reports are in the reports/ directory."
+echo "Reports are in the $REPORTS_DIR_NAME/ directory."
