@@ -1,0 +1,6 @@
+   torch
+   torchvision
+   GPUtil
+   tqdm
+   numpy
+   Pillow

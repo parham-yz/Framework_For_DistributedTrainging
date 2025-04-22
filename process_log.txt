@@ -1,0 +1,33 @@
+2025-03-06 12:39:20,573 - INFO - Cleared process_log.txt
+2025-03-06 12:39:20,573 - INFO - Initialized new progress_tracker.json
+2025-03-06 12:39:20,573 - INFO - Finished initialization of progress tracker.
+2025-03-06 12:39:20,573 - INFO - Clearing GPU memory.
+2025-03-06 12:39:20,622 - ERROR - Failed to clear GPU memory: Command '['nvidia-smi', '--gpu-reset']' returned non-zero exit status 4.
+2025-03-06 12:39:20,622 - INFO - Starting to launch a slave process.
+2025-03-06 12:39:20,624 - INFO - Launched process with step_size=1e-08, K=1, epochs=20000, gpu_id=0
+2025-03-06 12:39:20,624 - INFO - Starting to launch a slave process.
+2025-03-06 12:39:20,625 - INFO - Launched process with step_size=1e-08, K=2, epochs=20000, gpu_id=1
+2025-03-06 12:39:20,625 - INFO - Starting to launch a slave process.
+2025-03-06 12:39:20,662 - INFO - Launched process with step_size=1e-08, K=5, epochs=20000, gpu_id=2
+2025-03-06 12:39:20,662 - INFO - Starting to launch a slave process.
+2025-03-06 12:39:20,667 - INFO - Launched process with step_size=1e-08, K=10, epochs=20000, gpu_id=3
+2025-03-06 12:39:20,667 - INFO - Starting to launch a slave process.
+2025-03-06 12:39:20,674 - INFO - Launched process with step_size=2.1544346900318822e-07, K=1, epochs=20000, gpu_id=4
+2025-03-06 12:39:20,674 - INFO - Starting to launch a slave process.
+2025-03-06 12:39:20,690 - INFO - Launched process with step_size=2.1544346900318822e-07, K=2, epochs=20000, gpu_id=5
+2025-03-06 12:39:20,690 - INFO - Starting to launch a slave process.
+2025-03-06 12:39:20,858 - INFO - Launched process with step_size=2.1544346900318822e-07, K=5, epochs=20000, gpu_id=6
+2025-03-06 12:39:20,858 - INFO - Starting to launch a slave process.
+2025-03-06 12:39:20,866 - INFO - Launched process with step_size=2.1544346900318822e-07, K=10, epochs=20000, gpu_id=7
+2025-03-06 12:39:20,866 - INFO - Starting to launch a slave process.
+2025-03-06 12:39:24,345 - WARNING - Interrupt received, killing child processes.
+2025-03-06 12:39:24,345 - INFO - Starting to kill child processes.
+2025-03-06 12:39:24,353 - INFO - Killed child process 401466
+2025-03-06 12:39:24,354 - INFO - Killed child process 401467
+2025-03-06 12:39:24,354 - INFO - Killed child process 401468
+2025-03-06 12:39:24,354 - INFO - Killed child process 401469
+2025-03-06 12:39:24,354 - INFO - Killed child process 401470
+2025-03-06 12:39:24,354 - INFO - Killed child process 401471
+2025-03-06 12:39:24,354 - INFO - Killed child process 401472
+2025-03-06 12:39:24,354 - INFO - Killed child process 401473
+2025-03-06 12:39:24,354 - INFO - Finished killing child processes.

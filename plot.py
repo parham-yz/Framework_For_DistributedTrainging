@@ -1,0 +1,502 @@
+import os
+import json
+import matplotlib.pyplot as plt
+import numpy as np
+from collections import defaultdict
+from termcolor import colored
+import subprocess
+import sys
+import time
+import threading
+
+def plot_results(K_values, step_sizes, dataset, beta=0):
+    # Ensure the figures directory exists
+    if not os.path.exists('figures'):
+        os.makedirs('figures')
+
+    # Use getBestStepsizes to get the best step sizes
+    best_step_sizes = getBestStepsizes(K_values, step_sizes, dataset)
+
+    plt.figure(figsize=(12, 8))
+
+    for K, step_size in best_step_sizes.items():
+        log_files = [f"saved_logs/{file}" for file in os.listdir('saved_logs') if file.startswith(f"lr={step_size}_K={K}_dataset={dataset}")]
+        if log_files:
+            all_loss_logs = []
+            for log_file in log_files:
+                with open(log_file, 'r') as f:
+                    log_data = json.load(f)
+                    all_loss_logs.append(log_data['loss_log'])
+            
+            # Compute running average and variance
+            running_avg = []
+            running_var = []
+            avg = np.mean([loss_log[0] for loss_log in all_loss_logs])
+            for i in range(len(all_loss_logs[0])):
+                losses = [loss_log[i] for loss_log in all_loss_logs]
+                avg = beta * avg + (1 - beta) * np.mean(losses)
+                var = np.var(losses)
+                running_avg.append(avg)
+                running_var.append(var)
+            
+            iterations = np.arange(len(running_avg)) * 200
+            plt.plot(iterations, np.log10(running_avg), label=f'K={K}, step_size={step_size}')
+            plt.fill_between(iterations, np.log10(running_avg) - np.log10(running_var), np.log10(running_avg) + np.log10(running_var), alpha=0.2)
+    
+    plt.xlabel('Rounds')
+    plt.ylabel('Loss (log scale)')
+    plt.title(f'Comparison of Loss vs Iterations for Different K Values (Dataset: {dataset})')
+    plt.legend()
+    plt.savefig(f'figures/comparison_loss_vs_iterations_{dataset}.png')
+    
+    # Save figure as PDF with specific naming convention for 'svhn' dataset
+    if dataset == 'svhn':
+        date_str = time.strftime("%Y%m%d")
+        plt.savefig(f'figures/svhn_{date_str}.pdf')
+    
+    plt.close()
+
+def plot_with_variance(K_values, step_sizes, dataset):
+    # Ensure the figures directory exists
+    if not os.path.exists('figures'):
+        os.makedirs('figures')
+
+    plt.figure(figsize=(12, 8))
+
+    epsilon = 1e-10  # Small value to avoid log of zero or negative numbers
+
+    for K in K_values:
+        for step_size in step_sizes:
+            log_files = [f"saved_logs/{file}" for file in os.listdir('saved_logs') if file.startswith(f"lr={step_size}_K={K}_dataset={dataset}")]
+            if len(log_files) == 3:  # Ensure there are exactly 3 log files
+                all_loss_logs = []
+                for log_file in log_files:
+                    with open(log_file, 'r') as f:
+                        log_data = json.load(f)
+                        all_loss_logs.append(log_data['loss_log'])
+
+                # Compute mean and variance
+                loss_matrix = np.array(all_loss_logs)
+                mean_loss_log = np.mean(loss_matrix, axis=0)
+                var_loss_log = np.var(loss_matrix, axis=0)
+                smoothed_var_loss_log = []
+                smoothed_var = var_loss_log[0]
+                beta = 0.9  # Smoothing factor
+                for var in var_loss_log:
+                    smoothed_var = beta * smoothed_var + (1 - beta) * var
+                    smoothed_var_loss_log.append(smoothed_var)
+                var_loss_log = np.array(smoothed_var_loss_log)
+
+                iterations = np.arange(len(mean_loss_log)) * 200
+                plt.plot(iterations, np.log10(mean_loss_log + epsilon), label=f'K={K}, step_size={step_size}')
+                plt.fill_between(iterations, np.log10(mean_loss_log + epsilon - np.sqrt(var_loss_log)), np.log10(mean_loss_log + epsilon + np.sqrt(var_loss_log)), alpha=0.2)
+
+    plt.xlabel('Rounds')
+    plt.ylabel('Loss (log scale)')
+    plt.title(f'Comparison of Loss vs Iterations with Variance for Different K Values (Dataset: {dataset})')
+    plt.legend()
+    plt.savefig(f'figures/comparison_loss_vs_iterations_with_variance_{dataset}.png')
+    plt.close()
+
+def plot_results_for_specific_K(K, step_sizes, dataset):
+    # Ensure the figures directory exists
+    if not os.path.exists('figures'):
+        os.makedirs('figures')
+
+    plt.figure(figsize=(12, 8))
+    
+    for step_size in step_sizes:
+        log_files = [f"saved_logs/{file}" for file in os.listdir('saved_logs') if file.startswith(f"lr={step_size}_K={K}_dataset={dataset}")]
+        if log_files:
+            all_loss_logs = []
+            for log_file in log_files:
+                with open(log_file, 'r') as f:
+                    log_data = json.load(f)
+                    all_loss_logs.append(log_data['loss_log'])
+            
+            # Compute average loss log
+            avg_loss_log = np.mean(all_loss_logs, axis=0)
+            plt.plot(np.log(avg_loss_log), label=f'step_size={step_size}')
+    
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss (log scale)')
+    plt.title(f'Comparison of Loss vs Epochs for K={K} (Dataset: {dataset})')
+    plt.legend()
+    plt.savefig(f'figures/comparison_loss_vs_epochs_K={K}_{dataset}.png')
+    plt.close()
+
+
+def plot_reports(directory='reports'):
+    # Dictionary to hold data
+    data_by_k = {}
+
+    # Read each file in the directory
+    for filename in os.listdir(directory):
+        if filename.endswith('.txt'):
+            filepath = os.path.join(directory, filename)
+            with open(filepath, 'r') as file:
+                lines = file.readlines()
+                
+                # Extract K value and metrics from the report
+                k_value = None
+                metrics = {'time': [], 'energy': [], 'accuracy': []}
+                
+                for line in lines:
+                    if 'Hyperparameters:' in line:
+                        # Extracting the K value from the hyperparameters line
+                        hyperparameters = json.loads(line.split('Hyperparameters: ')[1].strip())
+                        k_value = hyperparameters['K']
+                    if line.startswith('[') and 'Time' in line:
+                        # Extracting the metrics from the line
+                        parts = line.split()
+                        time = float(parts[3].strip(':'))
+                        energy = float(parts[6].strip(','))
+                        accuracy = float(parts[9].strip(','))
+                        metrics['time'].append(time)
+                        metrics['energy'].append(energy)
+                        metrics['accuracy'].append(accuracy)
+                if k_value is not None:
+                    if k_value not in data_by_k:
+                        data_by_k[k_value] = {'time': [], 'energy': [], 'accuracy': []}
+                    data_by_k[k_value]['time'].extend(metrics['time'])
+                    data_by_k[k_value]['energy'].extend(metrics['energy'])
+                    data_by_k[k_value]['accuracy'].extend(metrics['accuracy'])
+
+    # Plotting
+    plt.figure(figsize=(14, 6))
+
+    # Energy plot on a log scale
+    plt.subplot(1, 2, 1)
+    for k, vals in data_by_k.items():
+        plt.plot(vals['time'], np.log10(vals['energy']), label=f'K={k}')  # Energy values are now plotted on a log scale
+    plt.title('Log-Scale Energy (Loss) over Time')
+    plt.xlabel('Time')
+    plt.ylabel('Log-Scale Energy')
+    plt.legend()
+    plt.savefig(f'figures/log_energy_over_time.png')
+
+    # Accuracy plot
+    plt.subplot(1, 2, 2)
+    for k, vals in data_by_k.items():
+        plt.plot(vals['time'], vals['accuracy'], label=f'K={k}')
+    plt.title('Accuracy over Time')
+    plt.xlabel('Time')
+    plt.ylabel('Accuracy (%)')
+    plt.legend()
+    plt.savefig(f'figures/accuracy_over_time.png')
+
+    plt.tight_layout()
+    # plt.show()  # This line is commented out to prevent showing the plot
+
+def getBestStepsizes(K_values, step_sizes, dataset):
+    best_results = {}
+    
+    for K in K_values:
+        best_step_size = None
+        best_min_loss = float('inf')
+        
+        for step_size in step_sizes:
+            log_files = [f"saved_logs/{file}" for file in os.listdir('saved_logs') if file.startswith(f"lr={step_size}_K={K}_dataset={dataset}")]
+            if log_files:
+                min_losses = []
+                for log_file in log_files:
+                    with open(log_file, 'r') as f:
+                        log_data = json.load(f)
+                        min_losses.append(min(log_data['loss_log']))
+                
+                min_loss = np.mean(min_losses)
+                if min_loss < best_min_loss:
+                    best_min_loss = min_loss
+                    best_step_size = step_size
+
+        if best_step_size is not None:
+            best_results[K] = best_step_size
+            print(f"For K={K}, the best step size is {best_step_size} with min loss {best_min_loss}")
+
+    return best_results
+
+
+def extract_K_and_stepsizes(directory):
+    K_values = set()
+    step_sizes = set()
+    datasets = set()
+    
+    for filename in os.listdir(directory):
+        if filename.endswith('.json'):
+            parts = filename.split('_')
+            if len(parts) >= 3:
+                step_size = parts[0].split('=')[1]
+                K = int(parts[1].split('=')[1])
+                dataset = parts[2].split('=')[1].split('.')[0]
+                step_sizes.add(step_size)
+                K_values.add(K)
+                datasets.add(dataset)
+    
+    return sorted(K_values), sorted(step_sizes, key=float), sorted(datasets)
+
+
+def get_free_gpu_cores(reports_folder='reports'):
+    total_cores = set()
+    used_cores = set()
+    
+    for filename in os.listdir(reports_folder):
+        if filename.endswith('.txt'):
+            with open(os.path.join(reports_folder, filename), 'r') as file:
+                lines = file.readlines()
+                status_line = None
+                hyperparameters_line = None
+                
+                for line in lines:
+                    if line.startswith('Status:'):
+                        status_line = line.strip()
+                    elif line.startswith('Hyperparameters:'):
+                        hyperparameters_line = line.strip()
+                
+                if status_line and hyperparameters_line:
+                    status = status_line.split(': ')[1]
+                    hyperparameters = json.loads(hyperparameters_line[len("Hyperparameters: "):])
+                    cuda_core = hyperparameters.get('cuda_core')
+                    
+                    if cuda_core is not None:
+                        total_cores.add(cuda_core)
+                        if status != 'dead':
+                            used_cores.add(cuda_core)
+    
+    free_cores = total_cores - used_cores
+    print(f"Total GPU Cores: {sorted(total_cores)}")
+    print(f"Free GPU Cores: {sorted(free_cores)}")
+    return sorted(free_cores)
+
+def monitor_reports(reports_folder='reports'):
+    def read_report(filename):
+        with open(os.path.join(reports_folder, filename), 'r') as file:
+            lines = file.readlines()
+            status_line = None
+            progress_lines = []
+            hyperparameters = {}
+            
+            for line in lines:
+                if line.startswith('Status:'):
+                    status_line = line.strip()
+                elif line.startswith('['):  # Assuming all progress lines start with '['
+                    progress_lines.append(line.strip())
+                elif line.startswith('Hyperparameters:'):  # Assuming hyperparameters are stored in this format
+                    hyperparameters = json.loads(line[len("Hyperparameters: "):].strip())
+
+            return status_line, progress_lines, hyperparameters
+
+    def parse_progress_line(line):
+        timestamp, metrics_part = line.split(']', 1)
+        metrics = {}
+        parts = metrics_part.strip().split(',')
+        for part in parts:
+            key_value = part.split('=')
+            if len(key_value) == 2:
+                key, value = key_value
+                metrics[key.strip()] = float(value)
+        return timestamp, metrics
+
+    def monitor():
+        while not exit_monitoring:
+            alive_reports = []
+            for filename in os.listdir(reports_folder):
+                if filename.endswith('.txt'):
+                    status_line, progress_lines, hyperparameters = read_report(filename)
+                    if status_line and 'alive' in status_line:
+                        alive_reports.append((filename, progress_lines, hyperparameters))
+            
+            os.system('clear')  # Clear the console
+            print("Monitoring alive reports:")
+            for filename, progress_lines, hyperparameters in alive_reports:
+                print(f"\nReport: {filename} - BS: {hyperparameters.get('batch_size', 'N/A')}, Step: {hyperparameters.get('step_size', 'N/A')}, K: {hyperparameters.get('K', 'N/A')}, Core: {hyperparameters.get('cuda_core', 'N/A')}")
+                
+                if progress_lines:
+                    last_line = progress_lines[-1]
+                    timestamp, metrics = parse_progress_line(last_line)
+                    print(f"{timestamp} - Metrics: ", end='')
+                    for key, value in metrics.items():
+                        print(f"{key}: {value:.4f}, ", end='')
+                    print()
+                else:
+                    print("No progress lines found.")
+            
+            time.sleep(5)  # Update every 5 seconds
+
+    exit_monitoring = False
+    monitor_thread = threading.Thread(target=monitor)
+    monitor_thread.start()
+
+    print("Press 'x' to exit monitoring mode.")
+    while True:
+        if input().strip().lower() == 'x':
+            exit_monitoring = True
+            monitor_thread.join()
+            break
+
+
+def save_and_export_logs():
+    import shutil
+    from datetime import datetime
+    import zipfile
+
+    # Create the exports directory if it doesn't exist
+    if not os.path.exists('exports'):
+        os.makedirs('exports')
+
+    # Create a timestamp for the export
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    zip_filename = os.path.join('exports', f"export_{timestamp}.zip")
+
+    # Create a ZIP file
+    with zipfile.ZipFile(zip_filename, 'w') as zipf:
+        # Add saved_logs directory to the ZIP file
+        for root, dirs, files in os.walk('saved_logs'):
+            for file in files:
+                file_path = os.path.join(root, file)
+                zipf.write(file_path, os.path.join('saved_logs', os.path.relpath(file_path, 'saved_logs')))
+
+        # Add figures directory to the ZIP file
+        for root, dirs, files in os.walk('figures'):
+            for file in files:
+                file_path = os.path.join(root, file)
+                zipf.write(file_path, os.path.join('figures', os.path.relpath(file_path, 'figures')))
+
+        # Generate README file with the output of option_2
+        readme_path = 'README.txt'
+        with open(readme_path, 'w') as readme_file:
+            original_stdout = sys.stdout
+            sys.stdout = readme_file
+            option_2()
+            sys.stdout = original_stdout
+
+        # Add README file to the ZIP file
+        zipf.write(readme_path, 'README.txt')
+
+    # Remove the README file after adding it to the ZIP
+    os.remove(readme_path)
+
+    print(f"Logs and data have been exported to {zip_filename}")
+
+def option_6():
+    # Extract the K values, step sizes, and datasets from the saved logs directory
+    K_values, step_sizes, datasets = extract_K_and_stepsizes('saved_logs')
+
+    # Plot the results with variance for each dataset
+    for dataset in datasets:
+        plot_with_variance(K_values, step_sizes, dataset)
+
+if __name__ == "__main__":
+    import sys
+
+    def display_menu():
+        print("Please choose an option:")
+        print("1. Plot results")
+        print("2. List all trained hyperparameters")
+        print("3. Monitor reports")
+        print("4. Free Gpu Cores")
+        print("5. Save and export logs")
+        print("6. Plot with variance")
+        print("7. Plot reports")
+
+    def option_1():
+        # Extract the K values, step sizes, and datasets from the saved logs directory
+        K_values, step_sizes, datasets = extract_K_and_stepsizes('saved_logs')
+        
+        # Ask for beta value
+        beta = float(input("Please enter the beta value for running average computation (e.g., 0.9): ").strip())
+        
+        # Plot the results for each dataset
+        for dataset in datasets:
+            plot_results(K_values, step_sizes, dataset, beta=beta)
+            for K in K_values:
+                plot_results_for_specific_K(K, step_sizes, dataset)
+
+    def option_2():
+        hyperparameters = defaultdict(list)
+        
+        for filename in os.listdir('saved_logs'):
+            if filename.endswith('.json'):
+                parts = filename.split('_')
+                if len(parts) >= 3:
+                    step_size = parts[0].split('=')[1]
+                    K = int(parts[1].split('=')[1])
+                    dataset = parts[2].split('=')[1].split('.')[0]
+                    hyperparameters[dataset].append((K, step_size))
+        
+        print("Listing all trained hyperparameters:")
+        for dataset, params in hyperparameters.items():
+            print(f"\nDataset: {dataset}")
+            K_values = sorted(set(K for K, _ in params))
+            step_sizes = sorted(set(step_size for _, step_size in params), key=float)
+            
+            print(f"K = {K_values}")
+            print(f"Step Sizes = {step_sizes}")
+            
+            missing_combinations = []
+            for K in K_values:
+                for step_size in step_sizes:
+                    if (K, step_size) not in params:
+                        missing_combinations.append((K, step_size))
+            
+            if missing_combinations:
+                print("\nMissing combinations:")
+                for K, step_size in missing_combinations:
+                    print(colored(f"  K={K}, Step Size={step_size}", 'red'))
+        
+        run_training = input("Do you want to run training for the missing combinations? (yes/no): ").strip().lower()
+        if run_training in ['yes', 'y']:
+            dataset_to_use = input("Please specify the dataset to use for the missing combinations: ").strip()
+            free_cores = get_free_gpu_cores()
+            
+            if not free_cores:
+                print("No free GPU cores available. Cannot run training.")
+            else:
+                for i, (K, step_size) in enumerate(missing_combinations):
+                    if i < len(free_cores):
+                        gpu_core = free_cores[i]
+                        command = f"python3 dol1.py {step_size} {K} 20000 {dataset_to_use} {gpu_core}"
+                        print(f"Running command: {command}")
+                        subprocess.Popen(command, shell=True)
+                    else:
+                        print("Not enough free GPU cores to run all missing combinations.")
+                        break
+
+    def option_3():
+        monitor_reports()
+
+    def option_4():
+        free_cores = get_free_gpu_cores()
+        print(f"Free GPU cores: {free_cores}")
+
+    def option_5():
+        save_and_export_logs()
+
+    def option_6():
+        # Extract the K values, step_sizes, and datasets from the saved logs directory
+        K_values, step_sizes, datasets = extract_K_and_stepsizes('saved_logs')
+
+        # Plot the results with variance for each dataset
+        for dataset in datasets:
+            plot_with_variance(K_values, step_sizes, dataset)
+
+    def option_7():
+        # Plot the reports from the reports directory
+        plot_reports()
+
+    options = {
+        "1": option_1,
+        "2": option_2,
+        "3": option_3,
+        "4": option_4,
+        "5": option_5,
+        "6": option_6,
+        "7": option_7
+    }
+
+    display_menu()
+    choice = input("Enter your choice (1-7): ")
+
+    if choice in options:
+        options[choice]()
+    else:
+        print("Invalid choice. Please select a valid option.")
