@@ -2,12 +2,34 @@
 # Grid experiments with dynamic batching based on NUM_GPUS and TASKSPERCORE
 # Batches are of size NUM_GPUS * TASKSPERCORE
 # Each batch launches experiments in parallel and waits for their completion
+# Includes trap to terminate background jobs on script exit
 
 set -e
 
+# --- Trap handler function ---
+cleanup() {
+  echo "" # Add a newline for cleaner output after the interrupt signal (^C)
+  echo "Caught termination signal, stopping background jobs..."
+  # Iterate through the PIDS of currently running jobs and terminate them
+  for pid in "${PIDS[@]}"; do
+    if ps -p "$pid" > /dev/null; then # Check if the process is still running
+      echo "Terminating process $pid..."
+      kill -TERM "$pid" 2>/dev/null # Send terminate signal, ignore errors if already exited
+    fi
+  done
+  # Optional: wait for background processes to fully terminate
+  # wait
+  echo "Cleanup complete."
+  exit 1 # Exit the script after cleanup
+}
+
+# --- Set trap for termination signals ---
+# Trap INT (Interrupt, typically from Ctrl+C) and TERM (Terminate)
+trap cleanup INT TERM
+
 # Hyperparameters
-KS=(1 2 5 10 50)       # Using the original KS for consistency unless specified otherwise
-STEPS=(0.001 0.0001 0.00001 0.000001 0.0000001) # Reduced to 3 step sizes as per the example
+KS=(1 2 5 10 50)
+STEPS=(0.001 0.0001 0.00001 0.000001 0.0000001) # 5 step sizes
 NUM_GPUS=4             # Total number of GPUs available
 TASKSPERCORE=2         # Number of tasks to assign to each GPU per batch
 
@@ -36,16 +58,19 @@ rm -rf reports/*
 echo "Starting CIFAR-100/ResNet18 grid with dynamic batching..."
 
 COUNTER=0 # Overall experiment counter
+PIDS=()   # Declare PIDS array in a scope accessible to the trap handler
 
 # Loop through the experiment list in chunks
 for (( i=0; i<TOTAL_EXPERIMENTS; i+=BATCH_CHUNK_SIZE )); do
+  # Clear PIDS for the new batch
+  PIDS=()
+
   CURRENT_BATCH_EXPERIMENTS=("${EXPERIMENT_LIST[@]:i:BATCH_CHUNK_SIZE}")
   BATCH_SIZE_ACTUAL=${#CURRENT_BATCH_EXPERIMENTS[@]}
   BATCH_START_INDEX=$i
 
   echo "-- Starting batch $(( i / BATCH_CHUNK_SIZE + 1 )) (experiments $BATCH_START_INDEX to $(( BATCH_START_INDEX + BATCH_SIZE_ACTUAL - 1 )) out of $TOTAL_EXPERIMENTS) --"
 
-  PIDS=()
   batch_task_counter=0 # Counter for tasks within the current batch
 
   # Loop through experiments in the current batch chunk
@@ -65,7 +90,7 @@ for (( i=0; i<TOTAL_EXPERIMENTS; i+=BATCH_CHUNK_SIZE )); do
     python3 -m src.dol1 \
       --model ResNet18 \
       --dataset_name cifar100 \
-      --training_mode $MODE \
+      --training_mode "$MODE" \
       --step_size "$current_step" \
       --batch_size "$BATCH_SIZE" \
       --rounds "$ROUNDS" \
@@ -80,6 +105,7 @@ for (( i=0; i<TOTAL_EXPERIMENTS; i+=BATCH_CHUNK_SIZE )); do
 
   # Wait for all processes in the current batch chunk to finish
   echo "Waiting for batch to complete ($BATCH_SIZE_ACTUAL tasks)..."
+  # The trap can interrupt this wait. The cleanup function will handle the background jobs.
   for pid in "${PIDS[@]}"; do
     wait "$pid"
   done
