@@ -28,10 +28,10 @@ cleanup() {
 trap cleanup INT TERM
 
 # Hyperparameters
-KS=(1 2 5 10 50)
+KS=(1 2 5 10 50 100)
 STEPS=(0.001 0.0001 0.00001 0.000001 0.0000001) # 5 step sizes
-NUM_GPUS=4             # Total number of GPUs available
-TASKSPERCORE=2         # Number of tasks to assign to each GPU per batch
+NUM_GPUS=8             # Total number of GPUs available
+TASKSPERCORE=4         # Number of tasks to assign to each GPU per batch
 
 BATCH_CHUNK_SIZE=$(( NUM_GPUS * TASKSPERCORE ))
 ROUNDS=10000
@@ -65,7 +65,7 @@ for (( i=0; i<TOTAL_EXPERIMENTS; i+=BATCH_CHUNK_SIZE )); do
   # Clear PIDS for the new batch
   PIDS=()
 
-  CURRENT_BATCH_EXPERIMENTS=($(printf "%s\n" "${EXPERIMENT_LIST[@]:i:BATCH_CHUNK_SIZE}" | shuf))
+  CURRENT_BATCH_EXPERIMENTS=("${EXPERIMENT_LIST[@]:i:BATCH_CHUNK_SIZE}")
   BATCH_SIZE_ACTUAL=${#CURRENT_BATCH_EXPERIMENTS[@]}
   BATCH_START_INDEX=$i
 
@@ -88,14 +88,15 @@ for (( i=0; i<TOTAL_EXPERIMENTS; i+=BATCH_CHUNK_SIZE )); do
     echo "[$COUNTER/$TOTAL_EXPERIMENTS] Launching K=$current_k, step_size=$current_step on GPU $GPU (Task index in batch: $batch_task_counter)"
 
     python3 -m src.dol1 \
-      --model ResNet18 \
-      --dataset_name cifar100 \
+      --model cnn \
+      --dataset_name mnist \
       --training_mode "$MODE" \
       --step_size "$current_step" \
       --batch_size "$BATCH_SIZE" \
       --rounds "$ROUNDS" \
       --K "$current_k" \
       --cuda_core "$GPU" \
+      --config "[128,128,128,128,128,128]" \
       --report_sampling_rate "$REPORT_RATE" &
 
     PIDS+=("$!")
