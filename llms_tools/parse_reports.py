@@ -1,107 +1,243 @@
 #!/usr/bin/env python3
 """
 Tool: parse_reports.py
-Purpose: Scan the `reports/` directory for CNN-on-MNIST runs and compute rounds to convergence.
-Generates a Markdown summary table at llms_tools/cnn_MNIST_summary.md.
+Purpose: Scan the `reports/` directory for training runs.
+Identifies unique (model, dataset) combinations, prompts user if multiple exist.
+Extracts rounds reported by the early stopping mechanism for the chosen combination.
+Prints a Markdown summary table (K vs step_size) of rounds to standard output,
+with aligned columns and formatted K values.
 
 Usage:
-  python3 llms_tools/parse_reports.py [--acc_threshold 0.98] [--loss_threshold 0.05]
+  python3 llms_tools/parse_reports.py
 """
 import os
 import re
 import json
 import argparse
+import sys
 
 def get_paths():
-    """Return absolute paths for reports dir and output MD file."""
+    """Return absolute path for reports dir."""
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     reports_dir = os.path.join(repo_root, 'reports')
-    output_md = os.path.join(os.path.dirname(__file__), 'cnn_MNIST_summary.md')
-    return reports_dir, output_md
+    return reports_dir
 
-def parse_report(path, acc_threshold, loss_threshold):
+def parse_report(path):
     """
-    Parse one report file. Return (K, rounds_to_conv) if CNN-on-MNIST run, else None.
-    Convergence: first epoch where acc >= acc_threshold or loss <= loss_threshold.
-    NOTE: Adjust `metric_line_pattern` to match the log format of your reports.
+    Parse one report file.
+    Extracts model, dataset, K, step_size, and rounds from early stopping line.
+    Returns (model, dataset, K, step_size, rounds) if successful, else None.
     """
-    with open(path) as f:
-        lines = f.readlines()
-    # Extract hyperparameters JSON
+    try:
+        with open(path, 'r') as f:
+            lines = f.readlines()
+    except Exception as e:
+        print(f"Error reading file {path}: {e}", file=sys.stderr)
+        return None
+
     H = None
     for line in lines:
         if line.startswith('Hyperparameters:'):
-            _, json_str = line.split(':', 1)
-            H = json.loads(json_str)
+            try:
+                _, json_str = line.split(':', 1)
+                H = json.loads(json_str.strip())
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON in {path}: {e}", file=sys.stderr)
+                return None
             break
+
     if not H:
         return None
-    model = H.get('model')
-    dataset = H.get('dataset_name') or H.get('dataset')
-    if model not in ('cnn', 'cnn_ensemble') or dataset.lower() != 'mnist':
-        return None
-    K = H.get('K')
-    # Scan for lines reporting Accuracy; treat each as one measurement epoch
-    acc_pattern = re.compile(r'Accuracy\s*=\s*([0-9\.]+)')
-    epoch_counter = 0
-    best_acc = -1.0
-    best_epoch = None
+
+    model = H.get('model', 'N/A')
+    dataset = H.get('dataset_name') or H.get('dataset', 'N/A')
+    K = H.get('K', 'N/A')
+    step_size = H.get('step_size', 'N/A')
+
+    if K == 'N/A' or step_size == 'N/A':
+         return None
+
+    rounds_pattern = re.compile(r'Training completed.* over (\d+) rounds')
+    early_stopping_triggered = False
+    rounds_at_stopping = None
+
     for line in lines:
-        m = acc_pattern.search(line)
-        if not m:
+        if 'Early stopping triggered' in line:
+            early_stopping_triggered = True
             continue
-        epoch_counter += 1
-        acc = float(m.group(1))
-        if acc > best_acc:
-            best_acc = acc
-            best_epoch = epoch_counter
-    # Return K, step_size, best accuracy, and epoch at which best accuracy occurred
-    step_size = H.get('step_size')
-    return (K, step_size, best_acc, best_epoch)
+
+        if early_stopping_triggered:
+            m = rounds_pattern.search(line)
+            if m:
+                try:
+                    rounds_at_stopping = int(m.group(1))
+                    break
+                except ValueError:
+                     print(f"Could not parse rounds value from line in {path}: {line.strip()}", file=sys.stderr)
+                     continue
+
+    if rounds_at_stopping is None:
+        return None
+
+    return (model, dataset, K, step_size, rounds_at_stopping)
+
 
 def main():
-    parser = argparse.ArgumentParser(description='Parse CNN-MNIST reports')
-    parser.add_argument('--acc_threshold', type=float, default=0.98,
-                        help='Accuracy threshold for convergence')
-    parser.add_argument('--loss_threshold', type=float, default=None,
-                        help='Loss threshold for convergence')
+    parser = argparse.ArgumentParser(description='Parse training reports for early stopping rounds.')
     args = parser.parse_args()
 
-    reports_dir, output_md = get_paths()
-    # results[K] = dict mapping step_size -> best_epoch
-    results = {}
-    step_sizes = set()
+    reports_dir = get_paths()
+
     if not os.path.isdir(reports_dir):
-        print(f'Reports directory not found: {reports_dir}')
-        return
+        print(f'Error: Reports directory not found: {reports_dir}', file=sys.stderr)
+        sys.exit(1)
+
+    print(f"Scanning directory: {reports_dir} for reports...", file=sys.stderr)
+
+    all_parsed_data = []
+    found_combinations = set()
+
     for fn in os.listdir(reports_dir):
         if not fn.startswith('R') or not fn.endswith('.txt'):
             continue
+
         path = os.path.join(reports_dir, fn)
-        parsed = parse_report(path, args.acc_threshold, args.loss_threshold)
+        parsed = parse_report(path)
+
         if parsed:
-            K, step, best_acc, best_epoch = parsed
-            if best_epoch is not None:
-                results.setdefault(K, {})[step] = best_epoch
-                step_sizes.add(step)
-    # Compute best (min) epoch per K across all step sizes
-    summary = {K: min(epochs.values()) for K, epochs in results.items()}
-    # Prepare sorted list of all step sizes
-    step_list = sorted(step_sizes)
-    # Write Markdown table with one column per step size and a Best column
-    header_cols = ['K', 'Best'] + [str(s) for s in step_list]
-    sep_cols = ['---'] * len(header_cols)
-    with open(output_md, 'w') as out:
-        out.write('# CNN on MNIST: Rounds to Convergence\n\n')
-        out.write('| ' + ' | '.join(header_cols) + ' |\n')
-        out.write('| ' + ' | '.join(sep_cols) + ' |\n')
-        for K in sorted(summary):
-            row = [str(K), str(summary[K])]
-            epochs = results.get(K, {})
-            for s in step_list:
-                row.append(str(epochs.get(s, '')))
-            out.write('| ' + ' | '.join(row) + ' |\n')
-    print(f'Summary written: {output_md}')
+            model, dataset, K, step, rounds = parsed
+            all_parsed_data.append(parsed)
+            found_combinations.add((model, dataset))
+
+    if not all_parsed_data:
+        print("No relevant reports with early stopping rounds found.", file=sys.stderr)
+        sys.exit(0)
+
+    selected_model = None
+    selected_dataset = None
+
+    if len(found_combinations) > 1:
+        print("\nMultiple (model, dataset) combinations found:", file=sys.stderr)
+        combinations_list = sorted(list(found_combinations))
+        for i, (model, dataset) in enumerate(combinations_list):
+            print(f"{i+1}: Model='{model}', Dataset='{dataset}'", file=sys.stderr)
+
+        while True:
+            try:
+                choice = input(f"Enter the number of the combination you want to process (1-{len(combinations_list)}): ")
+                choice_idx = int(choice) - 1
+                if 0 <= choice_idx < len(combinations_list):
+                    selected_model, selected_dataset = combinations_list[choice_idx]
+                    print(f"Selected: Model='{selected_model}', Dataset='{selected_dataset}'\n", file=sys.stderr)
+                    break
+                else:
+                    print("Invalid choice. Please enter a number within the range.", file=sys.stderr)
+            except ValueError:
+                print("Invalid input. Please enter a number.", file=sys.stderr)
+            except EOFError:
+                 print("\nExiting due to input interruption.", file=sys.stderr)
+                 sys.exit(1)
+
+    elif len(found_combinations) == 1:
+        selected_model, selected_dataset = list(found_combinations)[0]
+        print(f"\nFound one combination: Model='{selected_model}', Dataset='{selected_dataset}'\n", file=sys.stderr)
+
+    filtered_data = [
+        (K, step, rounds) for model, dataset, K, step, rounds in all_parsed_data
+        if model == selected_model and dataset == selected_dataset
+    ]
+
+    if not filtered_data:
+        print(f"No reports found for selected combination (Model='{selected_model}', Dataset='{selected_dataset}') after filtering. This should not happen if selection worked correctly.", file=sys.stderr)
+        sys.exit(1)
+
+    # results[K_key] = dict mapping step_size_key -> rounds_at_stopping
+    results = {}
+    step_sizes = set()
+    Ks = set()
+
+    for K, step, rounds in filtered_data:
+        K_key = str(K) if isinstance(K, (list, dict)) else K
+        step_key = str(step) if isinstance(step, (list, dict)) else step
+
+        results.setdefault(K_key, {})[step_key] = rounds
+        step_sizes.add(step_key)
+        Ks.add(K_key)
+
+    summary = {}
+    for K_key, rounds_by_step in results.items():
+         if rounds_by_step:
+            summary[K_key] = min(rounds_by_step.values())
+
+    step_list = sorted(list(step_sizes))
+    K_list = sorted(list(Ks)) # Keep original K keys for data lookup
+
+    # --- Start: Padding Logic for Aligned Columns ---
+
+    # Determine maximum width for each column
+    # Start with header widths
+    header_cols = ['K', 'Min Rounds'] + [str(s) for s in step_list]
+    column_widths = [len(col) for col in header_cols]
+
+    # Add data widths, including the '.' for the K column
+    for K_key in sorted(summary.keys()): # Use sorted K_keys for iterating through data
+        # Width for K column (plus '.')
+        k_str = str(K_key) + '.' if not isinstance(K_key, str) or K_key.isdigit() else str(K_key) # Add '.' if it looks like a number
+        column_widths[0] = max(column_widths[0], len(k_str))
+
+        # Width for Min Rounds column
+        min_rounds_str = str(summary[K_key])
+        column_widths[1] = max(column_widths[1], len(min_rounds_str))
+
+        # Widths for step size columns
+        rounds_by_step = results.get(K_key, {})
+        for i, s_key in enumerate(step_list):
+            cell_content = str(rounds_by_step.get(s_key, '-'))
+            column_widths[i + 2] = max(column_widths[i + 2], len(cell_content))
+
+    # Add padding (e.g., 1 space on each side)
+    padding = 1
+    column_widths = [w + 2 * padding for w in column_widths] # Add padding to each side
+
+    # --- End: Padding Logic for Aligned Columns ---
+
+    # Print Markdown table to standard output
+    print(f"# Model: {selected_model}, Dataset: {selected_dataset}")
+    print("## Rounds at Early Stopping (Lower is Better)")
+    print("") # Blank line before table
+
+    # Print header row with padding
+    header_padded = [header_cols[i].center(column_widths[i]) for i in range(len(header_cols))]
+    print('|' + '|'.join(header_padded) + '|')
+
+    # Print separator line with padding
+    sep_padded = ['-' * column_widths[i] for i in range(len(header_cols))]
+    print('|' + '|'.join(sep_padded) + '|')
+
+    # Print data rows with padding and formatted K
+    for K_key in sorted(summary.keys()):
+        row_cells = []
+
+        # K column with '.' and padding
+        k_str = str(K_key) + '.' if not isinstance(K_key, str) or K_key.isdigit() else str(K_key) # Add '.' if it looks like a number
+        row_cells.append(k_str.ljust(column_widths[0] - padding).rjust(column_widths[0])) # Left align content, pad total width
+
+        # Min Rounds column with padding
+        min_rounds_str = str(summary[K_key])
+        row_cells.append(min_rounds_str.ljust(column_widths[1] - padding).rjust(column_widths[1]))
+
+        # Step size columns with padding
+        rounds_by_step = results.get(K_key, {})
+        for i, s_key in enumerate(step_list):
+            cell_content = str(rounds_by_step.get(s_key, '-'))
+            # You can choose alignment here: .ljust(), .rjust(), .center()
+            row_cells.append(cell_content.ljust(column_widths[i + 2] - padding).rjust(column_widths[i + 2])) # Or .center()
+
+        print('|' + '|'.join(row_cells) + '|')
+
+    print("\n'-' indicates no data available for this combination of K and step size.")
+    print("\nNote: Table columns are padded for visual alignment in monospace fonts.")
+    print(f"\nFinished processing reports for Model='{selected_model}', Dataset='{selected_dataset}'.", file=sys.stderr)
 
 if __name__ == '__main__':
     main()
