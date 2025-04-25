@@ -24,7 +24,7 @@ def load_resnet18(pretrained=False, num_classes=1000):
     
     return custom_model
 
-def load_resnet34(pretrained=False, num_classes=1000):
+def load_resnet34(pretrained=False, num_classes=1000,bi_partitioned =False):
     # Initialize custom model
     custom_model = ResNet_base([(64, 3), (128, 4), (256, 6), (512, 3)], num_classes=num_classes)
     
@@ -40,9 +40,14 @@ def load_resnet34(pretrained=False, num_classes=1000):
     
     # If pretrained is False, reinitialize the custom model to reset weights
     if not pretrained:
-        custom_model = ResNet_base([(64, 3), (128, 4), (256, 6), (512, 3)], num_classes=num_classes)
+        if bi_partitioned:
+            custom_model = ResNet_base_bi_partitioned([(64, 3), (128, 4), (256, 6), (512, 3)], num_classes=num_classes)
+        else:
+            custom_model = ResNet_base([(64, 3), (128, 4), (256, 6), (512, 3)], num_classes=num_classes)
     
     return custom_model
+
+
 
 
 def load_feedforward(config, input_dim, output_dim, activation, final_activation):

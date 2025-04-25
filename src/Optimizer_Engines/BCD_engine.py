@@ -56,20 +56,10 @@ def optimzie_block(model, optimizer, K, data_set, device, criterion):
     Returns:
         The updated model copy after K steps.
     """
-    # Ensure model is on the correct device (only performed once per call).
-    model.to(device)
+    sub_data_set = random.sample(data_set, K)
 
-    # Perform K local steps
-    data_iter = iter(data_set)
-    for _ in range(K):
-        try:
-            inputs, labels = next(data_iter)
-        except StopIteration:
-            data_iter = iter(data_set)
-            inputs, labels = next(data_iter)
-
-        inputs = inputs.to(device)
-        labels = labels.to(device)
+    iteration = 0
+    for inputs, labels in sub_data_set:
 
         # Clear all gradients (including frozen blocks) once per step
         model.zero_grad(set_to_none=True)
@@ -77,9 +67,10 @@ def optimzie_block(model, optimizer, K, data_set, device, criterion):
         outputs = model(inputs)
         loss = criterion(outputs, labels)
 
-        loss.backward()
+        loss.backward ()
         optimizer.step()
-    
+
+        iteration += 1
     return model
 
 
@@ -98,6 +89,8 @@ def train_blockwise_sequential(frame: Model_frames.Disributed_frame, share_of_ac
         number_of_active_workes: Number of randomly selected active workers to use per round.
                                   If -1, all workers are used.
     """
+        # Ensure model is on the correct device (only performed once per call).
+       
     device = frame.device
     iteration = 0
 
@@ -179,34 +172,37 @@ def train_entire(frame):
     data_iter = iter(train_loader)
 
     for round_idx in range(frame.rounds):
-        try:
-            inputs, labels = next(data_iter)
-        except StopIteration:
-            data_iter = iter(train_loader)
-            inputs, labels = next(data_iter)
+        for inputs, labels in frame.train_loader:
 
-        inputs = inputs.to(device)
-        labels = labels.to(device)
+            inputs = inputs.to(device, non_blocking=True)
+            labels = labels.to(device, non_blocking=True)
 
-        optimizer.zero_grad()
+            optimizer.zero_grad()
 
-        outputs = center_model(inputs)
-        loss = criterion(outputs, labels)
+            outputs = center_model(inputs)
+            loss = criterion(outputs, labels)
 
-        loss.backward()
-        optimizer.step()
-        iteration += 1
-        # Measurement sampling based on new sampling rate
-        if iteration % frame.H.get("measurement_sampling_rate", 1) == 1:
-            frame.run_measurmentUnits()
-        # Reporting sampling based on report_sampling_rate
-        if iteration % frame.H["report_sampling_rate"] == 0:
-            total_time = time.time() - total_time_start
-            log_progress(frame, round_idx, total_time, 0, log_deviation=False)
-            if hasattr(frame, "stopper_units") and frame.stopper_units:
-                if any(stopper.should_stop(frame, frame.last_loss, frame.last_accuracy) for stopper in frame.stopper_units):
-                    reporter.log("Early stopping triggered.")
-                    break
+            loss.backward()
+            optimizer.step()
+            iteration += 1
+
+            # Measurement sampling based on new sampling rate
+            if iteration % frame.H.get("measurement_sampling_rate", 1) == 1:
+                frame.run_measurmentUnits()
+
+            # Reporting sampling based on report_sampling_rate
+            if iteration % frame.H["report_sampling_rate"] == 0:
+                total_time = time.time() - total_time_start
+                log_progress(frame, round_idx, total_time, 0, log_deviation=False)
+                if hasattr(frame, "stopper_units") and frame.stopper_units:
+                    if any(stopper.should_stop(frame, frame.last_loss, frame.last_accuracy) for stopper in frame.stopper_units):
+                        reporter.log("Early stopping triggered.")
+                        break
+
+            if iteration >= frame.rounds:
+                break
+        if iteration >= frame.rounds:
+                break
 
     total_time_end = time.time()
     total_time = total_time_end - total_time_start

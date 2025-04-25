@@ -42,15 +42,12 @@ class Frame:
 
         # Determine the number of workers. A common heuristic is the number of CPU cores.
         # You might need to experiment to find the optimal number for your system and data.
-        num_workers = 4 # Example: use 4 worker processes
 
         self.train_loader = torch.utils.data.DataLoader(
             self.train_dataset,
             batch_size=self.batch_size,
             shuffle=True,
-            drop_last=True,
-            num_workers=num_workers,
-            pin_memory=True # Use pin_memory for faster data transfer to GPU
+            drop_last=True
         )
 
         
@@ -60,9 +57,7 @@ class Frame:
             self.train_dataset,
             batch_size=self.batch_size * 8,
             shuffle=True,
-            drop_last=True,
-            num_workers=num_workers, # Use the same number of workers or adjust as needed
-            pin_memory=True
+            drop_last=True
         )
 
 
@@ -71,15 +66,13 @@ class Frame:
             self.test_dataset,
             batch_size=self.batch_size, # Or whatever batch size is appropriate for testing
             shuffle=False,
-            drop_last=False, # Usually don't drop the last batch in testing
-            num_workers=num_workers,
-            pin_memory=True
+            drop_last=False # Usually don't drop the last batch in testing
         )
 
         if not layzzy_loader:
-            train_data = [(x[0].to(self.device, non_blocking=True),x[1].to(self.device, non_blocking=True)) for x in self.train_loader]
-            train_data_bigBatch = [(x[0].to(self.device, non_blocking=True),x[1].to(self.device, non_blocking=True)) for x in self.big_train_loader]
-            test_data = [(x[0].to(self.device, non_blocking=True),x[1].to(self.device, non_blocking=True)) for x in self.test_loader]
+            train_data = [(x[0].to(self.device, non_blocking=False),x[1].to(self.device, non_blocking=False)) for x in self.train_loader]
+            train_data_bigBatch = [(x[0].to(self.device, non_blocking=False),x[1].to(self.device, non_blocking=False)) for x in self.big_train_loader]
+            test_data = [(x[0].to(self.device, non_blocking=False),x[1].to(self.device, non_blocking=False)) for x in self.test_loader]
             
             self.train_loader = train_data
             self.big_train_loader = train_data_bigBatch
@@ -359,7 +352,11 @@ def generate_ModelFrame(H):
 
     elif model_type == "ResNet34":
         print(f"\n\n\nin_features: {input_shape}, num_classes: {output_shape}\n\n\n")
-        model = Models.load_resnet34(pretrained=pretrained, num_classes=output_shape[0])
+        model = Models.load_resnet34(pretrained=pretrained, num_classes=output_shape[0], bi_partitioned=False)
+
+    elif model_type == "ResNet34-bi":
+        print(f"\n\n\nin_features: {input_shape}, num_classes: {output_shape}\n\n\n")
+        model = Models.load_resnet34(pretrained=pretrained, num_classes=output_shape[0], bi_partitioned=True)
 
     elif model_type == "linear_nn":
         # Load a feedforward network for regression tasks; use defaults if not provided in H.
