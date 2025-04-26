@@ -57,7 +57,7 @@ if __name__ == "__main__":
         "report_sampling_rate": 20,         # --report_sampling_rate
         "measurement_sampling_rate": 30099,   # Default or computed as 400 - 1
         "model": "residual_cnn",            # --model
-        "config": "[128, 64, 32,16,16,16,16,16,16,16,16,16,16,16,16,16]",             # --config
+        "config": "[128, 64, 32,32,32,32,16,16,16,16,16,16,16,16,16,16,16,16]",             # --config
         "K": 1,                             # --K
         "communication_delay": 0,           # --communication_delay
         "n_workers": 1,                     # Default value from the script

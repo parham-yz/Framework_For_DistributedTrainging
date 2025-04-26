@@ -77,13 +77,13 @@ class Frame:
         )
 
         if not layzzy_loader:
-            self.train_data = [x.to(self.device, non_blocking=True) for x in self.train_loader]
-            self.train_data_bigBatch = [x.to(self.device, non_blocking=True) for x in self.big_train_loader]
-            self.test_data = [x.to(self.device, non_blocking=True) for x in self.test_loader]
+            train_data = [(x[0].to(self.device, non_blocking=True),x[1].to(self.device, non_blocking=True)) for x in self.train_loader]
+            train_data_bigBatch = [(x[0].to(self.device, non_blocking=True),x[1].to(self.device, non_blocking=True)) for x in self.big_train_loader]
+            test_data = [(x[0].to(self.device, non_blocking=True),x[1].to(self.device, non_blocking=True)) for x in self.test_loader]
             
-            del self.train_loader
-            del self.big_train_loader
-            del self.test_loader
+            self.train_loader = train_data
+            self.big_train_loader = train_data_bigBatch
+            self.test_loader = test_data
 
     def set_measure_units(self, measure_units: list):
         """
