@@ -115,6 +115,8 @@ class ResidualConvBlock(nn.Module):
 
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, bias=True)
         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1, bias=True)
+        self.bn = nn.BatchNorm2d(in_channels)
+
 
         # Fix: Add skip connection handling
         self.skip_connection = (
@@ -123,7 +125,8 @@ class ResidualConvBlock(nn.Module):
         )
 
     def forward(self, x):
-        out = self.activation(self.conv1(x))
+        out = self.bn(x)
+        out = self.activation(self.conv1(out))
         out = self.activation(self.conv2(out))
         skip = self.skip_connection(x)
         return out + skip

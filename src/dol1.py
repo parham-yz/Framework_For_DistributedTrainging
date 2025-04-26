@@ -64,20 +64,20 @@ if __name__ == "__main__":
         "reports_dir": "rcnn_cifar10"       # --reports_dir
     }
 
-    # H = {
-    #     "model": "residual_cnn",
-    #     "dataset_name": "cifar10",
-    #     "training_mode": "ploting",
-    #     "step_size": 1.1,
-    #     "batch_size": 128,
-    #     "rounds": 0,
-    #     "K": 0,
-    #     "cuda_core": 0,
-    #     "config": "[128, 64, 32,16,16,16,16,16,16,16,16,16,16,16,16,16]",
-    #     "communication_delay": 0,
-    #     "report_sampling_rate": 0,
-    #     "reports_dir": "model_arch"
-    # }
+    H = {
+        "model": "residual_cnn",
+        "dataset_name": "cifar10",
+        "training_mode": "ploting",
+        "step_size": 1.1,
+        "batch_size": 128,
+        "rounds": 0,
+        "K": 0,
+        "cuda_core": 0,
+        "config": "[128, 64, 32,32,32,32,16,16,16,16,16,16,16,16,16,16,16,16]",
+        "communication_delay": 0,
+        "report_sampling_rate": 0,
+        "reports_dir": "model_arch"
+    }
 
 
     

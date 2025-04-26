@@ -35,7 +35,7 @@ TASKSPERCORE=6         # Number of tasks to assign to each GPU per batch
 
 BATCH_CHUNK_SIZE=$(( NUM_GPUS * TASKSPERCORE ))
 ROUNDS=10000
-BATCH_SIZE=128
+BATCH_SIZE=256
 REPORT_RATE=20
 
 # --- Generate the list of all experiment configurations ---
@@ -98,7 +98,7 @@ for (( i=0; i<TOTAL_EXPERIMENTS; i+=BATCH_CHUNK_SIZE )); do
       --rounds "$ROUNDS" \
       --K "$current_k" \
       --cuda_core "$GPU" \
-      --config "[128, 64, 32,32,32,32,16,16,16,16,16,16,16,16,16,16,16,16]" \
+      --config "[128,64,64,64,64,32,32,32,32,32,32,32,32,32,32,32,32,32]" \
       --communication_delay 0 \
       --report_sampling_rate "$REPORT_RATE" \
       --reports_dir "$REPORTS_DIR_NAME" &
