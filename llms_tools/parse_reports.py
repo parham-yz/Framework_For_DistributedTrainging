@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
 Tool: parse_reports.py
-Purpose: Scan the `reports/` directory for training runs.
+Purpose: Scan the `reports/` or a specified subdirectory for training runs.
 Identifies unique (model, dataset) combinations, prompts user if multiple exist.
 Extracts rounds reported by the early stopping mechanism for the chosen combination.
 Prints a Markdown summary table (K vs step_size) of rounds to standard output,
 with aligned columns and formatted K values.
 
 Usage:
-  python3 llms_tools/parse_reports.py
+  python3 llms_tools/parse_reports.py [--experiment_dir <dir_name>]
 """
 import os
 import re
@@ -16,10 +16,12 @@ import json
 import argparse
 import sys
 
-def get_paths():
-    """Return absolute path for reports dir."""
+def get_reports_path(experiment_dir=None):
+    """Return absolute path for reports dir, optionally within an experiment subdirectory."""
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
     reports_dir = os.path.join(repo_root, 'reports')
+    if experiment_dir:
+        return os.path.join(reports_dir, experiment_dir)
     return reports_dir
 
 def parse_report(path):
@@ -33,9 +35,12 @@ def parse_report(path):
             lines = f.readlines()
     except Exception as e:
         print(f"Error reading file {path}: {e}", file=sys.stderr)
-        return None
+        return None # Return None immediately if file reading fails
+
+    # --- Code below this line runs only if file reading was successful ---
 
     H = None
+    # First pass: Find Hyperparameters
     for line in lines:
         if line.startswith('Hyperparameters:'):
             try:
@@ -43,11 +48,12 @@ def parse_report(path):
                 H = json.loads(json_str.strip())
             except json.JSONDecodeError as e:
                 print(f"Error decoding JSON in {path}: {e}", file=sys.stderr)
-                return None
-            break
+                return None # Return None if hyperparameter JSON parsing fails
+            break # Found hyperparameters, stop scanning for them
 
     if not H:
-        return None
+        # print(f"No Hyperparameters found in {path}", file=sys.stderr) # Optional debug
+        return None # Return None if no hyperparameters were found
 
     model = H.get('model', 'N/A')
     dataset = H.get('dataset_name') or H.get('dataset', 'N/A')
@@ -55,8 +61,10 @@ def parse_report(path):
     step_size = H.get('step_size', 'N/A')
 
     if K == 'N/A' or step_size == 'N/A':
-         return None
+         # print(f"Missing K or step_size in {path}", file=sys.stderr) # Optional debug
+         return None # Return None if essential hyperparameters are missing
 
+    # Second pass: Find early stopping trigger and the final rounds count
     rounds_pattern = re.compile(r'Training completed.* over (\d+) rounds')
     early_stopping_triggered = False
     rounds_at_stopping = None
@@ -64,29 +72,49 @@ def parse_report(path):
     for line in lines:
         if 'Early stopping triggered' in line:
             early_stopping_triggered = True
-            continue
+            # Continue scanning, as the rounds count line appears after this.
+            # We specifically want the rounds *when* early stopping triggered.
 
-        if early_stopping_triggered:
-            m = rounds_pattern.search(line)
-            if m:
-                try:
-                    rounds_at_stopping = int(m.group(1))
-                    break
-                except ValueError:
-                     print(f"Could not parse rounds value from line in {path}: {line.strip()}", file=sys.stderr)
-                     continue
+        m = rounds_pattern.search(line)
+        if m:
+            try:
+                # We found a rounds count line. Capture it.
+                current_rounds = int(m.group(1))
+                # We want the rounds count that corresponds to the *termination* of the run.
+                # In a log with early stopping, the *last* 'Training completed... over X rounds' line
+                # should be the one *after* the early stopping trigger message.
+                # We'll store the last one found, but only return it if early stopping was indeed triggered.
+                rounds_at_stopping = current_rounds
 
-    if rounds_at_stopping is None:
+            except ValueError:
+                 print(f"Could not parse rounds value from line in {path}: {line.strip()}", file=sys.stderr)
+                 # Continue scanning, maybe there's another valid rounds line
+
+
+    # --- Code below this line runs after scanning all lines ---
+
+    # Final check: Was early stopping triggered AND did we find a rounds count afterwards?
+    # Note: The early_stopping_triggered flag must be True. The rounds_at_stopping must not be None.
+    # If early stopping was triggered, we expect to find a final rounds count corresponding to the point of stopping.
+    if early_stopping_triggered and rounds_at_stopping is not None:
+        # Success! Found an early-stopped run with the final round count.
+        return (model, dataset, K, step_size, rounds_at_stopping)
+    else:
+        # print(f"Report {path}: Early stopping not triggered or final rounds not found after trigger.", file=sys.stderr) # Optional debug
+        # This report did not end due to early stopping, or the log format is unexpected.
         return None
-
-    return (model, dataset, K, step_size, rounds_at_stopping)
 
 
 def main():
     parser = argparse.ArgumentParser(description='Parse training reports for early stopping rounds.')
+    parser.add_argument(
+        '--experiment_dir',
+        type=str,
+        help='Optional subdirectory within reports/ to scan. If not provided, scans reports/.'
+    )
     args = parser.parse_args()
 
-    reports_dir = get_paths()
+    reports_dir = get_reports_path(args.experiment_dir)
 
     if not os.path.isdir(reports_dir):
         print(f'Error: Reports directory not found: {reports_dir}', file=sys.stderr)
@@ -148,6 +176,7 @@ def main():
     ]
 
     if not filtered_data:
+        # This case is unlikely if found_combinations logic is correct, but good for safety.
         print(f"No reports found for selected combination (Model='{selected_model}', Dataset='{selected_dataset}') after filtering. This should not happen if selection worked correctly.", file=sys.stderr)
         sys.exit(1)
 
@@ -170,7 +199,7 @@ def main():
             summary[K_key] = min(rounds_by_step.values())
 
     step_list = sorted(list(step_sizes))
-    K_list = sorted(list(Ks)) # Keep original K keys for data lookup
+    # K_list = sorted(list(Ks)) # Not strictly needed for data lookup after results dict is built
 
     # --- Start: Padding Logic for Aligned Columns ---
 
@@ -180,20 +209,25 @@ def main():
     column_widths = [len(col) for col in header_cols]
 
     # Add data widths, including the '.' for the K column
-    for K_key in sorted(summary.keys()): # Use sorted K_keys for iterating through data
+    # Iterate through sorted K_keys from results to ensure all K values in the data contribute to width
+    for K_key in sorted(results.keys()):
         # Width for K column (plus '.')
-        k_str = str(K_key) + '.' if not isinstance(K_key, str) or K_key.isdigit() else str(K_key) # Add '.' if it looks like a number
+        k_str = str(K_key) + '.' if isinstance(K_key, (int, float)) or (isinstance(K_key, str) and K_key.isdigit()) else str(K_key) # Add '.' if it looks like a number
         column_widths[0] = max(column_widths[0], len(k_str))
 
         # Width for Min Rounds column
-        min_rounds_str = str(summary[K_key])
+        # Use summary.get(K_key) to avoid error if a K_key in results didn't end up in summary (e.g., due to all '-' values)
+        min_rounds_val = summary.get(K_key)
+        min_rounds_str = str(min_rounds_val) if min_rounds_val is not None else '-' # Represent None as '-' for width calc
         column_widths[1] = max(column_widths[1], len(min_rounds_str))
+
 
         # Widths for step size columns
         rounds_by_step = results.get(K_key, {})
         for i, s_key in enumerate(step_list):
             cell_content = str(rounds_by_step.get(s_key, '-'))
             column_widths[i + 2] = max(column_widths[i + 2], len(cell_content))
+
 
     # Add padding (e.g., 1 space on each side)
     padding = 1
@@ -203,6 +237,8 @@ def main():
 
     # Print Markdown table to standard output
     print(f"# Model: {selected_model}, Dataset: {selected_dataset}")
+    if args.experiment_dir:
+        print(f"## Experiment: {args.experiment_dir}")
     print("## Rounds at Early Stopping (Lower is Better)")
     print("") # Blank line before table
 
@@ -215,15 +251,16 @@ def main():
     print('|' + '|'.join(sep_padded) + '|')
 
     # Print data rows with padding and formatted K
-    for K_key in sorted(summary.keys()):
+    for K_key in sorted(results.keys()): # Use sorted results.keys() to include all K values in table
         row_cells = []
 
         # K column with '.' and padding
-        k_str = str(K_key) + '.' if not isinstance(K_key, str) or K_key.isdigit() else str(K_key) # Add '.' if it looks like a number
+        k_str = str(K_key) + '.' if isinstance(K_key, (int, float)) or (isinstance(K_key, str) and K_key.isdigit()) else str(K_key) # Add '.' if it looks like a number
         row_cells.append(k_str.ljust(column_widths[0] - padding).rjust(column_widths[0])) # Left align content, pad total width
 
         # Min Rounds column with padding
-        min_rounds_str = str(summary[K_key])
+        min_rounds_val = summary.get(K_key)
+        min_rounds_str = str(min_rounds_val) if min_rounds_val is not None else '-'
         row_cells.append(min_rounds_str.ljust(column_widths[1] - padding).rjust(column_widths[1]))
 
         # Step size columns with padding
@@ -237,7 +274,12 @@ def main():
 
     print("\n'-' indicates no data available for this combination of K and step size.")
     print("\nNote: Table columns are padded for visual alignment in monospace fonts.")
-    print(f"\nFinished processing reports for Model='{selected_model}', Dataset='{selected_dataset}'.", file=sys.stderr)
+    print(f"\nFinished processing reports for Model='{selected_model}', Dataset='{selected_dataset}'", file=sys.stderr)
+    if args.experiment_dir:
+         print(f" in directory '{args.experiment_dir}'.", file=sys.stderr)
+    else:
+         print(".", file=sys.stderr)
+
 
 if __name__ == '__main__':
     main()

@@ -25,7 +25,6 @@ class BasicBlock(nn.Module):
         self.stride = stride
 
     def forward(self, x):
-        identity = x
         
         # First conv block
         out = self.conv1(x)
@@ -39,6 +38,9 @@ class BasicBlock(nn.Module):
         # Add skip connection
         if self.downsample is not None:
             identity = self.downsample(x)
+        else:
+            # raise Exception("ResNet Arc, error!")
+            identity = x
         
         out += identity
         out = F.relu(out)

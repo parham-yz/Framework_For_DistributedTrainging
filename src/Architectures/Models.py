@@ -9,7 +9,7 @@ def load_resnet18(pretrained=False, num_classes=1000):
     custom_model = ResNet_base([(64, 2), (128, 2), (256, 2), (512, 2)], num_classes=num_classes)
     
     # Load standard pretrained model for architecture comparison
-    standard_model = models.resnet18(pretrained=True)
+    standard_model = models.resnet18(pretrained=pretrained)
     
     # Attempt to load pretrained weights into custom model for architecture validation
     try:
@@ -97,19 +97,17 @@ def load_residual_feedforward_cnn(
     in_channels,
     output_dim,
     activation,
-    beta: float = 1.0,
     final_activation=None,
 ):
     """Instantiate ``ResidualFeedForwardCNN``.
 
-    This helper mirrors the signature of ``load_feedforward_cnn`` with one extra
-    *beta* argument for the residual weighting.
+    This helper mirrors the signature of ``load_feedforward_cnn`` .
     """
 
     from src.Architectures.feedforward_nn import ResidualFeedForwardCNN
 
     return ResidualFeedForwardCNN(
-        config, in_channels, output_dim, activation, beta, final_activation
+        config, in_channels, output_dim, activation, final_activation
     )
 
 

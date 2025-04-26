@@ -79,11 +79,14 @@ class FeedForwardNetwork(nn.Module):
 class ConvBlock(nn.Module):
     def __init__(self, in_channels, out_channels, activation):
         super(ConvBlock, self).__init__()
-        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1)
         self.activation = activation
     
     def forward(self, x):
-        x = self.conv(x)
+        x = self.conv1(x)
+        x = self.activation(x)
+        x = self.conv2(x)
         x = self.activation(x)
         return x
 
@@ -97,41 +100,33 @@ class ResidualConvBlock(nn.Module):
 
     The output is computed as
 
-        y = beta * f(x) + (1 - beta) * g(x)
+        y = f(x) + g(x)
 
     where *f* is a 3×3 convolution followed by *activation* and *g* is either
     the identity (if ``in_channels == out_channels``) or a 1×1 convolution used
-    to match the channel dimension. *beta* is a scalar in \[0, 1\].
+    to match the channel dimension. 
     """
 
-    def __init__(self, in_channels, out_channels, activation, beta: float = 1.0):
+    def __init__(self, in_channels, out_channels, activation):
         super().__init__()
 
-        if not (0.0 <= beta <= 1.0):
-            raise ValueError("beta must be in the range [0, 1]")
 
-        self.beta = beta
         self.activation = activation
 
-        # Main 3×3 convolution
-        self.conv = nn.Conv2d(
-            in_channels,
-            out_channels,
-            kernel_size=3,
-            padding=1,
-            bias=True,
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, bias=True)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1, bias=True)
+
+        # Fix: Add skip connection handling
+        self.skip_connection = (
+            nn.Identity() if in_channels == out_channels
+            else nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False)
         )
 
-        # Skip connection (identity if possible, otherwise 1×1 conv to match channels)
-        if in_channels == out_channels:
-            self.skip = nn.Identity()
-        else:
-            raise Exception(f"{in_channels}, {out_channels}, dont match! for residual connection.")
-
     def forward(self, x):
-        out = self.activation(self.conv(x))
-        skip_out = self.skip(x)
-        return self.beta * out + (1.0 - self.beta) * skip_out
+        out = self.activation(self.conv1(x))
+        out = self.activation(self.conv2(out))
+        skip = self.skip_connection(x)
+        return out + skip
     
 # Final block: maps the last hidden layer to the output logits, with an optional activation function
 class FinalBlockCnn(nn.Module):
@@ -206,7 +201,6 @@ class ResidualFeedForwardCNN(nn.Module):
         Dimensionality of the output (e.g. number of classes).
     activation : callable
         Activation applied after each convolution.
-    beta : float, default = 1.0
         Weight of the main path output vs. the skip connection. Must be in
         [0, 1].  ``0`` reduces to pure skip (identity) while ``1`` recovers the
         vanilla feed‑forward CNN.
@@ -220,7 +214,6 @@ class ResidualFeedForwardCNN(nn.Module):
         in_channels,
         output_dim,
         activation,
-        beta: float = 1.0,
         final_activation=None,
     ):
         super().__init__()
@@ -228,12 +221,22 @@ class ResidualFeedForwardCNN(nn.Module):
         self.blocks = nn.ModuleList()
 
         # Initial residual block
-        self.blocks.append(ResidualConvBlock(in_channels, config[0], activation, beta))
+
+        self.blocks.append(nn.Sequential(
+            nn.Conv2d(
+                in_channels,
+                config[0],
+                kernel_size=1,
+                padding=1,
+                bias=True
+            ),
+            nn.ReLU()
+        ))
 
         # Subsequent residual blocks
         for i in range(1, len(config)):
             self.blocks.append(
-                ResidualConvBlock(config[i - 1], config[i], activation, beta)
+                ResidualConvBlock(config[i - 1], config[i], activation)
             )
 
         # Final classification block

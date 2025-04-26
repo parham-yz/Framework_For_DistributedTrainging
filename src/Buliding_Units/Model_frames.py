@@ -29,24 +29,49 @@ class Frame:
         # Initialize the list of stopper units (instances of StopperUnit subclasses)
         self.stopper_units = []
 
+        self.input_shape  = None
+        self.output_shape = None     
+
     def setup_dataloaders(self, data_set):
-        self.dataset = [(d[0].to(self.device), d[1]) for d in data_set]
+        # Keep the original dataset structure, avoid moving everything to device here
+        self.dataset = data_set
+
         train_size = int(0.9 * len(self.dataset))
         test_size = len(self.dataset) - train_size
         self.train_dataset, self.test_dataset = torch.utils.data.random_split(self.dataset, [train_size, test_size])
+
+        # Determine the number of workers. A common heuristic is the number of CPU cores.
+        # You might need to experiment to find the optimal number for your system and data.
+        num_workers = 4 # Example: use 4 worker processes
+
         self.train_loader = torch.utils.data.DataLoader(
             self.train_dataset,
             batch_size=self.batch_size,
             shuffle=True,
-            drop_last=True
+            drop_last=True,
+            num_workers=num_workers,
+            pin_memory=True # Use pin_memory for faster data transfer to GPU
         )
+
+        # Assuming big_train_loader is for a specific purpose that requires a larger batch
         self.big_train_loader = torch.utils.data.DataLoader(
             self.train_dataset,
             batch_size=self.batch_size * 8,
             shuffle=True,
-            drop_last=True
+            drop_last=True,
+            num_workers=num_workers, # Use the same number of workers or adjust as needed
+            pin_memory=True
         )
 
+        # For the test loader, shuffling is typically not necessary
+        self.test_loader = torch.utils.data.DataLoader(
+            self.test_dataset,
+            batch_size=self.batch_size, # Or whatever batch size is appropriate for testing
+            shuffle=False,
+            drop_last=False, # Usually don't drop the last batch in testing
+            num_workers=num_workers,
+            pin_memory=True
+        )
         
     def set_measure_units(self, measure_units: list):
         """
@@ -350,7 +375,6 @@ def generate_ModelFrame(H):
     # ------------------------------------------------------------------
     elif model_type in ["residual_cnn", "residual_feedforward_cnn"]:
         config = H["config"]
-        beta = H.get("beta", 1.0)
         assert len(output_shape) == 1, "Expected output_shape to have length 1 for residual_cnn"
         output_dim = output_shape[0]
         activation = nn.ReLU()
@@ -363,7 +387,6 @@ def generate_ModelFrame(H):
             in_channels,
             output_dim,
             activation,
-            beta,
             final_activation,
         )
 
@@ -409,7 +432,7 @@ def generate_ModelFrame(H):
     #
 
     # Create the appropriate training frame
-    if ttype == "entire":
+    if ttype == "entire" or "ploting":
         frame = ImageClassifier_frame_entire(model, H)
 
     elif ttype == "blockwise" or ttype == "blockwise_sequential":
@@ -431,5 +454,8 @@ def generate_ModelFrame(H):
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
+
+    frame.input_shape = torch.Size([H["batch_size"], *input_shape])
+    frame.output_shape = torch.Size([H["batch_size"], *output_shape])
 
     return frame
