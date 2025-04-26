@@ -176,10 +176,17 @@ def train_entire(frame):
     reporter.log(f"Total epochs: {frame.rounds}")
     total_time_start = time.time()
     iteration = 0
+    data_iter = iter(train_loader)
 
     for round_idx in range(frame.rounds):
-        inputs, labels = next(iter(train_loader))
-        inputs, labels = inputs.to(device), labels.to(device)
+        try:
+            inputs, labels = next(data_iter)
+        except StopIteration:
+            data_iter = iter(train_loader)
+            inputs, labels = next(data_iter)
+
+        inputs = inputs.to(device)
+        labels = labels.to(device)
 
         optimizer.zero_grad()
 

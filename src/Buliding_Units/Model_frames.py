@@ -32,7 +32,7 @@ class Frame:
         self.input_shape  = None
         self.output_shape = None     
 
-    def setup_dataloaders(self, data_set):
+    def setup_dataloaders(self, data_set,layzzy_loader=False):
         # Keep the original dataset structure, avoid moving everything to device here
         self.dataset = data_set
 
@@ -53,6 +53,8 @@ class Frame:
             pin_memory=True # Use pin_memory for faster data transfer to GPU
         )
 
+        
+
         # Assuming big_train_loader is for a specific purpose that requires a larger batch
         self.big_train_loader = torch.utils.data.DataLoader(
             self.train_dataset,
@@ -63,6 +65,7 @@ class Frame:
             pin_memory=True
         )
 
+
         # For the test loader, shuffling is typically not necessary
         self.test_loader = torch.utils.data.DataLoader(
             self.test_dataset,
@@ -72,7 +75,16 @@ class Frame:
             num_workers=num_workers,
             pin_memory=True
         )
-        
+
+        if not layzzy_loader:
+            self.train_data = [x.to(self.device, non_blocking=True) for x in self.train_loader]
+            self.train_data_bigBatch = [x.to(self.device, non_blocking=True) for x in self.big_train_loader]
+            self.test_data = [x.to(self.device, non_blocking=True) for x in self.test_loader]
+            
+            del self.train_loader
+            del self.big_train_loader
+            del self.test_loader
+
     def set_measure_units(self, measure_units: list):
         """
         Set the measurement units to be used for logging metrics.
