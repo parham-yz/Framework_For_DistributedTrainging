@@ -444,7 +444,7 @@ def generate_ModelFrame(H):
     #
 
     # Create the appropriate training frame
-    if ttype == "entire" or "ploting":
+    if ttype == "entire" or ttype =="ploting":
         frame = ImageClassifier_frame_entire(model, H)
 
     elif ttype == "blockwise" or ttype == "blockwise_sequential":

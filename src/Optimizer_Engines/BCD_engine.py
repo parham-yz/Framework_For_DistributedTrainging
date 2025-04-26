@@ -41,7 +41,7 @@ def perform_communication(frame, communicate_func):
     return time.time() - start
 
 
-def optimzie_block(model, optimizer, K, data_iter, device, criterion):
+def optimzie_block(model, optimizer, K, data_set, device, criterion):
     """
     Trains a copy of the model for K local steps using the given optimizer.
     
@@ -60,12 +60,12 @@ def optimzie_block(model, optimizer, K, data_iter, device, criterion):
     model.to(device)
 
     # Perform K local steps
-    
+    data_iter = iter(data_set)
     for _ in range(K):
         try:
             inputs, labels = next(data_iter)
         except StopIteration:
-            data_iter = iter(data_iter)
+            data_iter = iter(data_set)
             inputs, labels = next(data_iter)
 
         inputs = inputs.to(device)
@@ -108,7 +108,6 @@ def train_blockwise_sequential(frame: Model_frames.Disributed_frame, share_of_ac
     total_time_start = time.time()
     time_spent_in_optimize_block = 0
     time_spent_in_communicate = 0
-    data_iter = iter(frame.train_loader)
 
     for round_idx in range(frame.rounds):
         # New: Randomly select M active workers for this round
@@ -128,7 +127,7 @@ def train_blockwise_sequential(frame: Model_frames.Disributed_frame, share_of_ac
                 model,
                 optimizer,
                 frame.K,
-                data_iter,
+                frame.train_loader,
                 device,
                 frame.criterion
             )
