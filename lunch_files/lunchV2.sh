@@ -29,9 +29,9 @@ trap cleanup INT TERM
 # Hyperparameters
 REPORTS_DIR_NAME="rcnn_cifar10"  # You can change this value as needed
 KS=(1)
-STEPS=( 0.001 0.0001) # 5 step sizes
+STEPS=( 0.0005 0.00005) # 5 step sizes
 NUM_GPUS=1         # Total number of GPUs available
-TASKSPERCORE=2         # Number of tasks to assign to each GPU per batch
+TASKSPERCORE=1         # Number of tasks to assign to each GPU per batch
 
 BATCH_CHUNK_SIZE=$(( NUM_GPUS * TASKSPERCORE ))
 ROUNDS=10000
@@ -90,7 +90,7 @@ for (( i=0; i<TOTAL_EXPERIMENTS; i+=BATCH_CHUNK_SIZE )); do
     echo "[$COUNTER/$TOTAL_EXPERIMENTS] Launching K=$current_k, step_size=$current_step on GPU $GPU (Task index in batch: $batch_task_counter)"
 
     python3 -m src.dol1 \
-      --model ResNet34 \
+      --model residual_cnn \
       --dataset_name cifar100 \
       --training_mode "$MODE" \
       --step_size "$current_step" \
@@ -98,6 +98,7 @@ for (( i=0; i<TOTAL_EXPERIMENTS; i+=BATCH_CHUNK_SIZE )); do
       --rounds "$ROUNDS" \
       --K "$current_k" \
       --cuda_core "$GPU" \
+      --config "[128,128,128,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64,64]"
       --communication_delay 0 \
       --report_sampling_rate "$REPORT_RATE" \
       --reports_dir "$REPORTS_DIR_NAME" &
