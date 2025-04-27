@@ -28,20 +28,20 @@ trap cleanup INT TERM
 
 # Hyperparameters
 REPORTS_DIR_NAME="rcnn_cifar10"  # You can change this value as needed
-KS=(1 )
-STEPS=( 0.001 0.0001 0.00001) # 5 step sizes
-NUM_GPUS=1            # Total number of GPUs available
-TASKSPERCORE=6         # Number of tasks to assign to each GPU per batch
+KS=(1 2 5 10 30)
+STEPS=( 0.001 0.0005 0.0001 0.00001) # 5 step sizes
+NUM_GPUS=8           # Total number of GPUs available
+TASKSPERCORE=2         # Number of tasks to assign to each GPU per batch
 
 BATCH_CHUNK_SIZE=$(( NUM_GPUS * TASKSPERCORE ))
-ROUNDS=10000
+ROUNDS=4500
 BATCH_SIZE=256
 REPORT_RATE=20
 
 # --- Generate the list of all experiment configurations ---
 EXPERIMENT_LIST=()
-for K in "${KS[@]}"; do
-  for STEP in "${STEPS[@]}"; do
+for STEP in "${STEPS[@]}"; do
+  for K in "${KS[@]}"; do
     EXPERIMENT_LIST+=("${K}_${STEP}")
   done
 done
@@ -98,7 +98,7 @@ for (( i=0; i<TOTAL_EXPERIMENTS; i+=BATCH_CHUNK_SIZE )); do
       --rounds "$ROUNDS" \
       --K "$current_k" \
       --cuda_core "$GPU" \
-      --config "[128,64,64,64,64,32,32,32,32,32,32,32,32,32,32,32,32,32]" \
+      --config "[128,64,64,64,64,32,32,32,32,32,32,32,32,32,32,32,32,32,32]" \
       --communication_delay 0 \
       --report_sampling_rate "$REPORT_RATE" \
       --reports_dir "$REPORTS_DIR_NAME" &
