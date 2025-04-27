@@ -170,8 +170,9 @@ def train_entire(frame):
     total_time_start = time.time()
     iteration = 0
     data_iter = iter(train_loader)
+    full_break = False
 
-    for round_idx in range(frame.rounds):
+    while not full_break:
         for inputs, labels in frame.train_loader:
 
             inputs = inputs.to(device, non_blocking=True)
@@ -193,16 +194,18 @@ def train_entire(frame):
             # Reporting sampling based on report_sampling_rate
             if iteration % frame.H["report_sampling_rate"] == 0:
                 total_time = time.time() - total_time_start
-                log_progress(frame, round_idx, total_time, 0, log_deviation=False)
+                log_progress(frame, iteration, total_time, 0, log_deviation=False)
                 if hasattr(frame, "stopper_units") and frame.stopper_units:
                     if any(stopper.should_stop(frame, frame.last_loss, frame.last_accuracy) for stopper in frame.stopper_units):
                         reporter.log("Early stopping triggered.")
+                        full_break = True
                         break
 
             if iteration >= frame.rounds:
+                full_break = True
                 break
-        if iteration >= frame.rounds:
-                break
+
+        
 
     total_time_end = time.time()
     total_time = total_time_end - total_time_start

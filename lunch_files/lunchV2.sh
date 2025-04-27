@@ -28,14 +28,14 @@ trap cleanup INT TERM
 
 # Hyperparameters
 REPORTS_DIR_NAME="rcnn_cifar10"  # You can change this value as needed
-KS=( 2 10)
-STEPS=( 0.001 0.00001 0.000001) # 5 step sizes
+KS=(1)
+STEPS=( 0.001 0.0001) # 5 step sizes
 NUM_GPUS=1         # Total number of GPUs available
 TASKSPERCORE=2         # Number of tasks to assign to each GPU per batch
 
 BATCH_CHUNK_SIZE=$(( NUM_GPUS * TASKSPERCORE ))
 ROUNDS=10000
-BATCH_SIZE=512
+BATCH_SIZE=256
 REPORT_RATE=20
 
 # --- Generate the list of all experiment configurations ---
