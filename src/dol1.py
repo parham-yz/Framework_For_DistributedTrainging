@@ -50,25 +50,60 @@ H = {
     "reports_dir":"default_path"
 }
 
+H = {
+    "step_size": 0.001,                 # --step_size
+    "batch_size": 128,                  # --batch_size
+    "rounds": 10000,                    # --rounds
+    "dataset_name": "cifar10",          # --dataset_name
+    "cuda_core": 0,                     # --cuda_core
+    "training_mode": "blockwise_sequential",  # --training_mode
+    "report_sampling_rate": 20,         # --report_sampling_rate
+    "measurement_sampling_rate": 30099,   # Default or computed as 400 - 1
+    "model": "ResNet34-bi",            # --model
+    "config": "[128, 64, 32,32,32,32,16,16,16,16,16,16,16,16,16,16,16,16]",             # --config
+    "K": 1,                             # --K
+    "communication_delay": 0,           # --communication_delay
+    "n_workers": 1,                     # Default value from the script
+    "reports_dir": "rcnn_cifar10"       # --reports_dir
+}
+
+H = {
+    "step_size": 0.01,                 # --step_size
+    "batch_size": 128,                  # --batch_size
+    "rounds": 1000,                    # --rounds
+    "dataset_name": "california_housing",          # --dataset_name
+    "cuda_core": -1,                     # --cuda_core
+    "training_mode": "blockwise_sequential",  # --training_mode
+    "report_sampling_rate": 5,         # --report_sampling_rate
+    "measurement_sampling_rate": 30099,   # Default or computed as 400 - 1
+    "model": "neural_net",            # --model
+    "config": "[16]",             # --config
+    "K": 150,                             # --K
+    "communication_delay": 0,           # --communication_delay
+    "n_workers": 1,                     # Default value from the script
+    "reports_dir": "regression"       # --reports_dir
+}
+
 # H = {
-#     "step_size": 0.001,                 # --step_size
+#     "step_size": 0.01,                 # --step_size
 #     "batch_size": 128,                  # --batch_size
-#     "rounds": 10000,                    # --rounds
-#     "dataset_name": "cifar10",          # --dataset_name
-#     "cuda_core": 0,                     # --cuda_core
-#     "training_mode": "blockwise_sequential",  # --training_mode
-#     "report_sampling_rate": 20,         # --report_sampling_rate
+#     "rounds": 1000,                    # --rounds
+#     "dataset_name": "california_housing",          # --dataset_name
+#     "cuda_core": -1,                     # --cuda_core
+#     "training_mode": "entire",  # --training_mode
+#     "report_sampling_rate": 5,         # --report_sampling_rate
 #     "measurement_sampling_rate": 30099,   # Default or computed as 400 - 1
-#     "model": "residual_cnn",            # --model
-#     "config": "[128, 64, 32,32,32,32,16,16,16,16,16,16,16,16,16,16,16,16]",             # --config
+#     "model": "neural_net",            # --model
+#     "config": "[16]",             # --config
 #     "K": 1,                             # --K
 #     "communication_delay": 0,           # --communication_delay
 #     "n_workers": 1,                     # Default value from the script
-#     "reports_dir": "rcnn_cifar10"       # --reports_dir
+#     "reports_dir": "regression"       # --reports_dir
 # }
 
+
 # H = {
-#     "model": "residual_cnn",
+#     "model": "cnn",
 #     "dataset_name": "cifar10",
 #     "training_mode": "ploting",
 #     "step_size": 1.1,
@@ -76,7 +111,7 @@ H = {
 #     "rounds": 0,
 #     "K": 0,
 #     "cuda_core": 0,
-#     "config": "[128, 64, 32,32,32,32,16,16,16,16,16,16,16,16,16,16,16,16]",
+#     "config": "[128,64,32]",
 #     "communication_delay": 0,
 #     "report_sampling_rate": 0,
 #     "reports_dir": "model_arch"

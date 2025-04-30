@@ -103,6 +103,7 @@ def load_residual_feedforward_cnn(
     output_dim,
     activation,
     final_activation=None,
+    bi_partitioned =False
 ):
     """Instantiate ``ResidualFeedForwardCNN``.
 
@@ -110,10 +111,16 @@ def load_residual_feedforward_cnn(
     """
 
     from src.Architectures.feedforward_nn import ResidualFeedForwardCNN
+    from src.Architectures.feedforward_nn import ResidualFeedForwardCNN_bi
 
-    return ResidualFeedForwardCNN(
-        config, in_channels, output_dim, activation, final_activation
-    )
+    if bi_partitioned:
+        return ResidualFeedForwardCNN_bi(
+            config, in_channels, output_dim, activation, final_activation
+        )
+    else:
+        return ResidualFeedForwardCNN(
+            config, in_channels, output_dim, activation, final_activation
+        )
 
 
 # -----------------------------------------------------------------------------

@@ -6,7 +6,7 @@ import src.Architectures.Models as Models
 import src.utils as utils
 import signal
 import sys
-import src.Data.data as data
+import src.Data.data_sets as data_sets
 import gc
 import time
 
@@ -72,11 +72,11 @@ class Frame:
         if not layzzy_loader:
             train_data = [(x[0].to(self.device, non_blocking=False),x[1].to(self.device, non_blocking=False)) for x in self.train_loader]
             train_data_bigBatch = [(x[0].to(self.device, non_blocking=False),x[1].to(self.device, non_blocking=False)) for x in self.big_train_loader]
-            test_data = [(x[0].to(self.device, non_blocking=False),x[1].to(self.device, non_blocking=False)) for x in self.test_loader]
+            # test_data = [(x[0].to(self.device, non_blocking=False),x[1].to(self.device, non_blocking=False)) for x in self.test_loader]
             
             self.train_loader = train_data
             self.big_train_loader = train_data_bigBatch
-            self.test_loader = test_data
+            # self.test_loader = test_data
 
     def set_measure_units(self, measure_units: list):
         """
@@ -219,7 +219,7 @@ class ImageClassifier_frame_blockwise(Disributed_frame):
         self.criterion = nn.CrossEntropyLoss()
 
         # Load the dataset into memory and transfer it to the device
-        dataset= data.generate_imagedata(self.dataset_name)
+        dataset= data_sets.generate_imagedata(self.dataset_name)
         self.setup_dataloaders(dataset)
 
         # Log additional information about frame type, number of blocks, and number of model parameters
@@ -227,6 +227,25 @@ class ImageClassifier_frame_blockwise(Disributed_frame):
         num_blocks = len(self.center_model.blocks)
         num_parameters = sum(p.numel() for p in self.center_model.parameters())
         self.reporter.log(f"Frame Type: {frame_type}, Number of Blocks: {num_blocks}, Number of Model Parameters: {num_parameters}")
+
+class ImageClassifier_frame_entire(Frame):
+    def __init__(self, model, H):
+        super().__init__(model, H)
+        self.rounds = H["rounds"]  # Number of training epochs
+        self.dataset_name = H["dataset_name"]
+        self.loss_history = []
+
+
+
+        # Initialize an optimizer for the entire model
+        self.optimizers = [optim.Adam(self.center_model.parameters(), lr=self.lr)]
+
+        # Define the loss function
+        self.criterion = nn.CrossEntropyLoss()
+
+        # Create a data loader for the training set
+        dataset= data_sets.generate_imagedata(self.dataset_name)
+        self.setup_dataloaders(dataset)
 
 
 class Regression_frame_blockwis(Disributed_frame):
@@ -246,7 +265,7 @@ class Regression_frame_blockwis(Disributed_frame):
         self.criterion = nn.MSELoss()
 
         # Attempt to load a regression dataset. If data.generate_regressiondata is not defined,
-        dataset= data.generate_regressiondata(self.dataset_name)
+        dataset= data_sets.generate_regressiondata(self.dataset_name)
         self.setup_dataloaders(dataset)
 
         # Log additional information about frame type, number of blocks, and number of model parameters
@@ -255,35 +274,75 @@ class Regression_frame_blockwis(Disributed_frame):
         num_parameters = sum(p.numel() for p in self.center_model.parameters())
         self.reporter.log(f"Frame Type: {frame_type}, Number of Blocks: {num_blocks}, Number of Model Parameters: {num_parameters}")
 
+class Regression_frame_entire(Frame):
+    """
+    A training frame for regression tasks that trains the entire model at once.
 
-class ImageClassifier_frame_entire(Frame):
+    Inherits from the base Frame class and sets up components specific to
+    entire-model regression training, such as MSELoss criterion and loading
+    regression datasets.
+    """
     def __init__(self, model, H):
+        """
+        Initializes the Regression_frame_entire.
+
+        Args:
+            model (nn.Module): The regression model to be trained.
+            H (dict): Dictionary of hyperparameters. Expected keys include:
+                      "rounds", "dataset_name", "step_size", "batch_size",
+                      "cuda_core".
+        """
         super().__init__(model, H)
-        self.rounds = H["rounds"]  # Number of training epochs
+        self.rounds = H["rounds"]  # Number of training epochs/rounds
         self.dataset_name = H["dataset_name"]
-        self.loss_history = []
+        self.loss_history = [] # To store training loss values
 
-
-
-        # Initialize an optimizer for the entire model
+        # Initialize an optimizer for the entire model's parameters
+        # Stored in a list for potential consistency with distributed frames,
+        # though only one optimizer is used here.
         self.optimizers = [optim.Adam(self.center_model.parameters(), lr=self.lr)]
 
-        # Define the loss function
-        self.criterion = nn.CrossEntropyLoss()
+        # Define the loss function suitable for regression
+        self.criterion = nn.MSELoss() # Mean Squared Error Loss
 
-        # Create a data loader for the training set
-        dataset= data.generate_imagedata(self.dataset_name)
-        self.setup_dataloaders(dataset)
+        # Load the appropriate regression dataset
+        try:
+            dataset = data_sets.generate_regressiondata(self.dataset_name)
+        except ValueError as e:
+            self.reporter.log(f"Error loading regression dataset '{self.dataset_name}': {e}")
+            raise # Re-raise the error after logging
+        except Exception as e:
+            self.reporter.log(f"An unexpected error occurred during dataset loading: {e}")
+            raise
+
+        # Setup the dataloaders for training and testing
+        # The setup_dataloaders method splits data and creates loaders
+        self.setup_dataloaders(dataset) # Use layzzy_loader=False by default if desired
+
+        # Log basic information about the frame and model
+        frame_type = type(self).__name__
+        num_parameters = sum(p.numel() for p in self.center_model.parameters() if p.requires_grad)
+        self.reporter.log(f"Frame Type: {frame_type}, Trainable Parameters: {num_parameters}")
+        # Optionally log input/output shapes if determined (usually set later in generate_ModelFrame)
+        # if self.input_shape and self.output_shape:
+        #    self.reporter.log(f"Expected Input Shape (batched): {self.input_shape}")
+        #    self.reporter.log(f"Expected Output Shape (batched): {self.output_shape}")
+
+
+# --- Modification in generate_ModelFrame ---
+# You need to update the `generate_ModelFrame` function to instantiate
+# this new class when appropriate.
+
 
 
 def get_dataset_dimensionality(dataset_name,dataset_type):
     # Retrieve the dataset based on the given name
     if dataset_type =='image':
-        dataset = data.generate_imagedata(dataset_name)
+        dataset = data_sets.generate_imagedata(dataset_name)
     elif dataset_type == 'nlp':
-        dataset = data.generate_nlp_data(dataset_name)
+        dataset = data_sets.generate_nlp_data(dataset_name)
     elif dataset_type == 'regression':
-        dataset = data.generate_regressiondata(dataset_name)
+        dataset = data_sets.generate_regressiondata(dataset_name)
 
     # Determine the *transformed* input shape rather than raw stored data.
     try:
@@ -328,7 +387,7 @@ def get_dataset_dimensionality(dataset_name,dataset_type):
 
 def generate_ModelFrame(H):
 
-    from src.Data.data import IMAGE_DATASETS, REGRESSION_DATASETS, NLP_DATASETS
+    from src.Data.data_sets import IMAGE_DATASETS, REGRESSION_DATASETS, NLP_DATASETS
 
     ttype = H["training_mode"]
     model_type = H.get("model", "ResNet18")  # Default to ResNet18 if not specified
@@ -369,6 +428,17 @@ def generate_ModelFrame(H):
         final_activation = nn.Identity()
         model = Models.load_feedforward(config, input_dim, output_dim, activation, final_activation)
 
+    elif model_type == "neural_net":
+        # Load a feedforward network for regression tasks; use defaults if not provided in H.
+        config = H["config"]
+        assert len(input_shape) == 1, "Expected input_shape to have length 1 for linear_nn"
+        assert len(output_shape) == 1, "Expected output_shape to have length 1 for linear_nn"
+        input_dim = input_shape[0]
+        output_dim = output_shape[0]
+        activation = nn.ReLU()
+        final_activation = nn.Identity()
+        model = Models.load_feedforward(config, input_dim, output_dim, activation, final_activation)
+
     elif model_type == "cnn":
         # Load a feedforward network for regression tasks; use defaults if not provided in H.
         config = H["config"]
@@ -382,7 +452,7 @@ def generate_ModelFrame(H):
     # ------------------------------------------------------------------
     # Residual Feed‑Forward CNN
     # ------------------------------------------------------------------
-    elif model_type in ["residual_cnn", "residual_feedforward_cnn"]:
+    elif model_type in ["residual_cnn"]:
         config = H["config"]
         assert len(output_shape) == 1, "Expected output_shape to have length 1 for residual_cnn"
         output_dim = output_shape[0]
@@ -397,6 +467,25 @@ def generate_ModelFrame(H):
             output_dim,
             activation,
             final_activation,
+            bi_partitioned = False
+        )
+    
+    elif model_type in ["residual_cnn_bi"]:
+        config = H["config"]
+        assert len(output_shape) == 1, "Expected output_shape to have length 1 for residual_cnn"
+        output_dim = output_shape[0]
+        activation = nn.ReLU()
+        final_activation = None
+
+        in_channels = input_shape[0] if len(input_shape) > 0 else 3
+
+        model = Models.load_residual_feedforward_cnn(
+            config,
+            in_channels,
+            output_dim,
+            activation,
+            final_activation,
+            bi_partitioned = True
         )
 
     # ------------------------------------------------------------------
@@ -441,17 +530,29 @@ def generate_ModelFrame(H):
     #
 
     # Create the appropriate training frame
-    if ttype == "entire" or ttype =="ploting":
-        frame = ImageClassifier_frame_entire(model, H)
+    if ttype == "entire" or ttype == "ploting": # Changed 'ploting' to 'plotting' assuming typo
+        # Select frame based on dataset type for 'entire' mode
+        if dataset_name in REGRESSION_DATASETS:
+            frame = Regression_frame_entire(model, H)      # Use the new class
+        elif dataset_name in IMAGE_DATASETS:
+            frame = ImageClassifier_frame_entire(model, H) # Existing class
+        # elif dataset_type == 'nlp':
+        #     # frame = NLP_frame_entire(model, H) # If you create this
+        #     raise NotImplementedError("Entire training mode not yet implemented for NLP datasets.")
+        else:
+             raise ValueError(f"Unsupported dataset type '{data_sets}' for 'entire' training mode.")
 
     elif ttype == "blockwise" or ttype == "blockwise_sequential":
-
-        # Select appropriate distributed training frame based on *dataset* type,
-        # not the *model* type.
+        # Select appropriate distributed training frame based on dataset type
         if dataset_name in REGRESSION_DATASETS:
             frame = Regression_frame_blockwis(model, H)
         elif dataset_name in IMAGE_DATASETS:
             frame = ImageClassifier_frame_blockwise(model, H)
+        # elif dataset_type == 'nlp':
+        #     # frame = NLP_frame_blockwise(model, H) # If you create this
+        #     raise NotImplementedError("Blockwise training mode not yet implemented for NLP datasets.")
+        else:
+            raise ValueError(f"Unsupported dataset type '{data_sets}' for 'blockwise' training mode.")
     else:
         raise ValueError(f"Unknown training type: {ttype}")
 

@@ -254,6 +254,87 @@ class ResidualFeedForwardCNN(nn.Module):
         return x
 
 
+
+# =============================================================================
+# Bi-Partitioned Residual Feed‑Forward CNN
+# =============================================================================
+
+class ResidualFeedForwardCNN_bi(nn.Module):
+    """
+    Residual Feed‑forward CNN partitioned into exactly two sequential ModuleLists.
+
+    Builds the same sequence of blocks as ResidualFeedForwardCNN but splits
+    them roughly in half between `self.blocks_part1` and `self.blocks_part2`.
+
+    Parameters are the same as ResidualFeedForwardCNN.
+    """
+    def __init__(
+        self,
+        config,
+        in_channels,
+        output_dim,
+        activation, # Pass the activation *function* or *class* itself
+        final_activation=None,
+    ):
+        super().__init__()
+
+        # Temporary list to hold all blocks before partitioning
+        temp_blocks = []
+
+        # 1. Create the initial block (Conv + Activation)
+        # Ensure activation is instantiated if passed as a class
+        act_instance = activation() if isinstance(activation, type) else activation
+        initial_block = nn.Sequential(
+            nn.Conv2d(
+                in_channels,
+                config[0],
+                kernel_size=3, # Matching previous definition
+                padding=1,
+                bias=True
+            ),
+            act_instance # Use the instantiated activation
+        )
+        temp_blocks.append(initial_block)
+        current_channels = config[0] # Output channels of the initial block
+
+        # 2. Create the subsequent ResidualConvBlocks
+        # Loop correctly from the first element defining a residual block output
+        # to the last one. Each block maps current_channels -> config[i]
+        for i in range(len(config)): # Iterate through all channel specs in config
+            out_channels = config[i]
+            # We need input channels for ResidualConvBlock, which is current_channels
+            res_block = ResidualConvBlock(current_channels, out_channels, act_instance) # Pass instantiated activation
+            temp_blocks.append(res_block)
+            current_channels = out_channels # Update for the *next* block's input
+
+        # 3. Create the final classification block
+        final_block = FinalBlockCnn(current_channels, output_dim, final_activation)
+        temp_blocks.append(final_block)
+
+        # 4. Partition the collected blocks into two nn.ModuleLists
+        num_total_blocks = len(temp_blocks)
+        split_point = num_total_blocks // 2  # Integer division for rough half
+
+        self.blocks_part1 = nn.ModuleList(temp_blocks[:split_point])
+        self.blocks_part2 = nn.ModuleList(temp_blocks[split_point:])
+
+        # Optional sanity check:
+        # print(f"Total blocks: {num_total_blocks}, Split at: {split_point}")
+        # print(f"Part 1 blocks: {len(self.blocks_part1)}")
+        # print(f"Part 2 blocks: {len(self.blocks_part2)}")
+
+
+    def forward(self, x):
+        """Forward pass through the two partitions."""
+        # Apply blocks in the first partition
+        for block in self.blocks_part1:
+            x = block(x)
+
+        # Apply blocks in the second partition
+        for block in self.blocks_part2:
+            x = block(x)
+
+        return x
 # ======================================================================================
 # Ensemble of Feed‑Forward Networks
 # ======================================================================================

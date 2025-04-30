@@ -2,9 +2,20 @@
 import torchvision.transforms as transforms
 from torchvision import datasets
 from torchvision.datasets import ImageFolder
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, TensorDataset, Subset
 import torch
 import random
+import os
+import numpy as np
+
+# Try importing sklearn, handle potential ImportError
+try:
+    from sklearn.datasets import fetch_california_housing
+    from sklearn.preprocessing import StandardScaler
+    _SKLEARN_AVAILABLE = True
+except ImportError:
+    _SKLEARN_AVAILABLE = False
+
 
 # List of supported image datasets. "mini_mnist" is a stratified 5‑k sample of the
 # standard MNIST training split (introduced for faster experimentation).
@@ -19,7 +30,7 @@ IMAGE_DATASETS = [
     "imagenet",
     "mini_imagenet",  # Mini-ImageNet subset stored as class folders under data/mini_imagenet
 ]
-REGRESSION_DATASETS = ["ones"]
+REGRESSION_DATASETS = ["ones", "california_housing"]
 NLP_DATASETS = ["imdb"]
 
 def generate_imagedata(dataset_name):
@@ -263,32 +274,73 @@ def generate_imagedata(dataset_name):
 
 #     return train_dataloader, test_dataloader
 
+def generate_regressiondata(dataset_name, n_samples=1000, d1=10, d2=1, scale_features=True):
+    """
+    Generates a synthetic or real regression dataset.
 
-def generate_regressiondata(dataset_name, n_samples=1000, d1=10, d2=1):
-    """
-    Generates a synthetic regression dataset.
-    Currently, only the "ones" dataset is supported.
-    For each sample:
-      - The input is a tensor of ones with shape (d1,)
-      - The output is a tensor of ones with shape (d2,)
-    
+    Supported datasets:
+      - "ones": Synthetic dataset where inputs and outputs are tensors of ones.
+                 Uses n_samples, d1, d2 arguments.
+      - "california_housing": The California Housing dataset from scikit-learn.
+                              Ignores n_samples, d1, d2. Requires scikit-learn.
+
     Parameters:
-        dataset_name (str): Name of the regression dataset. Currently, only "ones" is supported.
-        n_samples (int): Number of samples in the dataset (default is 1000).
-        d1 (int): Dimension of the input features (default is 10).
-        d2 (int): Dimension of the output (default is 1).
-    
+        dataset_name (str): Name of the regression dataset. Must be in REGRESSION_DATASETS.
+        n_samples (int): Number of samples for the "ones" dataset (default is 1000). Ignored otherwise.
+        d1 (int): Dimension of the input features for the "ones" dataset (default is 10). Ignored otherwise.
+        d2 (int): Dimension of the output for the "ones" dataset (default is 1). Ignored otherwise.
+        scale_features (bool): If True and using "california_housing", scale features using StandardScaler.
+                               (default is False).
+
     Returns:
-        torch.utils.data.TensorDataset: A TensorDataset where each sample is a tuple (input, target)
-        with input of shape (d1,) and target of shape (d2,).
+        torch.utils.data.TensorDataset: A TensorDataset where each sample is a tuple (input, target).
+                                        Input and target shapes depend on the dataset.
+
+    Raises:
+        ValueError: If the dataset_name is not recognized or dependencies are missing.
+        ImportError: If 'california_housing' is requested but scikit-learn is not installed.
     """
-    if dataset_name != "ones":
-        raise ValueError("Unknown regression dataset name. Currently, only 'ones' is supported.")
-    
-    # Create input and output tensors filled with ones
-    X = torch.ones(n_samples, d1)
-    y = torch.ones(n_samples, d2)
-    
-    # Create a TensorDataset from the generated tensors
-    dataset = torch.utils.data.TensorDataset(X, y)
-    return dataset
+    if dataset_name == "ones":
+        # Create synthetic input and output tensors filled with ones
+        X = torch.ones(n_samples, d1, dtype=torch.float32)
+        y = torch.ones(n_samples, d2, dtype=torch.float32)
+        # Create a TensorDataset from the generated tensors
+        dataset = TensorDataset(X, y)
+        return dataset
+
+    elif dataset_name == "california_housing":
+        if not _SKLEARN_AVAILABLE:
+            raise ImportError("scikit-learn is required to load the California Housing dataset. "
+                              "Please install it (`pip install scikit-learn`).")
+
+        # Fetch the dataset using sklearn
+        california_data = fetch_california_housing(as_frame=False) # Get NumPy arrays
+        X_np = california_data.data
+        y_np = california_data.target
+
+        # Optionally scale features
+        if scale_features:
+            # Ensure StandardScaler is imported or available
+            try:
+                 from sklearn.preprocessing import StandardScaler
+            except ImportError:
+                 raise ImportError("StandardScaler requires scikit-learn.")
+            scaler = StandardScaler()
+            X_np = scaler.fit_transform(X_np)
+
+        # Convert numpy arrays to torch tensors
+        X_tensor = torch.tensor(X_np, dtype=torch.float32)
+        y_tensor = torch.tensor(y_np, dtype=torch.float32).unsqueeze(1)
+
+        # --- Correction Here ---
+        # Create and return a TensorDataset instead of the Bunch object
+        dataset = TensorDataset(X_tensor, y_tensor)
+        dataset.data = X_tensor
+        dataset.targets = y_tensor
+        # You could optionally attach metadata if needed elsewhere, but it's not standard for Dataset
+        # dataset.feature_names = california_data.feature_names
+        return dataset # Return the PyTorch Dataset
+
+    else:
+        raise ValueError(f"Unknown regression dataset name: {dataset_name}. "
+                         f"Supported datasets are: {REGRESSION_DATASETS}")
