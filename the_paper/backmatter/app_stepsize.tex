@@ -1,0 +1,60 @@
+\begin{lemma}[Stepsize Tuning] \label{lemma: stepsize}
+    Our upper bound has the following recursive form: 
+    % \begin{align*}
+    %     r_{t+1} \leq (1-a\eta_t)r_t - \eta_t e_t + c\eta_t^2 + \frac{8\tau^2}{\mu}\eta_t \varXi_t + \frac{2Q^2}{\mu}\eta_t \varXi_t^2 \,,
+    % \end{align*}    
+    \begin{align}
+        r_{t+1} \leq (1-A\eta_t)r_t - \eta_t e_t + C\eta_t^2 + E\eta_t^3 + G \eta_t^5 \,, \label{eq:1353}
+    \end{align}
+    where $\{r_t\}_{t\geq 0}$ and $\{e_t\}_{t\geq 0}$ are two non-negative sequences and $\eta_t \leq \frac{1}{D}$ for a $D>0$. With the following choice of parameters we recover our recursive upper bound used in the proof of Theorem \ref{thm: LSGD_upper_bound} (see below):
+    \begin{align*}
+        r_t = \norm{\bar x_t - x^\star}^2,\quad e_t = \Bigr[ F(\bar x_t) - F(x^\star) \Bigr],\quad C = \frac{\sigma^2}{M},\quad D=2H,\quad A = \frac \mu 2  \,, \\
+        E=\frac{24 K \tau^2 \sigma^2}{\mu} + \frac{48 K^2 \tau^2 \zeta^2}{\mu}\,, \quad G=\frac{36K^2 Q^2 \sigma^4 }{\mu} + \frac{144 Q^2 K^4 \zeta^4 }{\mu} \,.
+    \end{align*}  
+\end{lemma}
+The recursion~\eqref{eq:1353} can be solved as follows: 
+\begin{align*}
+    \frac{1}{W_T}\sum_{t=0}^T w_t e_t + A r_{T+1} &\leq D r_0 \exp{\left(\frac{-A T}{ D} \right)}+ \tilde{\mathcal{O}} \left(\frac{C}{AT} \right) + \tilde{\mathcal{O}} \left(\frac{E}{A^2T^2} \right) +  \tilde{\mathcal{O}} \left(\frac{G}{A^4T^4} \right) \,,
+\end{align*} 
+%where we define two helper variables $E=\frac{24 K \tau^2 \sigma^2}{\mu} + \frac{48 K^2 \tau^2 \zeta^2}{\mu}$ and $G=\frac{36K^2 Q^2 \sigma^4 }{\mu} + \frac{144 Q^2 K^4 \zeta^4 }{\mu}$. 
+where we define the coefficient $w_t = (1-A\eta)^{-(t+1)}$ and $W_T = \sum_{t=0}^T w_t$.
+
+\begin{proof}
+The proof is similar to the works \cite{stich2019unified,koloskova2020unified,zindari2025decoupled}. We divide both sides of the recursive inequality by $\eta_t$ and rearrange the terms: 
+\begin{align*}
+    e_t %&\leq \frac{(1-a\eta_t)}{\eta_t}r_t - \frac{1}{\eta_t}r_{t+1} + c\eta_t + \frac{8\tau^2}{\mu} \varXi_t + \frac{2Q^2}{\mu} \varXi_t^2 \\
+    &\leq \frac{(1-A\eta_t)}{\eta_t}r_t - \frac{1}{\eta_t}r_{t+1} + C\eta_t + E\eta_t^2 + G\eta_t^4
+\end{align*}
+ Note that learning rate is fixed $\eta_t = \eta$. Then we multiply both sides of the inequality by $w_t$ and sum over $t$ which gives us: 
+\begin{align*}
+    \frac{1}{W_T}\sum_{t=0}^T w_t e_t &\leq  \frac{1}{W_T}\sum_{t=0}^T  \left[\frac{(1-A\eta)^{-(t+1)}(1-A\eta)}{\eta}r_t - \frac{(1-A\eta)^{-(t+1)}}{\eta}r_{t+1}\right] + C\eta + E\eta^2 + G\eta^4 \\
+    &=  \frac{1}{W_T}\sum_{t=0}^T  \left[\frac{(1-A\eta)^{-t}}{\eta}r_t - \frac{(1-A\eta)^{-(t+1)}}{\eta}r_{t+1}\right] + C\eta + E\eta^2 + G\eta^4 \\
+    &=  \frac{1}{W_T}\sum_{t=0}^T  \left[\frac{w_{t-1}}{\eta}r_t - \frac{w_t}{\eta}r_{t+1}\right] + C\eta + E\eta^2 + G\eta^4 \\
+    &=    \left[\frac{r_0}{\eta W_T} - \frac{w_T}{\eta W_T}r_{T+1}\right] + C\eta + E\eta^2 + G\eta^4 \,.
+\end{align*}
+So we have: 
+\begin{align*}
+    \frac{1}{W_T}\sum_{t=0}^T w_t e_t + \frac{w_T}{\eta W_T}r_{T+1} \leq \frac{r_0}{\eta W_T} + C\eta + E\eta^2 + G\eta^4 \,.
+\end{align*}
+Also using the fact that $W_T \leq \frac{w_T}{a\eta}$ and $W_T \geq (1-A\eta)^{-(T+1)}$ we have: 
+\begin{align*}
+    \frac{1}{W_T}\sum_{t=0}^T w_t e_t + a r_{T+1} &\leq \frac{(1-A\eta)^{-(T+1)} r_0}{\eta}+ C\eta + E\eta^2 + G\eta^4 \\
+    &\leq \frac{r_0 \exp{\left(-a\eta (T+1)\right)}}{\eta}+ C\eta + E\eta^2 + G\eta^4 \,.
+\end{align*}
+Now we consider two cases: 
+\begin{itemize}
+    \item[1)] $\frac 1 D \geq \frac{\ln\left(\max\left\{2,\frac{A^2T^2r_0}{C}\right\}\right)}{AT}$: We choose $\eta = \frac{\ln\left(\max\left\{2,\frac{A^2T^2r_0}{C}\right\}\right)}{AT}$. With this choice we get a rate of: 
+\end{itemize}
+\begin{align*}
+    \frac{1}{W_T}\sum_{t=0}^T w_t e_t + A r_{T+1} &\leq \frac{r_0  A T}{\ln\left(\max\left\{2,\frac{A^2T^2r_0}{C}\right\}\right)} \exp\left(-\ln\left(\max\left\{2,\frac{A^2T^2r_0}{C}\right\}\right)\right) + \tilde{\mathcal{O}} \left(\frac{C}{AT} \right)\\
+    &\quad + \tilde{\mathcal{O}} \left(\frac{E}{A^2T^2} \right) +  \tilde{\mathcal{O}} \left(\frac{G}{A^4T^4} \right) \\
+    &\leq   \tilde{\mathcal{O}} \left(\frac{C}{AT} \right) + \tilde{\mathcal{O}} \left(\frac{E}{A^2T^2} \right) +  \tilde{\mathcal{O}} \left(\frac{G}{A^4T^4} \right) \,.
+\end{align*}
+\begin{itemize}
+    \item[2)] $\frac 1 D \leq \frac{\ln\left(\max\left\{2,\frac{A^2T^2r_0}{C}\right\}\right)}{AT}$: We choose $\eta = \frac 1 D$. With this choice we get a rate of: 
+\end{itemize}
+\begin{align*}
+    \frac{1}{W_T}\sum_{t=0}^T w_t e_t + A r_{T+1} &\leq D r_0 \exp{\left(\frac{-A T}{D} \right)} + \frac{C}{D} + \frac{E}{D^2} + \frac{G}{D^4} \\
+    &\leq D r_0 \exp{\left(\frac{- A T}{D} \right)}+ \tilde{\mathcal{O}} \left(\frac{C }{A T} \right) + \tilde{\mathcal{O}} \left(\frac{E}{A^2T^2} \right) +  \tilde{\mathcal{O}} \left(\frac{G}{A^4T^4} \right) \,.
+\end{align*}   
+\end{proof}

@@ -1,0 +1,26 @@
+
+
+
+
+\chapter{Conclusion}\label{chap:conclusion} Our results highlight that the efficiency of parallel coordinate decent methods for distributed optimization in large-scale machine learning depends critically on the coupling structure between parameters, rather than solely on the complexity of individual subproblems. We demonstrate that for both minimization and minimax problems, the interaction between distributed entities—whether they are parameter blocks in coordinate descent or players in a game determines the achievable communication acceleration.
+
+A key theoretical contribution of this thesis is the introduction of \textit{coordinate-wise complement smoothness} ( $\bar L_i$
+ ) for distributed minimization. This new measure  captures the magnitude of inter-block dependencies, and it is a function of the off-diagonal elements of the Hessian matrix. By incorporating this measure into the analysis of our proposed Proximal Block Coordinate Descent algorithm, we obtained convergence guarantees that depend on the average inter block coupling rather than the worst-case coordinate smoothness. This represents a significant shift from traditional analyses, proving that systems can maintain high \textbf{communicational efficiency} even when individual subproblems are ill-conditioned, provided the coupling between distributed blocks remains moderate.
+
+
+
+
+Furthermore, we extended this novel decoupling idea to of two-player zero-sum games by proposing \textit{Decoupled Stochastic Gradient Descent Ascent} (Decoupled SGDA). Through the definition of the coupling constant $\kappa_c$
+ , we identified the \textit{Weakly Coupled Regime} in solving minimax games. We demonstrated that when player interactions are limited (i.e.,$\kappa_c$ is small), Decoupled SGDA achieves provable \textbf{communication acceleration}, surpassing standard baselines like GDA.
+
+
+
+
+
+Overall, the findings presented in this thesis contribute toward a rigorous understanding of how \textbf{"decoupling"} serves as a main criterion for acceleration in communication. However, bridging the gap between our theoretical assumptions and the diverse landscapes of modern deep learning remains a challenge. Future work could focus on:
+
+\begin{itemize} \item \textbf{Investigating Hessian Structures:} Our convergence rates for coordinate descent depend on  $\bar L$ , which measures the off-diagonal elements of the Hessian matrix. More research is needed to systematically characterize the Hessian of different machine learning models and architectures. Identifying which design decisions—such as normalization layers or activation functions—naturally yield a low $\bar L$ would allow the \textit{a priori} prediction where our proposed algorithm will perform best. \item \textbf{Relaxing Theoretical Assumptions:} While we proved linear convergence under coordinate-wise convexity and Polyak-Łojasiewicz (PL) conditions, extending the current analysis to fully non-convex regimes without reliance on strong assumptions like SCSC would better reflect the reality of training complex neural networks. \item \textbf{Adapting to System Heterogeneity:} Extending the current synchronous algorithms to support asynchronous updates and partial participation is essential for deployment in real-world distributed environments where it is common to face latency or clients that have different computation speed. However we should note that because our methods allow different amounts of local work $K$ per participant, they naturally fit heterogeneous systems: a fast GPU can perform many local steps (large $K$) between communications, while a slower or more constrained device uses a smaller $K$. Studying how to choose $K$ adaptively based on hardware speed and network latency is a natural next step for making the algorithms practical in real-world clusters. \item \textbf{Scalability to Foundation Models:} Exploring the application of our "weakly coupled" insights for parameter efficient fine tuning  of Large Language Models (LLMs) could be a potential research direction.  \end{itemize}
+
+
+
+In summary, this thesis provides both theoretical insights and practical algorithms that explain why decoupled methods perform well in distributed settings, while laying the groundwork for future developments in communication-efficient training of large-scale models.

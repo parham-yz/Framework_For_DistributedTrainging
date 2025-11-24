@@ -1,0 +1,261 @@
+In this section, we provide a list of useful lemmas which will be used in the proofs. We use the notation $\mathbb{E}_t$ for expectation conditioned on $x^1_t,...,x^M_t$ and $\mathbb{E}$ for the unconditional expectation. 
+
+\begin{lemma} \label{Lemma: jensen's inequality}
+For a convex function $F$ we have:
+\begin{equation}
+    F\left(\frac 1 M \sum_{m=1} ^{M}x_m\right) \leq \frac 1 M \sum_{m=1} ^{M} F(x_m)  \,.
+\end{equation}
+\end{lemma}
+
+
+\begin{lemma}\label{Lemma: base triangle inequality}
+For a set of $M$ vectors $a_1, a_2, ..., a_M \in \mathbb{R}^d$ we have:
+\begin{equation}
+    \norm{\sum_{m=1} ^{M} a_m} \leq \sum_{m=1} ^{M} \norm{a_m}  \,.
+\end{equation}
+\end{lemma}
+
+
+\begin{lemma}\label{Lemma: triangle inequality}
+For a set of $M$ vectors $a_1, a_2, ..., a_M \in \mathbb{R}^d$ we have:
+\begin{equation}
+    \norm{\sum_{m=1} ^{M} a_m}^2 \leq M \sum_{m=1} ^{M} \norm{a_m}^2  \,.
+\end{equation}
+\end{lemma}
+
+\begin{lemma} \label{Lemma: generalized triangle inequality}
+    For two arbitrary vectors $a,b \in \mathbb{R}^d$ and $\forall \gamma > 0$ we have:
+    \begin{equation}
+        \norm{a+b}^2 \leq (1+ \gamma ) \norm{a}^2 + (1+ \gamma^{-1} ) \norm{b}^2 \,.
+    \end{equation} 
+\end{lemma}
+
+\begin{lemma} \label{lemma: noise of gradient differences}
+    Let Assumption \ref{ass:stoch_first_order} hold. Then we have:
+    \begin{align}
+        \mathbb{E}_t \norm{\frac 1 M \sum_{m=1} ^{M} g^m_t - \frac 1 M \sum_{m=1} ^{M} \nabla F_m(x^m_t)}^2 \leq \frac{\sigma^2}{M} \,.
+    \end{align}
+\end{lemma} 
+
+\begin{lemma} \label{lemma: co-coercivity of gradients}
+    Let $F$ be a convex and $H$-smooth function. Then for any $x,y \in \mathbb{R}^d$ we have:
+    \begin{equation}
+        \frac{1}{2H} \norm{\nabla F(x) - \nabla F(y)}^2 \leq F(y) - F(x) + \langle \nabla F(x), x-y \rangle \,.
+    \end{equation}
+\end{lemma}
+
+\begin{lemma} \label{lemma: mime's inequality}
+    Let Assumption \ref{ass:tau} hold and $F(x) = \frac 1 M \sum_{m=1}^M F_m(x)$. Then for any $x,y \in \mathbb{R}^d$ we have the following inequality:
+    \begin{align}
+        \norm{\nabla F_m(x) - \nabla F(x) + \nabla F(y) - \nabla F_m(y)}^2 \leq \tau^2 \norm{x - y}^2 \,.
+    \end{align}
+    %\iseb{$\nabla f_m(yy)$ ?}
+\end{lemma}
+\begin{proof}
+    We define the function $\Psi(z) =  F_m(z) -  F(z)$ so $\nabla^2 \Psi(z) = \nabla^2 F_m(z) - \nabla^2 F(z)$. By Assumption \ref{ass:tau} we know that $\forall z \in \mathbb{R}^d, \norm{\nabla^2 \Psi(z)} \leq \tau$ which means $\Psi(z)$ is $\tau$-smooth. From the smoothness property we know: 
+    \begin{align*}
+        \norm{\nabla \Psi(x) - \nabla \Psi(y)} &\leq \tau \norm{x-y} \,.
+    \end{align*}
+    By replacing the definition of $\Psi$ we get: 
+    \begin{align*}
+        \norm{\nabla F_m(x) - \nabla F(x) - \nabla F_m(y) + \nabla F(y)} \leq \tau \norm{x-y}  \,.
+    \end{align*} 
+\end{proof}
+
+\begin{lemma}[{\cite[Definition 2]{kovalev2019stochastic}}]\label{lemma: quadratic function approximation inequality}
+    Let function $F$ satisfy Assumption \ref{ass:third_smooth}, then for any $x,y \in \mathbb{R}^d$, we have the following inequality:
+    \begin{align} 
+        \norm{\nabla F(x) - \nabla F(y) - \nabla^2 F(y)(x-y)} \leq \frac Q 2 \norm{x - y}^2  \,.
+    \end{align}
+\end{lemma}
+
+
+\begin{lemma}[Averaged Stochastic Noise Second Moment]\label{lem:stoch_noise_second}
+    For $t\in[0, T-1]$ we have,
+    \begin{align*}
+        \ee\sb{\norm{\xi_t}^2} &\leq \frac{\sigma^2}{M}\enspace.
+    \end{align*}
+\end{lemma}
+\begin{proof}
+    Recall that at any time step $t\in[0, T-1]$,
+    \begin{align*}
+        \ee\sb{\norm{\xi_t}^2} &= \ee\sb{\norm{\frac{1}{M}\sum_{m\in[M]}\xi_t^m}^2}\enspace,\\
+        &=^{\text{(Tower rule)}} \ee\sb{\ee\sb{\norm{\frac{1}{M}\sum_{m\in[M]}\rb{g_t^m - \nabla f(x_t^m; z_t^m)}}^2|\hhh_t}}\enspace,\\
+        &=^{\text{(a)}} \ee\sb{\frac{1}{M^2}\sum_{m\in[M]}\ee\sb{\norm{\rb{g_t^m - \nabla f(x_t^m; z_t^m)}}^2|\hhh_t}}\enspace,\\
+        &\leq^{\text{(\Cref{ass:stoch_bounded_moment})}} \frac{1}{M^2}\sum_{m\in[M]}\sigma^2 = \frac{\sigma^2}{M}\enspace,
+    \end{align*}
+    where (a) uses the fact that for all $m\neq n$, $z_t^m \perp z_t^n|\hhh_t$, i.e., $\xi_t^1, \dots, \xi_t^M$ are independent conditioned on the history $\hhh_t$.
+\end{proof}
+We can also give the following stronger bound on the fourth moment of the stochastic noise.
+\begin{lemma}[Averaged Stochastic Noise Fourth Moment]\label{lem:stoch_noise_fourth}
+    For $t\in[0, T-1]$ we have,
+    \begin{align*}
+        \ee\sb{\norm{\xi_t}^4} &\leq \frac{3\sigma^4}{M^2}\enspace.
+    \end{align*}
+\end{lemma}
+\begin{proof}
+    Recall that at any time step $t\in[0, T-1]$,
+    \begin{align*}
+        \ee\sb{\norm{\xi_t}^4} &= \ee\sb{\norm{\frac{1}{M}\sum_{m\in[M]}\xi_t^m}^4}\enspace,\\
+         &= \ee\sb{\rb{\norm{\frac{1}{M}\sum_{m\in[M]}\xi_t^m}^2}^2} = \ee\sb{\rb{\frac{1}{M^2}\sum_{m,n\in[M]}\inner{\xi_t^m}{\xi_t^n}}^2}\enspace,\\
+         &= \frac{1}{M^4}\sum_{l,m,n,o\in[M]}\ee\sb{\inner{\xi_t^l}{\xi_t^m}\inner{\xi_t^n}{\xi_t^o}}\enspace,\\
+         &=^{\text{(Tower Rule)}}\frac{1}{M^4}\sum_{l,m,n,o\in[M]}\ee\sb{\ee\sb{\inner{\xi_t^l}{\xi_t^m}\inner{\xi_t^n}{\xi_t^o}|\hhh_t}}\enspace,
+    \end{align*}
+    Recall that for all $m\neq n$, $z_t^m \perp z_t^n|\hhh_t$, i.e., $\xi_t^1, \dots, \xi_t^M$ are independent conditioned on the history $\hhh_t$. In the above sum, the only non-zero terms are the ones where either $l=m=n=o$, or where the set $\cb{l,m,n,o}$ has two distinct values, each repeated twice. There are $M$ terms of the first kind, and $3M(M-1)$ terms of the second kind (first choose two colours out of $M$, then choose two indices out of $\cb{l,m,n,o}$ which divides into two groups, i.e., total $\frac{M(M-1)}{2}\times \frac{4!}{2!2!}$). Using this we get,
+    \begin{align*}
+        \ee\sb{\norm{\xi_t}^4} &= \frac{1}{M^4}\rb{\sum_{l\in[M]}\ee\sb{\norm{\xi_t^l}^4} + 3\sum_{l\neq m\in[M]}\ee\sb{\norm{\xi_t^l}^2}\ee\sb{\norm{\xi_t^m}^2}}\enspace,\\
+        &\leq \frac{1}{M^4}\rb{M\sigma^4 + 3M(M-1)\sigma^4}\enspace,\\
+        &\leq \frac{3\sigma^4}{M^2}\enspace,
+    \end{align*}
+    which proves the lemma.
+\end{proof}
+
+\begin{lemma}[Averaged Stochastic Noise Third Moment]\label{lem:stoch_noise_third}
+    For $t\in[0, T-1]$ we have,
+    \begin{align*}
+        \ee\sb{\norm{\xi_t}^3} &\leq \frac{\sqrt{3}\sigma^3}{M^{3/2}}\enspace.
+    \end{align*}
+\end{lemma}
+\begin{proof}
+    This result follows from simply noting the previous two lemmas, and the fact that,
+    \begin{align*}
+        \ee\sb{\norm{\xi_t}^3} &= \ee\sb{\norm{\xi_t}^2\norm{\xi_t}}\enspace,\\
+        &\leq^{\text{Cauchy Shwartz}} \sqrt{\ee\sb{\norm{\xi_t}^4}}\sqrt{\ee\sb{\norm{\xi_t}^2}}\enspace,\\
+        &\leq^{\text{\Cref{lem:stoch_noise_second,lem:stoch_noise_fourth}}} \sqrt{\frac{\sigma^2}{M}}\sqrt{\frac{3\sigma^4}{M^2}}\enspace,\\
+        &\leq \frac{\sqrt{3}\sigma^3}{M^{3/2}}\enspace,
+    \end{align*}
+    which proves the lemma. 
+\end{proof}
+
+We can also note the following about the difference of the stochastic noise in two machines.
+\begin{lemma}[Second Moment of Difference]\label{lem:stoch_diff_second}
+    For $t\in[0,T-1]$ and for $m\neq n\in[M]$ we have,
+    \begin{align*}
+        \ee\sb{\norm{\xi_t^m - \xi_t^n}^2} &\leq 2\sigma^2\enspace.
+    \end{align*}
+\end{lemma}
+\begin{proof}
+    Note the following for $m\neq n\in[M]$, and for $t\in[0,T-1]$
+    \begin{align*}
+        \ee\sb{\norm{\xi_t^m - \xi_t^n}^2} &= \ee\sb{\norm{\xi_t^m}^2 + \norm{\xi_t^m}^2 + 2\inner{\xi_t^m}{\xi_t^n}}\enspace,\\
+        &=^\text{(a), (Tower Rule)} \ee\sb{\norm{\xi_t^m}^2} + \ee\sb{\norm{\xi_t^n}^2} + 2\ee\sb{\inner{\ee\sb{\xi_t^m|\hhh_t}}{\ee\sb{\xi_t^n|\hhh_t}}}\enspace,\\
+        &\leq^{\text{(\Cref{ass:stoch_bounded_moment}), (b)}} 2\sigma^2\enspace,
+    \end{align*}
+    where in (a) we used that $\xi_t^m\perp\xi_t^n|\hhh_t$; and in (b) we used that $\ee\sb{\xi_t^m|\hhh_t} = \ee\sb{\xi_t^n|\hhh_t} =0$. This proves the lemma.
+\end{proof}
+
+\begin{lemma}[Fourth Moment of Difference]\label{lem:stoch_diff_fourth}
+    For $t\in[0,T-1]$ and for $m\neq n\in[M]$ we have,
+    \begin{align*}
+        \ee\sb{\norm{\xi_t^m - \xi_t^n}^4} &\leq 8\sigma^4\enspace.
+    \end{align*}
+\end{lemma}
+\begin{proof}
+    Note the following for $m\neq n\in[M]$, and for $t\in[0,T-1]$
+    \begin{align*}
+        \ee\sb{\norm{\xi_t^m - \xi_t^n}^4} &= \ee\sb{\rb{\norm{\xi_t^m}^2 + \norm{\xi_t^m}^2 + 2\inner{\xi_t^m}{\xi_t^n}}^2}\enspace,\\
+        &=^{\text{(a)}} \ee\sb{\norm{\xi_t^m}^4} + \ee\sb{\norm{\xi_t^n}^4} +4\ee\sb{\rb{\inner{\xi_t^m}{\xi_t^n}}^2}\\
+        &\quad + 2\ee\sb{\norm{\xi_t^m}^2}\ee\sb{\norm{\xi_t^n}^2} + 2\ee\sb{\norm{\xi_t^m}^2\xi_t^m}^T\cancelto{0}{\ee\sb{\xi_t^n}}\\
+        &\quad + 2\ee\sb{\norm{\xi_t^n}^2\xi_t^n}^T\cancelto{0}{\ee\sb{\xi_t^m}}\enspace,\\
+        &\leq^{\text{(Cauchy Shwartz)}} \ee\sb{\norm{\xi_t^m}^4} + \ee\sb{\norm{\xi_t^n}^4} + 6\ee\sb{\norm{\xi_t^m}^2}\ee\sb{\norm{\xi_t^n}^2}\enspace,\\
+        &\leq^{\text{(\Cref{ass:stoch_bounded_moment})}} 8\sigma^4\enspace,
+    \end{align*}
+    where in (a) we used that $\xi_t^m\perp\xi_t^n|\hhh_t$ along with tower rule several times like in previous lemmas.  This finishes the proof.
+\end{proof}
+
+
+
+We will also use the following inequality several times, essentially a variant of the A.M.-G.M. inequality.
+\begin{lemma}\label{lem:mod_am_gm}
+    For any $a,b\in\R$ and $\gamma >0$ we have,
+    \begin{align*}
+        (a+b)^2 &\leq \rb{1 + \frac{1}{\gamma}}a^2 + \rb{1+\gamma}b^2\enspace,\\
+        (a+b)^4 &\leq \rb{1 + \frac{1}{\gamma}}^3a^4 + \rb{1+\gamma}^3b^4\enspace.
+    \end{align*}
+    \begin{proof}
+        Note the following,
+        \begin{align*}
+            (a+b)^2 &= a^2 + b^2 + 2ab\enspace,\\
+            &= a^2 + b^2 + 2\rb{\frac{a}{\sqrt{\gamma}}}\rb{\sqrt{\gamma} b}\enspace,\\
+            &\leq^{\text{(A.M.-G.M. Inequality)}} a^2 + b^2 + \frac{a^2}{\gamma} + \gamma b^2\enspace,\\
+            &\leq \rb{1 + \frac{1}{\gamma}}a^2 + \rb{1 + \gamma}b^2\enspace,
+        \end{align*}
+        which proves the first statement of the lemma. To get the second statement we will just apply the first statement twice as follows,
+        \begin{align*}
+            (a+b)^4 &\leq \rb{\rb{1 + \frac{1}{\gamma}}a^2 + \rb{1+\gamma}b^2}^2\enspace,\\
+            &\leq \rb{1 + \frac{1}{\gamma}}\rb{\rb{1 + \frac{1}{\gamma}}a^2}^2 + \rb{1+\gamma}\rb{\rb{1+\gamma}b^2}^2\enspace,\\
+            &=  \rb{1 + \frac{1}{\gamma}}^3a^4 + \rb{1+\gamma}^3b^4\enspace,
+        \end{align*}
+        which proves the second statement of the lemma.
+    \end{proof}
+\end{lemma}
+
+\begin{lemma}\label{lem:mod_am_gm_three_terms}
+    For any $a,b,c\in\R$ we have,
+    \begin{align*}
+        (a+b+c)^2 &\leq 3a^2 + 3b^2 +3c^2\enspace,\\
+        (a+b+c)^4 &\leq 27 a^4 + 27 b^4 + 27c^4\enspace.
+    \end{align*}
+\end{lemma}
+\begin{proof}
+    We note the following,
+    \begin{align*}
+        (a+b+c)^2 &= a^2 + b^2 + c^2 + 2ab + 2bc +2ca\enspace,\\
+        &\leq^{\text{(A.M.-G.M. inequality)}} a^2 + b^2 + c^2 + (a^2 + b^2) + (b^2 + c^2) + (c^2 + a^2)\enspace,\\
+        &= 3(a^2 + b^2 + c^2)\enspace,
+    \end{align*}
+    which proves the first statement. For the second statement using the first statement note the following,
+    \begin{align*}
+        (a+b+c)^4 &\leq \rb{3a^2 + 3b^2 +3c^2}^2\enspace,\\
+        &\leq 3\rb{3a^2}^2 + 3\rb{3b^2}^2 + 3\rb{3c^2}^2\enspace,\\
+        &= 27 a^4 + 27 b^4 + 27c^4\enspace,
+    \end{align*}
+    which proves the lemma.
+\end{proof}
+
+\begin{lemma}\label{lem:series_bound_one}
+    Let $x\in(0,1)$ and $K>1$ then we have
+    \begin{align*}
+        \sum_{i=1}^{K-1}x^{i-1}i^2&\leq \frac{K}{(1-x)^2}\enspace.
+    \end{align*}
+\end{lemma}
+\begin{proof}
+    Note the following,
+    \begin{align*}
+        \sum_{i=1}^{K-1}x^{i-1}i^2 &\leq K\sum_{i=1}^{K-1}ix^{i-1}\enspace,\\
+        &= K\nabla_x\rb{\sum_{i=1}^{K-1}x^{i}}\enspace,\\
+        &=K\nabla_x\rb{x\frac{1-x^K}{1-x}}\enspace,\\
+        &= K\frac{1-x^K}{1-x} + Kx\frac{1-Kx^{K-1} + (K-1)x^K}{(1-x)^2}\enspace,\\
+        &= K\frac{1-x^K-x+x^{K+1}}{(1-x)^2} + K\frac{x-Kx^{K} + (K-1)x^{K+1}}{(1-x)^2}\enspace,\\
+        &=K\frac{1-(K+1)x^K + Kx^{K+1}}{(1-x)^2}\enspace,\\
+        &\leq \frac{K}{(1-x)^2}\enspace, 
+    \end{align*}
+    where in the last inequality we just note that $1-(K+1)x^K + Kx^{K+1}\leq 1$.
+    This proves the lemma.
+\end{proof}
+
+\begin{lemma}\label{lemma: matrix telescope}
+    Let $A$ and $B$ be two positive-semi definite matrices. We have: 
+    \begin{align*}
+        A^k - B^k = \sum_{j=0}^{k-1} A^{k-1-j}(A-B)B^j
+    \end{align*}
+\end{lemma}
+\begin{proof}
+    we prove by induction. For $k=1$ we have: 
+    \begin{align*}
+        A - B = \sum_{j=0}^0 A^{-j} (A-B)B^j = A-B
+    \end{align*}
+    for $k+1$ we have: 
+    \begin{align*}
+        A^{k+1} - B^{k+1} = AA^k - BB^k = AA^k - AB^k + AB^k - BB^k = A(A^k-B^k) + (A-B)B^k
+    \end{align*}
+    for the first term in the above equality we have: 
+    \begin{align*}
+        A(A^k-B^k) = A \sum_{j=0}^{k-1} A^{k-1-j}(A-B)B^j = \sum_{j=0}^{k-1} A^{k-j}(A-B)B^j
+    \end{align*}
+    By adding the second term we have: 
+    \begin{align*}
+        A^{k+1} - B^{k+1} = \sum_{j=0}^{k-1} A^{k-j}(A-B)B^j + (A-B)B^k = \sum_{j=0}^{k} A^{k-j}(A-B)B^j
+    \end{align*}
+    which completes the proof. 
+\end{proof}

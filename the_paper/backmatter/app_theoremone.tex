@@ -1,0 +1,174 @@
+\theoremone*
+
+
+\begin{proof}
+The proof follows a similar approach to \cite{yuan2020federated} while we assume that we have heterogeneity. In the following proof, we use the same notation as the work \cite{woodworth2020minibatch}. We drop the subscript $r$ for simplicity and use $t$ instead which is in the range $[0,KR-1]$. We use the notation $x^m_t$ as the parameters of client $m$ at time step $t$ and $g^m_t$ as the stochastic gradient on client $m$ at time step $t$. Also because $\beta = 1$, the update rule $x_{r+1} = x_r + \frac{\beta}{M} \sum_m (x^m_{r,K} - x_r)$ reduces to $x_{r+1} =  \frac{1}{M} \sum_m x^m_{r,K}$. We also define $\bar x_t = \frac 1 M \sum_{m=1}^M x^m_{t}$ as the average of parameters over all clients at time step $t$. Starting with the distance from the optimal point and taking the conditional expectation on the previous iterate $x^m_t, \forall m \in [M]$ we have: 
+\begin{align}
+    &\mathbb{E}_t \sb{\norm{\bar x_{t+1} - x^{\star}}^2} \nonumber\\
+    &= \mathbb{E}_t \sb{\norm{\bar x_{t} - x^{\star} - \frac{\eta_t}{M} \sum_{m=1} ^{M} \nabla F_m(x^m_t) + \frac{\eta_t}{M} \sum_{m=1} ^{M} \nabla F_m(x^m_t) - \frac{\eta_t}{M} \sum_{m=1} ^{M} g^m_t}^2} \nonumber\\
+    &\overset{(\text{Lemma \ref{lemma: noise of gradient differences}})}{\leq}  \norm{\bar x_{t} - x^{\star} - \frac{\eta_t}{M} \sum_{m=1} ^{M} \nabla F_m(x^m_t)}^2 + \frac{\eta_t^2 \sigma^2}{M} \nonumber\\
+    &= \norm{\bar x_{t} - x^{\star} - \eta_t \nabla F(\bar x_t) + \eta_t \nabla F(\bar x_t) - \frac{\eta_t}{M} \sum_{m=1} ^{M} \nabla F_m(x^m_t)}^2 + \frac{\eta_t^2 \sigma^2}{M} \nonumber\\
+    &\overset{(\text{Lemma \ref{Lemma: generalized triangle inequality}})}{\leq} \left(1+\frac{\eta_t \mu}{2}\right)\norm{\bar x_{t} - x^{\star} - \eta_t \nabla F(\bar x_t)}^2 + \eta_t^2\left(1+\frac{2}{\eta_t \mu}\right) \norm{\nabla F(\bar x_t) - \frac 1 M \sum_{m=1} ^{M} \nabla F_m(x^m_t)}^2+ \frac{\eta_t^2 \sigma^2}{M}  \,. \label{eq: first decrease lemma}
+\end{align}
+For the first term in (\ref{eq: first decrease lemma}) we have: 
+\begin{align*}
+    \norm{\bar x_{t} - x^{\star} - \eta_t \nabla F(\bar x_t)}^2 = \norm{\bar x_{t} - x^{\star}}^2 + \eta_t^2 \norm{\nabla F(\bar x_t)}^2 -2 \eta_t \Bigr \langle \bar x_{t} - x^{\star}, \nabla F(\bar x_t)  \Bigr \rangle \,.
+\end{align*}
+For the second term in the above equation we have: 
+\begin{align*}
+    \eta_t^2 \norm{\nabla F(\bar x_t)}^2 &= \eta_t^2 \norm{\nabla F(\bar x_t) - \nabla F(x^{\star})}^2 \\
+    &\overset{(\text{Lemma \ref{lemma: co-coercivity of gradients}})}{\leq} 2H\eta_t^2 \Bigr[  F(\bar x_t) - F(x^{\star}) \Bigr] \,.
+\end{align*}
+For the third term in the equality we have: 
+\begin{align*}
+    -2 \eta_t \Bigr \langle \bar x_{t} - x^{\star}, \nabla F(\bar x_t)  \Bigr \rangle \leq - 2\eta_t \Bigr[ F(\bar x_t) - F(x^{\star}) \Bigr] - \eta_t \mu  \norm{\bar x_t - x^{\star}}^2
+\end{align*}
+Now by putting everything together we have: 
+\begin{align*}
+    &\norm{\bar x_{t} - x^{\star} - \eta_t \nabla F(\bar x_t)}^2 \\ 
+    &= \norm{\bar x_{t} - x^{\star}}^2 + \eta_t^2 \norm{\nabla F(\bar x_t)}^2 -2 \eta_t \Bigr \langle \bar x_{t} - x^{\star}, \nabla F(\bar x_t)  \Bigr \rangle  \\
+    &\leq \norm{\bar x_{t} - x^{\star}}^2 + 2H\eta_t^2 \Bigr[  F(\bar x_t) - F(x^{\star}) \Bigr] - 2\eta_t \Bigr[ F(\bar x_t) - F(x^{\star}) \Bigr] - \eta_t \mu  \norm{\bar x_t - x^{\star}}^2 \,.
+\end{align*}
+With the choice of $\eta_t \leq \frac{1}{2H}$ we have:
+\begin{align*}
+    \norm{\bar x_{t} - x^{\star} - \eta_t \nabla F(\bar x_t)}^2 \leq (1-\eta_t \mu) \norm{\bar x_{t} - x^{\star}}^2 - \eta_t \Bigr[ F(\bar x_t) - F(x^{\star}) \Bigr] \,.
+\end{align*}
+Then we multiply both sides by the coefficient $(1+\frac{\eta_t \mu}{2})$ and we have: 
+\begin{align*}
+    \left(1+\frac{\eta_t \mu}{2}\right)\norm{\bar x_{t} - x^{\star} - \eta_t \nabla F(\bar x_t)}^2 &\leq \left(1+\frac{\eta_t \mu}{2}\right)(1-\eta_t \mu) \norm{\bar x_{t} - x^{\star}}^2 - \eta_t \left(1+\frac{\eta_t \mu}{2}\right) \Bigr[ F(\bar x_t) - F(x^{\star}) \Bigr] \\
+    &\leq \left(1-\frac{\eta_t \mu}{2}\right)\norm{\bar x_{t} - x^{\star}}^2 - \eta_t \Bigr[ F(\bar x_t) - F(x^{\star}) \Bigr]
+\end{align*}
+For the second term in (\ref{eq: first decrease lemma}) we have: 
+\begin{align*}
+    &\eta_t^2\left(1+\frac{2}{\eta_t \mu}\right) \norm{\frac 1 M \sum_{m=1} ^{M} \nabla F_m(x^m_t) - \nabla F(\bar x_t)}^2 \\
+    &\leq \frac{4\eta_t}{ \mu} \norm{\frac 1 M \sum_{m=1} ^{M} \nabla F_m(x^m_t) - \nabla F(\bar x_t)}^2 \\
+    &= \frac{4\eta_t}{ \mu}  \norm{\frac 1 M \sum_{m=1} ^{M}\Bigr(\nabla F_m(x^m_t) - \nabla F(x^m_t) + \nabla F(\bar x_t) - \nabla F_m(\bar x_t) \Bigr) + \frac 1 M \sum_{m=1} ^{M} \nabla F(x^m_t)-\nabla F(\bar x_t)}^2 \\
+    & \overset{(\text{Lemma \ref{Lemma: jensen's inequality},\ref{Lemma: triangle inequality}})}{\leq}  \frac {8\eta_t}{\mu M} \sum_{m=1} ^{M} \norm{\nabla F_m(x^m_t) - \nabla F(x^m_t) + \nabla F(\bar x_t) - \nabla F_m(\bar x_t)}^2 + \frac{8\eta_t}{\mu} \norm{\frac 1 M \sum_{m=1} ^{M} \nabla F(x^m_t)-\nabla F(\bar x_t)}^2 \\
+    &\overset{(\text{Lemma \ref{lemma: mime's inequality}})}{\leq} \frac{8\eta_t}{\mu} \tau^2 \varXi_t + \frac{8\eta_t}{\mu} \norm{\frac 1 M \sum_{m=1} ^{M} \nabla F(x^m_t)-\nabla F(\bar x_t)}^2  \,.
+\end{align*}
+For the second term in the above inequality we have: 
+\begin{align*}
+    & \frac{8\eta_t}{\mu} \norm{\frac 1 M \sum_{m=1} ^{M} \nabla F(x^m_t)-\nabla F(\bar x_t)}^2 \\
+    &= \frac{8\eta_t}{\mu}  \norm{\frac 1 M \sum_{m=1} ^{M}\Bigr(\nabla F(x^m_t)-\nabla F(\bar x_t)-\nabla^2 F(\bar x_t)^{\top}(x^m_t-\bar x_t)\Bigr) + \underbrace{\frac 1 M \sum_{m=1} ^{M}\nabla^2 F(\bar x_t)^{\top}(x^m_t-\bar x_t)}_{=0}}^2 \\
+    &= \frac{8\eta_t}{\mu}  \Biggr(\norm{\frac 1 M \sum_{m=1} ^{M}\Bigr(\nabla F(x^m_t)-\nabla F(\bar x_t)-\nabla^2 F(\bar x_t)^{\top}(x^m_t-\bar x_t)\Bigr)}\Biggr)^2 \\
+    &\overset{(\text{Triangle Inequality})}{\leq} \frac{8\eta_t}{\mu}  \Biggr(\frac{1}{M}\sum_{m=1} ^{M}\norm{\nabla F(x^m_t)-\nabla F(\bar x_t)-\nabla^2 F(\bar x_t)^{\top}(x^m_t-\bar x_t)}\Biggr)^2 \\
+    &\overset{(\text{Lemma \ref{lemma: quadratic function approximation inequality}})}{\leq} \frac{8\eta_t}{\mu}  \Biggr(\frac{1}{M}\sum_{m=1} ^{M} \frac Q 2 \norm{x^m_t-\bar x_t}^2 \Biggr)^2 \\
+    &\overset{(\text{Jensen's Inequality})}{\leq} \frac{2Q^2 \eta_t}{\mu M} \sum_{m=1} ^{M} \norm{x^m_t-\bar x_t}^4
+\end{align*}
+Now by plugging everything back into (\ref{eq: first decrease lemma}) we have: 
+\begin{align*}
+    &\mathbb{E}_t \sb{\norm{\bar x_{t+1} - x^{\star}}^2} \leq \left(1-\frac{\eta_t \mu}{2}\right)\norm{\bar x_{t} - x^{\star}}^2 - \eta_t \Bigr[ F(\bar x_t) - F(x^{\star}) \Bigr] + \frac{8 \tau^2\eta_t}{\mu}  \varXi_t + \frac{2Q^2 \eta_t}{\mu M} \sum_{m=1}^M \ee \sb{\norm{x^m_t - \bar x_t}^4} \\
+    &\quad+ \frac{\eta_t^2 \sigma^2}{M} \,.
+\end{align*}
+Then we divide both sides by $\eta_t = \eta$, rearrange the terms and take the unconditional expectation, and we have: 
+\begin{align*}
+    &\mathbb{E} \Bigr[ F(\bar x_t) - F(x^{\star}) \Bigr] \\
+    &\leq \left(\frac 1 \eta_t -\frac{ \mu}{2}\right) \mathbb{E} \sb{\norm{\bar x_{t} - x^{\star}}^2} - \frac 1 \eta_t \mathbb{E} \sb{\norm{\bar x_{t+1} - x^{\star}}^2} + \frac{8 \tau^2}{\mu}  \varXi_t + \frac{2Q^2 }{\mu M} \sum_{m=1}^M \ee \sb{\norm{x^m_t - \bar x_t}^4} + \frac{\eta \sigma^2}{M} \\
+    &\overset{(\text{Lemma (\ref{lemma: weight variance upper bound},\ref{lem:cons_error_fourth})})}{\leq} \left(\frac 1 \eta -\frac{ \mu}{2}\right) \mathbb{E} \sb{\norm{\bar x_{t} - x^{\star}}^2} - \frac 1 \eta \mathbb{E} \sb{\norm{\bar x_{t+1} - x^{\star}}^2} + \frac{\eta \sigma^2}{M} + \\ 
+    &\hspace{3.5cm}\frac{24 K \tau^2 \sigma^2 \eta^2}{\mu} + \frac{48 K^2 \tau^2   \zeta^2 \eta^2}{\mu} + \frac{11840 K^2 Q^2 \sigma^4 \eta^4}{\mu} + \frac{7680 Q^2 K^4   \zeta^4 \eta^4}{\mu}  \,.
+\end{align*}
+After tuning the stepsize using the Lemma \ref{lemma: stepsize} with the weights $w_t = (1-\frac{\mu \eta}{2})^{-(t+1)}$ and $W_T = \sum_{t=0}^{KR-1} w_t$ and by summing over $t=0,..,KR-1$ we have: 
+\begin{align*}
+     &\mathbb{E} \left[F\left(\frac{1}{W_T} \sum_{t=0}^{KR-1} w_t\bar x_t\right) - F(x^{\star})\right] + \frac{\mu}{2} \norm{\bar x_{T+1} - x^\star}^2 \\
+     &\leq 2HB^2 \exp \left(-\frac{\mu T}{4H}\right) + \tilde{\mathcal{O}} \left( \frac{\sigma^2}{\mu M KR}\right)+ \tilde{\mathcal{O}} \left( \frac{\tau^2\sigma^2}{\mu^3 KR^2}\right)+ \tilde{\mathcal{O}} \left( \frac{\tau^2  \zeta^2}{\mu^3 R^2}\right)+ \tilde{\mathcal{O}} \left( \frac{Q^2\sigma^4}{\mu^5 K^2R^4}\right)+ \tilde{\mathcal{O}} \left( \frac{Q^2  \zeta^4}{\mu^5 R^4}\right) \,.
+\end{align*}
+It is worth mentioning that the notation $\tilde{\mathcal{O}} (.)$ means the bound holds up to some logarithmic factors appearing in the nominator for the last five terms. The logarithmic factor is in the form of $\ln\left(\max\left\{2,T^2\right\}\right)$ (some absolute constants are ignored). In the literature, it is also common to ignore these factors \cite{yuan2020federated, koloskova2020unified}.
+\end{proof}
+
+% \frac{\ln\left(\max\left\{2,\frac{A^2T^2r_0}{C}\right\}\right)}{AT}
+
+
+
+
+\theoremtwo*
+
+We use the regularization technique to derive the convergence rate for the convex case from the strongly-convex result. This technique is standard in the literature, see e.g.\ \cite{hazan2016introduction}. For the sake of completeness, we repeat the argument here.
+%first explain the general idea of how to derive a convergence rate for convex regime while we know the rate for strongly convex regime. Then we derive our rate based on the result that we have for strongly convex case. 
+
+Let $F(x)$ be a convex function. We construct a regularized version of this function $F_\mu(x)$ as:
+\begin{align*}
+    F_\mu(x) = F(x) + \frac{\mu}{2} \norm{x-x_0}^2    \,.
+\end{align*}
+Next we define: 
+\begin{align*}
+    x^\star_\mu &= \underset{x}{\arg\min} \hspace{1mm}F_\mu(x)  \,,\\
+    x^\star &= \underset{x}{\arg\min}\hspace{1mm} F(x) \,.
+\end{align*}
+We have that $F_\mu(x^\star_\mu) \leq F_\mu(x^\star)$. Then we upper bound the function sub-optimality for the convex function $F(x)$:
+\begin{align*}
+    F(\bar x_t) - F(x^\star) &\leq F_\mu(\bar x_t) - \frac{\mu}{2} \norm{\bar x_t - x_0}^2 - F_\mu(x^\star) + \frac{\mu}{2} \norm{x^\star - x_0}^2\\
+    &\leq F_\mu(\bar x_t)- F_\mu(x^\star)+ \frac{\mu}{2} \norm{x^\star - x_0}^2 \\
+    &\leq F_\mu(\bar x_t)- F_\mu(x^\star_\mu)+ \frac{\mu}{2} \norm{x^\star - x_0}^2 \\
+    &\leq F_\mu(\bar x_t)- F_\mu(x^\star_\mu)+ \frac{\mu}{2}B^2  \,.
+\end{align*}
+The last step is to tune the $\mu$. We assume that we want to achieve $\epsilon$-accuracy when running local SGD on the convex function $F$, so we have: 
+\begin{align*}
+    F(\bar x_t) - F(x^\star) &\leq \left(F_\mu(\bar x_t)- F_\mu(x^\star_\mu)\right)+ \frac{\mu}{2}B^2 \leq \epsilon \,.
+\end{align*}
+To satisfy this condition, it is enough to ensure that both terms in the rate are less than $\frac{\epsilon}{2}$. We solve this for the regularization term, and we get: 
+\begin{align*}
+    \frac{\mu}{2}B^2 \leq \frac{\epsilon}{2}\,,
+\end{align*}
+which results in:
+\begin{align*}
+    \mu \leq \frac{\epsilon}{B^2} \,.
+\end{align*}
+Now we proceed by replacing $\mu$ in all terms and deriving the rate.
+\begin{proof}
+By assuming $\mu=\frac{\epsilon}{B^2}$, we will find the condition on $K$ and $R$ to reach $\epsilon$-accuracy using Theorem \ref{thm: LSGD_upper_bound}. For simplicity, we drop all constant numbers which do not affect the rate. To recall, in the strongly convex case we had proven a rate of: 
+\begin{align*}
+    HB^2 \exp \left(-\frac{\mu KR}{H}\right) + \tilde{\mathcal{O}} \left( \frac{\sigma^2}{\mu M KR}\right)+ \tilde{\mathcal{O}} \left( \frac{\tau^2\sigma^2}{\mu^3 KR^2}\right)+ \tilde{\mathcal{O}} \left( \frac{\tau^2  \zeta^2}{\mu^3 R^2}\right)+ \tilde{\mathcal{O}} \left( \frac{Q^2\sigma^4}{\mu^5 K^2R^4}\right)+ \tilde{\mathcal{O}} \left( \frac{Q^2  \zeta^4}{\mu^5 R^4}\right) \,. 
+\end{align*}
+For the first term we solve the inequality: 
+\begin{align*}
+    HB^2 \exp \left(-\frac{\epsilon KR}{HB^2}\right) \leq \epsilon \quad \Longrightarrow \quad KR \geq \frac{HB^2}{\epsilon} \ln \left( \frac{\epsilon}{HB^2} \right) = \tilde{\mathcal{O}} \left( \frac{HB^2}{\epsilon}\right) \,.
+\end{align*}
+For the second term we solve the inequality:
+\begin{align*}
+    \frac{\sigma^2 B^2}{\epsilon M KR} \leq \epsilon \quad \Longrightarrow \quad KR \geq \frac{\sigma^2 B^2}{M\epsilon^2} \,.
+\end{align*}
+For the third term we solve the inequality: 
+\begin{align*}
+     \frac{\tau^2\sigma^2 B^6}{\epsilon^3 KR^2} \leq \epsilon \quad \Longrightarrow \quad KR^2 \geq \frac{\tau^2 \sigma^2 B^6}{\epsilon^4} \,.
+\end{align*}
+For the fourth term we solve the inequality:
+\begin{align*}
+    \frac{\tau^2   \zeta^2 B^6}{\epsilon^3  R^2} \leq \epsilon \quad \Longrightarrow \quad R^2 \geq \frac{\tau^2   \zeta^2 B^6}{\epsilon^4} \,.
+\end{align*}
+For the fifth term we solve the inequality:
+\begin{align*}
+    \frac{Q^2 \sigma^4}{\mu^5 K^2 R^4} \leq \epsilon \quad \Longrightarrow \quad K^2R^4 \geq \frac{Q^2 \sigma^4 B^{10}}{\epsilon^6} \,.
+\end{align*}
+And for the last term: 
+\begin{align*}
+    \frac{Q^2  \zeta^4 B^{10}}{\epsilon^5 R^4} \leq \epsilon \quad \Longrightarrow \quad R^4 \geq \frac{Q^2   \zeta^4 B^{10}}{\epsilon^6} \,.
+\end{align*}
+Finally, the rate would be the maximum of above terms which we can write: 
+\begin{align*}
+    &\tilde{\mathcal{O}} \left (\max\left\{\frac{HB^2}{\epsilon},\frac{\sigma^2 B^2}{M\epsilon^2}, \frac{\tau^2 \sigma^2 B^6}{\epsilon^4},\frac{\tau^2   \zeta^2 B^6}{\epsilon^4},\frac{Q^2 \sigma^4 B^{10}}{\epsilon^6},\frac{Q^2   \zeta^4 B^{10}}{\epsilon^6}\right\}\right) \leq \\
+    &\tilde{\mathcal{O}} \left (\frac{HB^2}{\epsilon}+\frac{\sigma^2 B^2}{M\epsilon^2}+ \frac{\tau^2 \sigma^2 B^6}{\epsilon^4}+\frac{\tau^2   \zeta^2 B^6}{\epsilon^4}+\frac{Q^2 \sigma^4 B^{10}}{\epsilon^6}+\frac{Q^2   \zeta^4 B^{10}}{\epsilon^6} \right) \,.
+\end{align*}
+Or in terms of $K$ and $R$:
+    \begin{align*}
+        \tilde{\mathcal{O}} \left ( \frac{HB^2}{KR} + \frac{\sigma B}{\sqrt{MKR}} + \frac{(\tau \sigma B^3)^{1/2}}{K^{1/4}R^{1/2}} + \frac{(\tau  \zeta B^3)^{1/2}}{R^{1/2}}
+      + \frac{(Q\sigma^2B^5)^{1/3}}{K^{1/3}R^{2/3}} + \frac{(Q  \zeta^2B^5)^{1/3}}{R^{2/3}} \right) \,.
+    \end{align*}
+It's worth mentioning that during the process of deriving rate for convex regime from strongly convex regime, we also ignore some logarithmic factors which is why we used the notation $\tilde{\mathcal{O}}(.)$. In fact the term $\frac{\ln\left(\max\left\{2,\frac{M \mu^2T^2B^2}{\sigma^2}\right\}\right)}{\mu T}$ (some constants are dropped for simplicity) that we use for tuning the stepsize depends on $\mu$. By the choice of $\mu = \frac{\epsilon}{B^2}$ this term becomes $\frac{B^2\ln\left(\max\left\{2,\frac{M \epsilon^2T^2}{B^2 \sigma^2}\right\}\right)}{\epsilon T}$ which will be used to upper bound the terms in our rate which are in the form of $\frac{C}{D} + \frac{E}{D^2} + \frac{G}{D^4}$ (refer to \ref{lemma: stepsize}). We use the fact that $\frac 1 D \leq \frac{B^2\ln\left(\max\left\{2,\frac{M \epsilon^2T^2}{B^2 \sigma^2}\right\}\right)}{\epsilon T}$. If $2 \geq \frac{M \epsilon^2T^2}{B^2 \sigma^2}$, then there is no extra logarithmic factor appearing in our rate. Only in the case of $2 \leq \frac{M \epsilon^2T^2}{B^2 \sigma^2}$ we get an extra factor of $\ln(T^2)$. In this case, for the term $\frac{C}{D}$ as an example we have: 
+\begin{align*}
+    \frac{C}{D} \leq \frac{CB^2\ln\left(\frac{M \epsilon^2T^2}{B^2 \sigma^2}\right)}{\epsilon T}
+\end{align*}
+And to achieve $\epsilon$-accuracy we want this term to be less that $\epsilon$ so we have: 
+\begin{align*}
+    \frac{CB^2\ln\left(\frac{M \epsilon^2T^2}{B^2 \sigma^2}\right)}{\epsilon T} \leq \epsilon
+\end{align*}
+So we need to set $T$ in the following way:
+\begin{align*}
+    T &\geq \frac{CB^2\ln\left(\frac{M \epsilon^2T^2}{B^2 \sigma^2}\right)}{\epsilon^2} \\
+    &\geq \frac{CB^2\ln\left(\frac{M \epsilon^2}{B^2 \sigma^2}\right)}{\epsilon^2} = \tilde{\mathcal{O}}(\frac{1}{\epsilon^2})
+\end{align*}
+And for the other terms we do the same. 
+
+\end{proof}
+
+
+% \frac{\ln\left(\max\left\{2,\frac{A^2T^2r_0}{C}\right\}\right)}{AT}

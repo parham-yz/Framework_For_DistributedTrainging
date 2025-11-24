@@ -1,0 +1,10 @@
+%% abstract.tex: abstract in PT and EN  (FEUP regulations)
+%% -------------------------------------------------------
+
+
+\acresetall %% to reset the acronym usage
+
+\chapter*{Abstract}
+Distributed optimization is a prerequisite for training large-scale machine learning models, yet standard approaches face severe bottlenecks in communication bandwidth and memory usage. This thesis develops and analyzes coordinate-based methods that mitigate these bottlenecks by decoupling updates in partitioned parameter spaces. For minimization problems, we propose a distributed Proximal Block Coordinate Descent algorithm. We introduce a novel theoretical measure, "coordinate-wise complement smoothness" ( $\bar L$), and prove that convergence rates depend on the coupling between blocks rather than the worst-case conditioning of individual subproblems. Extending this framework to minimax problems, we introduce Decoupled Stochastic Gradient Descent Ascent (Decoupled SGDA) for two-player zero-sum games. We identify a "weakly coupled" regime ($\kappa_c$) where player interaction is limited, allowing our method to achieve provable communication acceleration over standard baselines. Empirical validation on quadratic games and GAN training demonstrates that Decoupled SGDA significantly reduces communication overhead without compromising model performance.
+
+\acresetall %% to reset the acronym usage

@@ -1,0 +1,266 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\@writefile{toc}{\contentsline {chapter}{\numberline {4}Decoupled Gradient Descent Ascent}{18}{chapter.4}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\newlabel{chap:decoupled_gradient_descent_ascent}{{4}{18}{Decoupled Gradient Descent Ascent}{chapter.4}{}}
+\newlabel{chap:decoupled_gradient_descent_ascent@cref}{{[chapter][4][]4}{[1][18][]18}}
+\@writefile{toc}{\contentsline {section}{\numberline {4.1}Setting and preliminaries}{19}{section.4.1}\protected@file@percent }
+\newlabel{sec:prelim}{{4.1}{19}{Setting and preliminaries}{section.4.1}{}}
+\newlabel{sec:prelim@cref}{{[section][1][4]4.1}{[1][19][]19}}
+\newlabel{eq: 2player}{{{SP}}{19}{Setting and preliminaries}{section.4.1}{}}
+\newlabel{eq: 2player@cref}{{[equation][2147483647][]{SP}}{[1][19][]19}}
+\newlabel{eq:Operator-F}{{4.1}{19}{Setting and preliminaries}{equation.4.1.1}{}}
+\newlabel{eq:Operator-F@cref}{{[equation][1][4]4.1}{[1][19][]19}}
+\@writefile{toc}{\contentsline {paragraph}{Notation.}{19}{section*.14}\protected@file@percent }
+\newlabel{assumption: strong monotonicity}{{7}{20}{Strong monotonicity}{assumption.7}{}}
+\newlabel{assumption: strong monotonicity@cref}{{[assumption][7][]7}{[1][20][]20}}
+\newlabel{assumption: L and L bar}{{8}{20}{Lipschitz smoothness}{assumption.8}{}}
+\newlabel{assumption: L and L bar@cref}{{[assumption][8][]8}{[1][20][]20}}
+\newlabel{assumption:L_c}{{9}{20}{}{assumption.9}{}}
+\newlabel{assumption:L_c@cref}{{[assumption][9][]9}{[1][20][]20}}
+\newlabel{assumption: noise of sgd}{{10}{20}{}{assumption.10}{}}
+\newlabel{assumption: noise of sgd@cref}{{[assumption][10][]10}{[1][20][]20}}
+\@writefile{toc}{\contentsline {section}{\numberline {4.2}Decoupled SGDA for two-player games}{21}{section.4.2}\protected@file@percent }
+\newlabel{sec: algorithm explanation}{{4.2}{21}{Decoupled SGDA for two-player games}{section.4.2}{}}
+\newlabel{sec: algorithm explanation@cref}{{[section][2][4]4.2}{[1][20][]21}}
+\@writefile{toc}{\contentsline {paragraph}{Common Approach: Stochastic Gradient Descent Ascent (SGDA).}{21}{section*.15}\protected@file@percent }
+\newlabel{eq:sgda}{{4.6}{21}{Common Approach: Stochastic Gradient Descent Ascent (SGDA)}{equation.4.2.6}{}}
+\newlabel{eq:sgda@cref}{{[equation][6][4]4.6}{[1][21][]21}}
+\@writefile{toc}{\contentsline {paragraph}{Communication Efficient Strategy Exchange.}{21}{section*.16}\protected@file@percent }
+\newlabel{equation: noise}{{4.7}{21}{Communication Efficient Strategy Exchange}{equation.4.2.7}{}}
+\newlabel{equation: noise@cref}{{[equation][7][4]4.7}{[1][21][]21}}
+\newlabel{eq:localGDA}{{4.8}{21}{Communication Efficient Strategy Exchange}{equation.4.2.8}{}}
+\newlabel{eq:localGDA@cref}{{[equation][8][4]4.8}{[1][21][]21}}
+\@writefile{toc}{\contentsline {paragraph}{Decoupled SGDA: Communication Efficient with Reliable Information.}{22}{section*.17}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Method.}{22}{section*.18}\protected@file@percent }
+\@writefile{loa}{\contentsline {algorithm}{\numberline {2}{\ignorespaces Decoupled SGDA for two-player\footnotemark {} games\relax }}{23}{algorithm.2}\protected@file@percent }
+\newlabel{alg: two player games}{{2}{23}{Decoupled SGDA for two-player\protect \footnotemark {} games\relax }{algorithm.2}{}}
+\newlabel{alg: two player games@cref}{{[algorithm][2][]2}{[1][22][]23}}
+\@writefile{toc}{\contentsline {paragraph}{Intuition.}{23}{section*.19}\protected@file@percent }
+\newlabel{eq: minimax decomposed equation}{{4.10}{23}{Intuition}{equation.4.2.10}{}}
+\newlabel{eq: minimax decomposed equation@cref}{{[equation][10][4]4.10}{[1][22][]23}}
+\@writefile{toc}{\contentsline {paragraph}{Extensions of Decoupled SGDA (Appendix \ref {sec: ghost}).}{23}{section*.20}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4.3}Convergence Guarantees}{24}{section.4.3}\protected@file@percent }
+\newlabel{sec: convergence}{{4.3}{24}{Convergence Guarantees}{section.4.3}{}}
+\newlabel{sec: convergence@cref}{{[section][3][4]4.3}{[1][23][]24}}
+\newlabel{eq:DefinitionOfTheta}{{4.11}{24}{Convergence Guarantees}{equation.4.3.11}{}}
+\newlabel{eq:DefinitionOfTheta@cref}{{[equation][11][4]4.11}{[1][24][]24}}
+\newlabel{theorem: decoupled sgda for two player games}{{20}{24}{}{lemma.20}{}}
+\newlabel{theorem: decoupled sgda for two player games@cref}{{[lemma][20][]20}{[1][24][]24}}
+\newlabel{corr: decoupled}{{21}{24}{}{lemma.21}{}}
+\newlabel{corr: decoupled@cref}{{[lemma][21][]21}{[1][24][]24}}
+\@writefile{lot}{\contentsline {table}{\numberline {4.1}{\ignorespaces Comparison of Communication Complexity and Acceleration Condition for Different Methods. \textit  {Speed up} lists the conditions under which Decoupled SGDA achieves acceleration relative to the respective method. Note that for simplicity and in order to compare our results with other works, we consider $\mathbf  {P}_u = \mathbf  {P}_v = \mathbf  {I},\, \mathbf  {P}= \mathbf  {I}$ and $\alpha _u = \alpha _v = 1$.\relax }}{25}{table.caption.21}\protected@file@percent }
+\newlabel{table:comparison_methods}{{4.1}{25}{Comparison of Communication Complexity and Acceleration Condition for Different Methods. \textit {Speed up} lists the conditions under which Decoupled SGDA achieves acceleration relative to the respective method. Note that for simplicity and in order to compare our results with other works, we consider $\PPP _u = \PPP _v = \II ,\, \PPP = \II $ and $\alpha _u = \alpha _v = 1$.\relax }{table.caption.21}{}}
+\newlabel{table:comparison_methods@cref}{{[table][1][4]4.1}{[1][24][]25}}
+\@writefile{toc}{\contentsline {paragraph}{Fully Decoupled Games.}{25}{section*.22}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4.1}{\ignorespaces  \textbf  {Trajectories (top row) and distance to equilibrium over synchronization rounds (bottom row) of GDA ($K=1$) and Decoupled SGDA with $K=\{2,5\}$ on the \eqref  {eq:quadratic_game} problem ($d=2$).} $\mathbf  {C}$ in \eqref  {eq:quadratic_game} is a constant here---the larger, the stronger the interactive term. \textbf  {Left-to-right:} decreasing the constant $c\in \{ 10, 3.5, 2,7, 0\}$. The markers denote the local steps and star the solution. See \S  ~\ref {sec:experiments} for discussion. \relax }}{26}{figure.caption.23}\protected@file@percent }
+\newlabel{fig:trajectories}{{4.1}{26}{\textbf {Trajectories (top row) and distance to equilibrium over synchronization rounds (bottom row) of GDA ($K=1$) and Decoupled SGDA with $K=\{2,5\}$ on the \eqref {eq:quadratic_game} problem ($d=2$).} $\CC $ in \eqref {eq:quadratic_game} is a constant here---the larger, the stronger the interactive term. \textbf {Left-to-right:} decreasing the constant $c\in \{ 10, 3.5, 2,7, 0\}$. The markers denote the local steps and star the solution. See \S ~\ref {sec:experiments} for discussion. \relax }{figure.caption.23}{}}
+\newlabel{fig:trajectories@cref}{{[figure][1][4]4.1}{[1][26][]26}}
+\newlabel{corollary: comm complexity of decoupled gda vs gda}{{23}{26}{}{lemma.23}{}}
+\newlabel{corollary: comm complexity of decoupled gda vs gda@cref}{{[lemma][23][]23}{[1][26][]26}}
+\newlabel{eq:comm_complexity}{{23}{26}{}{lemma.23}{}}
+\newlabel{eq:comm_complexity@cref}{{[lemma][23][]23}{[1][26][]26}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.2}{\ignorespaces  \textbf  {Number of rounds (log-scale; lower is better) to reach epsilon accuracy for varying \(\lambda _{\text  {max}}(\mathbf  {C})\) in \eqref  {eq:quadratic_game}.} \textbf  {Left:} Decoupled GDA with different \(K\)-values and GDA ($K=1$). \textbf  {Right:} comparison between GDA, Decoupled GDA, Optimistic GDA~\blx@tocontentsinit {0}\parencite {popov1980modification}, Alternating GDA and Extragradient~\blx@tocontentsinit {0}\parencite {korpelevich1976extragradient}. \relax }}{27}{figure.caption.24}\protected@file@percent }
+\newlabel{fig:rounds_vs_accuracy}{{4.2}{27}{\textbf {Number of rounds (log-scale; lower is better) to reach epsilon accuracy for varying \(\lambda _{\text {max}}(\CC )\) in \eqref {eq:quadratic_game}.} \textbf {Left:} Decoupled GDA with different \(K\)-values and GDA ($K=1$). \textbf {Right:} comparison between GDA, Decoupled GDA, Optimistic GDA~\parencite {popov1980modification}, Alternating GDA and Extragradient~\parencite {korpelevich1976extragradient}. \relax }{figure.caption.24}{}}
+\newlabel{fig:rounds_vs_accuracy@cref}{{[figure][2][4]4.2}{[1][27][]27}}
+\newlabel{corollary: beating FOAM}{{24}{27}{}{lemma.24}{}}
+\newlabel{corollary: beating FOAM@cref}{{[lemma][24][]24}{[1][27][]27}}
+\newlabel{rem:yoon}{{25}{27}{}{lemma.25}{}}
+\newlabel{rem:yoon@cref}{{[lemma][25][]25}{[1][27][]27}}
+\@writefile{toc}{\contentsline {section}{\numberline {4.4}Experiments}{28}{section.4.4}\protected@file@percent }
+\newlabel{sec:experiments}{{4.4}{28}{Experiments}{section.4.4}{}}
+\newlabel{sec:experiments@cref}{{[section][4][4]4.4}{[1][28][]28}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4.1}Quadratic Games}{28}{subsection.4.4.1}\protected@file@percent }
+\newlabel{subsec:experiment1}{{4.4.1}{28}{Quadratic Games}{subsection.4.4.1}{}}
+\newlabel{subsec:experiment1@cref}{{[subsection][1][4,4]4.4.1}{[1][28][]28}}
+\newlabel{eq:quadratic_game}{{4.13}{28}{Quadratic Games}{equation.4.4.13}{}}
+\newlabel{eq:quadratic_game@cref}{{[equation][13][4]4.13}{[1][28][]28}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4.2}Communication Efficiency For Non-convex Functions}{28}{subsection.4.4.2}\protected@file@percent }
+\newlabel{subsec:experiment2}{{4.4.2}{28}{Communication Efficiency For Non-convex Functions}{subsection.4.4.2}{}}
+\newlabel{subsec:experiment2@cref}{{[subsection][2][4,4]4.4.2}{[1][28][]28}}
+\newlabel{eq:ToyGan}{{4.14}{28}{Communication Efficiency For Non-convex Functions}{equation.4.4.14}{}}
+\newlabel{eq:ToyGan@cref}{{[equation][14][4]4.14}{[1][28][]28}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.3}{\ignorespaces  \textbf  {Lowest gradient norm reached after a fixed number of communication rounds, for varying $1/\lambda $ in \eqref  {eq:ToyGan}}. \textbf  { Left:} Effect of $K$. \textbf  {Right:} different optimization methods, GDA, Decoupled GDA, Optimistic GDA~\blx@tocontentsinit {0}\parencite {popov1980modification}, ALT--alternating GDA and Extragradient~\blx@tocontentsinit {0}\parencite {korpelevich1976extragradient}. See \S  ~\ref {sec:experiments} for discussion. \relax }}{29}{figure.caption.25}\protected@file@percent }
+\newlabel{fig:nonconvex}{{4.3}{29}{\textbf {Lowest gradient norm reached after a fixed number of communication rounds, for varying $1/\lambda $ in \eqref {eq:ToyGan}}. \textbf { Left:} Effect of $K$. \textbf {Right:} different optimization methods, GDA, Decoupled GDA, Optimistic GDA~\parencite {popov1980modification}, ALT--alternating GDA and Extragradient~\parencite {korpelevich1976extragradient}. See \S ~\ref {sec:experiments} for discussion. \relax }{figure.caption.25}{}}
+\newlabel{fig:nonconvex@cref}{{[figure][3][4]4.3}{[1][29][]29}}
+\newlabel{subsec:experiment3}{{4.4.2}{29}{Communication Efficiency For Non-convex Functions}{figure.caption.25}{}}
+\newlabel{subsec:experiment3@cref}{{[subsection][2][4,4]4.4.2}{[1][29][]29}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.4}{\ignorespaces  \textbf  {Lowest gradient norm reached by Decoupled SGDA and Local SGDA for a \textbf  {fixed number of communication rounds} using unbalanced noisy gradient oracles. } \textbf  {Left:} \emph  {Decoupled SGDA} vs.\ \emph  {Federated Minimax} for varying values of $\left \lVert \mathbf  {C}\right \rVert $ and fixed variance. \textbf  {Left:} \emph  {Decoupled SGDA} vs.\ \emph  {Local SGDA} for varying levels of off-diagonal variance noise ($\sigma _{uv}$, $\sigma _{vu}$). See~\ref {sec:experiments}.\relax }}{30}{figure.caption.26}\protected@file@percent }
+\newlabel{fig:noise_comparison}{{4.4}{30}{\textbf {Lowest gradient norm reached by Decoupled SGDA and Local SGDA for a \textbf {fixed number of communication rounds} using unbalanced noisy gradient oracles. } \textbf {Left:} \emph {Decoupled SGDA} vs.\ \emph {Federated Minimax} for varying values of $\norm {\CC }$ and fixed variance. \textbf {Left:} \emph {Decoupled SGDA} vs.\ \emph {Local SGDA} for varying levels of off-diagonal variance noise ($\sigma _{uv}$, $\sigma _{vu}$). See~\ref {sec:experiments}.\relax }{figure.caption.26}{}}
+\newlabel{fig:noise_comparison@cref}{{[figure][4][4]4.4}{[1][29][]30}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4.3}Communication Efficiency in GAN Training.}{30}{subsection.4.4.3}\protected@file@percent }
+\newlabel{subsec:experiment4}{{4.4.3}{30}{Communication Efficiency in GAN Training}{subsection.4.4.3}{}}
+\newlabel{subsec:experiment4@cref}{{[subsection][3][4,4]4.4.3}{[1][30][]30}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4.5}{\ignorespaces \textbf  { $y$-axis: FID scores (log scale; lower is better) during GAN training, versus $x$-axis communication rounds.} \textbf  { Left:} results on the \emph  {CIFAR-10}~\blx@tocontentsinit {0}\parencite {cifar10} dataset. \textbf  {Right:} results on the \emph  {SVHN}~\blx@tocontentsinit {0}\parencite {svhn} dataset.\relax }}{30}{figure.caption.27}\protected@file@percent }
+\newlabel{fig:gan_training}{{4.5}{30}{\textbf { $y$-axis: FID scores (log scale; lower is better) during GAN training, versus $x$-axis communication rounds.} \textbf { Left:} results on the \emph {CIFAR-10}~\parencite {cifar10} dataset. \textbf {Right:} results on the \emph {SVHN}~\parencite {svhn} dataset.\relax }{figure.caption.27}{}}
+\newlabel{fig:gan_training@cref}{{[figure][5][4]4.5}{[1][30][]30}}
+\@setckpt{body/game}{
+\setcounter{page}{31}
+\setcounter{equation}{14}
+\setcounter{enumi}{0}
+\setcounter{enumii}{0}
+\setcounter{enumiii}{0}
+\setcounter{enumiv}{0}
+\setcounter{footnote}{3}
+\setcounter{mpfootnote}{1}
+\setcounter{part}{0}
+\setcounter{chapter}{4}
+\setcounter{section}{4}
+\setcounter{subsection}{3}
+\setcounter{subsubsection}{0}
+\setcounter{paragraph}{0}
+\setcounter{subparagraph}{0}
+\setcounter{figure}{5}
+\setcounter{table}{1}
+\setcounter{caption@flags}{2}
+\setcounter{continuedfloat}{0}
+\setcounter{float@type}{32}
+\setcounter{LT@tables}{0}
+\setcounter{LT@chunks}{0}
+\setcounter{linenumber}{0}
+\setcounter{LN@truepage}{36}
+\setcounter{lstnumber}{1}
+\setcounter{tabx@nest}{0}
+\setcounter{listtotal}{0}
+\setcounter{listcount}{0}
+\setcounter{liststart}{0}
+\setcounter{liststop}{0}
+\setcounter{citecount}{0}
+\setcounter{citetotal}{0}
+\setcounter{multicitecount}{0}
+\setcounter{multicitetotal}{0}
+\setcounter{instcount}{66}
+\setcounter{maxnames}{3}
+\setcounter{minnames}{1}
+\setcounter{maxitems}{3}
+\setcounter{minitems}{1}
+\setcounter{citecounter}{0}
+\setcounter{maxcitecounter}{0}
+\setcounter{savedcitecounter}{0}
+\setcounter{uniquelist}{0}
+\setcounter{uniquename}{0}
+\setcounter{refsection}{0}
+\setcounter{refsegment}{0}
+\setcounter{maxextratitle}{0}
+\setcounter{maxextratitleyear}{0}
+\setcounter{maxextraname}{2}
+\setcounter{maxextradate}{0}
+\setcounter{maxextraalpha}{0}
+\setcounter{abbrvpenalty}{50}
+\setcounter{highnamepenalty}{50}
+\setcounter{lownamepenalty}{25}
+\setcounter{maxparens}{3}
+\setcounter{parenlevel}{0}
+\setcounter{blx@maxsection}{0}
+\setcounter{mincomprange}{10}
+\setcounter{maxcomprange}{100000}
+\setcounter{mincompwidth}{1}
+\setcounter{afterword}{0}
+\setcounter{savedafterword}{0}
+\setcounter{annotator}{0}
+\setcounter{savedannotator}{0}
+\setcounter{author}{0}
+\setcounter{savedauthor}{0}
+\setcounter{bookauthor}{0}
+\setcounter{savedbookauthor}{0}
+\setcounter{commentator}{0}
+\setcounter{savedcommentator}{0}
+\setcounter{editor}{0}
+\setcounter{savededitor}{0}
+\setcounter{editora}{0}
+\setcounter{savededitora}{0}
+\setcounter{editorb}{0}
+\setcounter{savededitorb}{0}
+\setcounter{editorc}{0}
+\setcounter{savededitorc}{0}
+\setcounter{foreword}{0}
+\setcounter{savedforeword}{0}
+\setcounter{holder}{0}
+\setcounter{savedholder}{0}
+\setcounter{introduction}{0}
+\setcounter{savedintroduction}{0}
+\setcounter{namea}{0}
+\setcounter{savednamea}{0}
+\setcounter{nameb}{0}
+\setcounter{savednameb}{0}
+\setcounter{namec}{0}
+\setcounter{savednamec}{0}
+\setcounter{translator}{0}
+\setcounter{savedtranslator}{0}
+\setcounter{shortauthor}{0}
+\setcounter{savedshortauthor}{0}
+\setcounter{shorteditor}{0}
+\setcounter{savedshorteditor}{0}
+\setcounter{labelname}{0}
+\setcounter{savedlabelname}{0}
+\setcounter{institution}{0}
+\setcounter{savedinstitution}{0}
+\setcounter{lista}{0}
+\setcounter{savedlista}{0}
+\setcounter{listb}{0}
+\setcounter{savedlistb}{0}
+\setcounter{listc}{0}
+\setcounter{savedlistc}{0}
+\setcounter{listd}{0}
+\setcounter{savedlistd}{0}
+\setcounter{liste}{0}
+\setcounter{savedliste}{0}
+\setcounter{listf}{0}
+\setcounter{savedlistf}{0}
+\setcounter{location}{0}
+\setcounter{savedlocation}{0}
+\setcounter{organization}{0}
+\setcounter{savedorganization}{0}
+\setcounter{origlocation}{0}
+\setcounter{savedoriglocation}{0}
+\setcounter{origpublisher}{0}
+\setcounter{savedorigpublisher}{0}
+\setcounter{publisher}{0}
+\setcounter{savedpublisher}{0}
+\setcounter{language}{0}
+\setcounter{savedlanguage}{0}
+\setcounter{origlanguage}{0}
+\setcounter{savedoriglanguage}{0}
+\setcounter{pageref}{0}
+\setcounter{savedpageref}{0}
+\setcounter{textcitecount}{1}
+\setcounter{textcitetotal}{1}
+\setcounter{textcitemaxnames}{0}
+\setcounter{biburlbigbreakpenalty}{100}
+\setcounter{biburlbreakpenalty}{200}
+\setcounter{biburlnumpenalty}{0}
+\setcounter{biburlucpenalty}{0}
+\setcounter{biburllcpenalty}{0}
+\setcounter{smartand}{1}
+\setcounter{bbx:relatedcount}{0}
+\setcounter{bbx:relatedtotal}{0}
+\setcounter{section@level}{2}
+\setcounter{Item}{0}
+\setcounter{Hfootnote}{5}
+\setcounter{bookmark@seq@number}{26}
+\setcounter{parentequation}{0}
+\setcounter{@todonotes@numberoftodonotes}{0}
+\setcounter{proposition}{0}
+\setcounter{lemma}{26}
+\setcounter{definition}{0}
+\setcounter{assumption}{10}
+\setcounter{assumptionRoman}{0}
+\setcounter{tcbbreakpart}{0}
+\setcounter{tcblayer}{0}
+\setcounter{tcolorbox@number}{0}
+\setcounter{tcbrastercolumn}{1}
+\setcounter{tcbrasterrow}{1}
+\setcounter{tcbrasternum}{1}
+\setcounter{tcbraster}{0}
+\setcounter{tcblisting}{0}
+\setcounter{algorithm}{2}
+\setcounter{ALG@line}{9}
+\setcounter{ALG@rem}{0}
+\setcounter{ALG@nested}{0}
+\setcounter{ALG@Lnr}{2}
+\setcounter{ALG@blocknr}{10}
+\setcounter{ALG@storecount}{0}
+\setcounter{ALG@tmpcounter}{0}
+\setcounter{lstlisting}{0}
+}

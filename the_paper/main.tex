@@ -1,0 +1,66 @@
+
+\documentclass[11pt,a4paper]{report}
+
+
+\usepackage[utf8]{inputenc}
+\usepackage[meic,final]{feupteses}
+
+\graphicspath{{figures/}}
+\usepackage{csquotes}
+\usepackage[backend=biber, style=numeric, sorting=none, hyperref=true, backref=false]{biblatex}
+\usepackage{xpatch}
+\usepackage{hyperref}
+
+
+
+\addbibresource{backmatter/bibliography.bib}
+
+
+
+\input{macros}
+
+% \input{macros}
+
+\begin{document}
+
+\title{Communication-Efficient Parallel Optimization with Decoupled Updates}
+\author{Parham Yazdkhasti}
+
+\supervisor{Supervisor}{Prof.\ Dr.\ Sebastian U. Stich}
+\supervisor{Co-Supervisor}{Dr.\ Anton Rodomanov}
+\supervisor{Second Supervisor}{Prof.\ Dr.\ Peter Ochs}
+
+\begin{Prolog}
+  \include{body/ai}
+  \include{frontmatter/abstract} 
+  \include{frontmatter/acknows} 
+  \cleardoublepage
+  \pdfbookmark[0]{Table of Contents}{contents}
+  \tableofcontents
+  \cleardoublepage
+
+\end{Prolog}
+
+%%----------------------------------------
+%% Body
+%%----------------------------------------
+\StartBody
+
+\include{body/introduction} 
+% \include{body/distributed_opt}
+\include{body/related_works}
+\include{body/coordinate_descent}
+\include{body/game}
+\include{body/conclusion}
+
+%%----------------------------------------
+%% Final materials
+%%----------------------------------------
+
+%% Bibliography
+\PrintBib
+
+% \appendix
+\include{backmatter/appendix1}
+
+\end{document}

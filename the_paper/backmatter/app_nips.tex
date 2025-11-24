@@ -1,0 +1,97 @@
+\lemmacons*
+
+\begin{proof}
+Note the following about the difference of iterates on two machines $m,n\in[M]$ for some time $t>\delta(t)$ (for $t=\delta(t)$ the l.h.s. is zero),
+\begin{align*}
+    &\ee\sb{\norm{x^m_t - x^n_t}^2}\\
+    &= \ee\sb{\norm{x^m_{t-1} - x^n_{t-1} - \eta g^m_{t-1} + \eta g^n_{t-1}}^2}\enspace,\\
+    &\leq^{\text{(\Cref{ass:stoch_bounded_moment}), (a)}} \ee\sb{\norm{x^m_{t-1} - x^n_{t-1} - \eta \left(\nabla F_m (x^m_{t-1}) - \nabla F_n (x^n_{t-1})\right)}^2} + 2\eta^2 \sigma^2\enspace,\\
+    &=^{\text{(b)}} \ee\sb{\norm{x^m_{t-1} - x^n_{t-1} - \eta \left( \nabla F_m (x^m_{t-1}) - \nabla F_m (x^n_{t-1}) \right) - \eta \left(\nabla F_m (x^n_{t-1})- \nabla F_n (x^n_{t-1} \right)}^2}\\ 
+    &\quad + 2\eta^2 \sigma^2\enspace,
+\end{align*}
+where in (a) we exploited the fact that $\xi_t^m\perp\xi_t^n|\hhh_t$ and $x_{t-1}^m, x_{t-1}^n\in m\hhh_t$ as well as used tower rule to introduce conditional expectation; and in (b) we added and subtracted the term $\nabla F_m(x^n_{t-1})$. By mean value theorem we know that there exists a $c = x^n_{t-1} + \theta (x^m_{t-1} - x^n_{t-1})$ for some $\theta \in [0,1]$ such that: 
+\begin{align*}
+    \nabla F_m (x^m_{t-1}) - \nabla F_m (x^n_{t-1}) = \nabla^2 F_m(c) (x^m_{t-1} - x^n_{t-1})
+\end{align*}
+Using this in the above inequality, we get: 
+\begin{align*}
+    &\ee\sb{\norm{x^m_t - x^n_t}^2} \\
+    &\leq \ee\sb{\norm{x^m_{t-1} - x^n_{t-1} - \eta \nabla^2 F_m(c) (x^m_{t-1} - x^n_{t-1})- \eta \left(\nabla F_m (x^n_{t-1})- \nabla F_n (x^n_{t-1}) \right)}^2}+ 2\eta^2 \sigma^2\enspace,\\
+    &= \ee\sb{\norm{\left(I - \eta \nabla^2 F_m(c)\right) (x^m_{t-1} - x^n_{t-1}) - \eta \left(\nabla F_m (x^n_{t-1})- \nabla F_n (x^n_{t-1}) \right)}^2} + 2\eta^2 \sigma^2\enspace,\\
+    &\leq^{\text{(a)}} \rb{1+\frac{1}{\gamma_{t-1}}}\ee\sb{\norm{\left(I - \eta \nabla^2 F_m(c)\right) (x^m_{t-1} - x^n_{t-1})}^2}\\ 
+    &\quad + \rb{1+ \gamma_{t-1}}\eta^2 \ee\sb{\norm{\nabla F_m (x^n_{t-1})- \nabla F_n (x^n_{t-1})}^2} + 2\eta^2 \sigma^2\enspace,\\
+    &\leq^{\text{(b)}} \rb{1+\frac{1}{\gamma_{t-1}}}(1-\eta \mu)^2 \ee\sb{\norm{x^m_{t-1} - x^n_{t-1}}^2}\\ 
+    &\quad + \rb{1+ \gamma_{t-1}}\eta^2 \ee\sb{\norm{\nabla F_m (x^n_{t-1})- \nabla F_n (x^n_{t-1})}^2} + 2\eta^2 \sigma^2\enspace,\\
+    &=\rb{1+\frac{1}{\gamma_{t-1}}}(1-\eta \mu)^2\ee\sb{\norm{x^m_{t-1} - x^n_{t-1}}^2} + 2\eta^2 \sigma^2\\ 
+    &\quad + \rb{1+ \gamma_{t-1}}\eta^2 \ee\sb{\norm{\nabla F_m (x^n_{t-1}) - \nabla F_m (x_n^\star) - \nabla F_n (x^n_{t-1}) + \nabla F_m (x_n^\star)}^2}\enspace,\\
+    &\leq^{\text{(c)}} \rb{1+\frac{1}{\gamma_{t-1}}}(1-\eta \mu)^2\ee\sb{\norm{x^m_{t-1} - x^n_{t-1}}^2}\\ 
+    &\quad +2\rb{1+ \gamma_{t-1}}\eta^2  \ee\sb{\norm{\nabla F_m (x^n_{t-1}) - \nabla F_m (x_n^\star) - \nabla F_n (x^n_{t-1}) + \nabla F_n(x_n^\star)}^2}\\
+    &\quad + 2\rb{1+ \gamma_{t-1}}\eta^2 \ee\sb{\norm{\nabla F_m(x_n^\star) - \nabla F_m(x_m^\star)}^2} + 2\eta^2 \sigma^2\enspace,\\
+    &\leq^{\text{(\Cref{ass:sc_and_smooth,ass:zeta_star})}} \rb{1+\frac{1}{\gamma_{t-1}}}(1-\eta \mu)^2\ee\sb{\norm{x^m_{t-1} - x^n_{t-1}}^2}\\
+    &\quad + \textcolor{blue}{2\rb{1+ \gamma_{t-1}}\eta^2\ee\sb{\norm{\nabla F_m (x^n_{t-1}) - \nabla F_n (x^n_{t-1}) - \rb{\nabla F_m (x_n^\star) - \nabla F_n(x_n^\star)}}^2}}\\
+    &\quad + 2\rb{1+ \gamma_{t-1}}\eta^2H^2\zeta_\star^2 + 2\eta^2\sigma^2\enspace,
+\end{align*}
+where in (a) and (c) we used \ref{lem:mod_am_gm}; and in (b) we used \ref{ass:sc_and_smooth} and the fact that $\eta < 1/H$. We will again use the mean value theorem for the \textcolor{blue}{blue} term in the above inequality. For $v := x^n_{t-1} - x_n^\star$ we have: 
+\begin{align*}
+    &\nabla F_m (x^n_{t-1}) - \nabla F_n (x^n_{t-1}) - \rb{\nabla F_m (x_n^\star) - \nabla F_n(x_n^\star)}\\
+    &\qquad = \int_0^1 \rb{\nabla^2 F_m(x_n^\star + tv) - \nabla^2 F_n(x_n^\star + tv)}v dt \enspace,\\
+    &\Rightarrow \norm{\nabla F_m (x^n_{t-1}) - \nabla F_n (x^n_{t-1}) - \rb{\nabla F_m (x_n^\star) - \nabla F_n(x_n^\star)}}\\
+    &\qquad\leq \int_0^1 \norm{\nabla^2 F_m(x_n^\star + tv) - \nabla^2 F_n(x_n^\star + tv)}\norm{v} dt \enspace,\\
+    &\Rightarrow \norm{\nabla F_m (x^n_{t-1}) - \nabla F_n (x^n_{t-1}) - \rb{\nabla F_m (x_n^\star) - \nabla F_n(x_n^\star)}} \leq \tau\norm{x_{t-1}^n - x_n^\star}\enspace.
+\end{align*}
+Plugging this in the inequality above gives the following,
+\begin{align*}
+    &\ee\sb{\norm{x^m_t - x^n_t}^2} \\
+    &\leq \rb{1+\frac{1}{\gamma_{t-1}}}(1-\eta \mu)^2\ee\sb{\norm{x^m_{t-1} - x^n_{t-1}}^2}\\
+    &\quad + 2\rb{1+ \gamma_{t-1}}\eta^2\tau^2\ee\sb{\norm{x_{t-1}^n - x_n^\star}^2} + 2\rb{1+ \gamma_{t-1}}\eta^2H^2\zeta_\star^2 + 2\eta^2\sigma^2\enspace,\\
+    &\leq \rb{1+\frac{1}{\gamma_{t-1}}}(1-\eta \mu)^2\ee\sb{\norm{x^m_{t-1} - x^n_{t-1}}^2} + 2\rb{1+ \gamma_{t-1}}\eta^2H^2\zeta_\star^2 + 2\eta^2\sigma^2\\
+    &\quad + 2\rb{1+ \gamma_{t-1}}\eta^2\tau^2\\
+    &\qquad\quad \times \textcolor{red}{\rb{(1-\eta\mu)^{2(t-1-\delta(t))}\ee\sb{\norm{x_{\delta(t)} - x_n^\star}^2} + \rb{1- (1-\eta\mu)^{2(t-1-\delta(t))}}\frac{\eta\sigma^2}{\mu}}}\enspace,
+    \end{align*}
+    where in the last inequality above we just used an upper bound for the convergence of SGD on a single machine $n\in[M]$. As a sanity check note that if $t-1=\delta(t)$ then the \textcolor{red}{red} term becomes $\ee\sb{\norm{x_{\delta(t)} - x_n^\star}^2}$. Continuing further and choosing $\gamma_j = j-\delta(j)$ (note that the term with $1/\gamma_{t-1}$ becomes $1$ when $t-1=\delta(t)$, making this choice well defined), this leads to,
+    \begin{align}
+    &\ee\sb{\norm{x^m_t - x^n_t}^2} \nonumber\\
+    &\leq \prod_{j=\delta(t)}^{t-1}\rb{1 + \frac{1}{\gamma_{j}}}(1-\eta \mu)^2\ee\sb{\norm{x_{\delta(t)} - x_{\delta(t)}}^2}\nonumber\\
+    &\quad + 2\eta^2\sum_{j=\delta(t)}^{t-1}\rb{\prod_{i=j+1}^{t-1}\rb{1 + \frac{1}{\gamma_{i}}}(1-\eta \mu)^2}\rb{(1+\gamma_{j})H^2\zeta_\star^2 + \sigma^2}\nonumber\\
+    &\quad + 2\eta^2\tau^2\sum_{j=\delta(t)}^{t-1}\rb{\prod_{i=j+1}^{t-1}\rb{1 + \frac{1}{\gamma_{i}}}(1-\eta \mu)^2}\rb{1+ \gamma_{j}}(1-\eta\mu)^{2(j-\delta(t))}\ee\sb{\norm{x_{\delta(t)} - x_n^\star}^2}\nonumber\\
+    &\quad + \frac{2\eta^3\tau^2\sigma^2}{\mu}\sum_{j=\delta(t)}^{t-1}\rb{\prod_{i=j+1}^{t-1}\rb{1 + \frac{1}{\gamma_{i}}}(1-\eta \mu)^2}\rb{1+ \gamma_{j}} \rb{1- (1-\eta\mu)^{2(j-\delta(t))}}\enspace,\nonumber\\
+    &=  2\eta^2\sum_{j=\delta(t)}^{t-1}\rb{\prod_{i=j+1}^{t-1}\rb{1 + \frac{1}{\gamma_{i}}}}(1-\eta \mu)^{2(t-1-j)}\rb{(1+\gamma_{j})H^2\zeta_\star^2 + \sigma^2}\nonumber\\
+    &\quad + 2\eta^2\tau^2\sum_{j=\delta(t)}^{t-1}\rb{\prod_{i=j+1}^{t-1}\rb{1 + \frac{1}{\gamma_{i}}}}(1-\eta \mu)^{2(t-1-j)}\rb{1+ \gamma_{j}}(1-\eta\mu)^{2(j-\delta(t))}\ee\sb{\norm{x_{\delta(t)} - x_n^\star}^2}\nonumber\\
+    &\quad + \frac{2\eta^3\tau^2\sigma^2}{\mu}\sum_{j=\delta(t)}^{t-1}\rb{\prod_{i=j+1}^{t-1}\rb{1 + \frac{1}{\gamma_{i}}}}(1-\eta \mu)^{2(t-1-j)}\rb{1+ \gamma_{j}} \rb{1- (1-\eta\mu)^{2(j-\delta(t))}}\enspace,\nonumber\\
+    &= 2\eta^2\sum_{j=\delta(t)}^{t-1}\rb{\prod_{i=j+1}^{t-1}\frac{i+1-\delta(t)}{i-\delta(t)}}(1-\eta \mu)^{2(t-1-j)}\rb{(j+1-\delta(t))H^2\zeta_\star^2 + \sigma^2}\nonumber\\
+    &\quad + 2\eta^2\tau^2\sum_{j=\delta(t)}^{t-1}\rb{\prod_{i=j+1}^{t-1}\frac{i+1-\delta(t)}{i-\delta(t)}}\rb{j+1-\delta(t)}(1-\eta \mu)^{2(t-1-\delta(t))}\ee\sb{\norm{x_{\delta(t)} - x_n^\star}^2}\nonumber\\
+    &\quad + \frac{2\eta^3\tau^2\sigma^2}{\mu}\sum_{j=\delta(t)}^{t-1}\rb{\prod_{i=j+1}^{t-1}\frac{i+1-\delta(t)}{i-\delta(t)}}\rb{j+1-
+    \delta(t)} \rb{(1-\eta \mu)^{2(t-1-j)}- (1-\eta\mu)^{2(t-1-\delta(t))}}\enspace,\nonumber\\
+    &= 2\eta^2\sum_{j=\delta(t)}^{t-1}\frac{t-\delta(t)}{j+1-\delta(t)}(1-\eta \mu)^{2(t-1-j)}\rb{(j+1-\delta(t))H^2\zeta_\star^2 + \sigma^2}\nonumber\\
+    &\quad + 2\eta^2\tau^2\sum_{j=\delta(t)}^{t-1}\rb{t-\delta(t)}(1-\eta \mu)^{2(t-1-\delta(t))}\ee\sb{\norm{x_{\delta(t)} - x_n^\star}^2}\nonumber\\
+    &\quad + \frac{2\eta^3\tau^2\sigma^2}{\mu}\sum_{j=\delta(t)}^{t-1}\rb{t-\delta(t)}\rb{(1-\eta \mu)^{2(t-1-j)}- (1-\eta\mu)^{2(t-1-\delta(t))}}\enspace,\nonumber\\
+     &= 2\eta^2(t-\delta(t))\sum_{j=\delta(t)}^{t-1}(1-\eta \mu)^{2(t-1-j)}\rb{H^2\zeta_\star^2 + \frac{\sigma^2}{j+1-\delta(t)}}\nonumber\\
+     &\quad + 2\eta^2\tau^2\rb{t-\delta(t)}^2(1-\eta \mu)^{2(t-1-\delta(t))}\ee\sb{\norm{x_{\delta(t)} - x_n^\star}^2}\nonumber\\
+    &\quad + \frac{2\eta^3\tau^2\sigma^2}{\mu}\sum_{j=\delta(t)}^{t-1}\rb{t-\delta(t)}\rb{(1-\eta \mu)^{2(t-1-j)}- (1-\eta\mu)^{2(t-1-\delta(t))}}\enspace,\nonumber\\
+    &\leq \textcolor{red}{2\eta^2(t-\delta(t))^2H^2\zeta_\star^2} + 2\eta^2(t-\delta(t))\sigma^2\sum_{j=\delta(t)}^{t-1}\frac{1}{j+1-\delta(t)}\nonumber\\
+    &\quad + 2\eta^2\tau^2\rb{t-\delta(t)}^2(1-\eta \mu)^{2(t-1-\delta(t))}\ee\sb{\norm{x_{\delta(t)} - x_n^\star}^2}\nonumber\\
+    &\quad + \textcolor{red}{\frac{2\eta^3\tau^2\sigma^2\rb{t-\delta(t)}^2}{\mu}}\enspace,\nonumber\\
+    &\leq^{\text{(a)}} \textcolor{red}{(t-\delta(t))^2\rb{2\eta^2 H^2\zeta_\star^2 + \frac{2\eta^3\tau^2\sigma^2}{\mu}}} + 2\eta^2\sigma^2(t-\delta(t))\ln(t-\delta(t))\nonumber\\
+    &\quad + 4\eta^2\tau^2\rb{t-\delta(t)}^2(1-\eta \mu)^{2(t-1-\delta(t))}\rb{\ee\sb{\norm{x_{\delta(t)} - x^\star}^2} + \norm{x^\star-x_n^\star}^2}\enspace,\nonumber\\
+    &\leq (t-\delta(t))\rb{2\eta^2 H^2K\zeta_\star^2 + \frac{2\eta^3\tau^2K\sigma^2}{\mu} + 2\eta^2\sigma^2\ln(K)}\nonumber\\
+    &\quad + 4\eta^2\tau^2\rb{t-\delta(t)}^2(1-\eta \mu)^{2(t-1-\delta(t))}\rb{A(\delta(t)) + \phi_\star^2}\enspace,\label{eq:consensus_second_specific}\\
+    &\leq 2\eta^2 H^2K^2\zeta_\star^2 + \frac{2\eta^3\tau^2K^2\sigma^2}{\mu} + 2\eta^2\sigma^2K\ln(K)\nonumber\\
+    &\quad + 4\eta^2\tau^2\rb{t-\delta(t)}^2(1-\eta \mu)^{2(t-1-\delta(t))}\rb{A(\delta(t)) + \phi_\star^2}\enspace,\nonumber
+\end{align}
+where in (a) we combined the \textcolor{red}{red} terms into one, used the fact that $$\frac{1-(1-\eta\mu)^{2(t-\delta(t))}}{1-(1-\eta\mu)^2} \leq \frac{1}{\eta\mu(2-\eta\mu)}\leq \frac{1}{\eta\mu}$$ because $\eta < 1/H$ and used \Cref{lem:mod_am_gm}. As a sanity check, note that the above bound has the property that when $t=\delta(t)$, it automatically becomes zero (we adopt the notation that $0\cdot(-\infty)$ in the second term becomes $0$). Thus, we can safely drop the assumption that $t>\delta(t)$, making the above bound valid for all values of $t$. Finally, averaging the upper bound over $m,n\in[M]$ proves the lemma's main upper bound. To get the other result, we will simply use this upper bound. In particular noting that $\delta(j)=K(r-1)$ we get,
+\begin{align*}
+    &\sum_{j=K(r-1)}^{Kr-1}(1-\eta\mu)^{Kr-1-j}C(j)\\
+    &\leq \sum_{j=K(r-1)}^{Kr-1}(1-\eta\mu)^{Kr-1-j}\rb{2\eta^2 H^2K^2\zeta_\star^2 + \frac{2\eta^3\tau^2K^2\sigma^2}{\mu} + 2\eta^2\sigma^2K\ln(K)}\\
+    &\quad + \sum_{j=K(r-1)}^{Kr-1}(1-\eta\mu)^{Kr-1-j}\rb{4\eta^2\tau^2\rb{j-K(r-1)}^2(1-\eta \mu)^{2(j-1-K(r-1))}\rb{A(K(r-1)) + \phi_\star^2}}\enspace,\\
+    &= \frac{1-(1-\eta\mu)^K}{\eta\mu}\rb{2\eta^2 H^2K^2\zeta_\star^2 + \frac{2\eta^3\tau^2K^2\sigma^2}{\mu} + 2\eta^2\sigma^2K\ln(K)}\\
+    &\quad + 4\eta^2\tau^2(1-\eta\mu)^{K-2}\rb{A(K(r-1)) + \phi_\star^2}\sum_{j=K(r-1)}^{Kr-1}(1-\eta\mu)^{j-1-K(r-1)}\rb{j-K(r-1)}^2\enspace,\\
+    &\leq \frac{1-(1-\eta\mu)^K}{\eta\mu}\rb{2\eta^2 H^2K^2\zeta_\star^2 + \frac{2\eta^3\tau^2K^2\sigma^2}{\mu} + 2\eta^2\sigma^2K\ln(K)}\\
+    &\quad + \frac{1-(1-\eta\mu)^K}{\eta\mu}4\eta^2\tau^2K^2(1-\eta\mu)^{K-2}\rb{A(K(r-1)) + \phi_\star^2}\enspace.
+    % &\leq 2\eta^2 H^2K^3\zeta_\star^2 + \frac{2\eta^3\tau^2K^3\sigma^2}{\mu} + 2\eta^2\sigma^2K^2\ln(K)\\
+    % &\quad + 4\eta^2\tau^2(1-\eta\mu)^{K-2}\rb{A(K(r-1)) + \phi_\star^2}\sum_{j=K(r-1)}^{Kr-1}(1-\eta\mu)^{j-1-K(r-1)}\rb{j-K(r-1)}^2\enspace,\\
+    % &\leq 2\eta^2 H^2K^3\zeta_\star^2 + \frac{2\eta^3\tau^2K^3\sigma^2}{\mu} + 2\eta^2\sigma^2K^2\ln(K)\\
+    % &\quad + 4\eta^2\tau^2(1-\eta\mu)^{K-2}\rb{A(K(r-1)) + \phi_\star^2}\sum_{i=1}^{K-1}(1-\eta\mu)^{i-1}i^2\enspace,\\
+    % &\leq 2\eta^2 H^2K^3\zeta_\star^2 + \frac{2\eta^3\tau^2K^3\sigma^2}{\mu} + 2\eta^2\sigma^2K^2\ln(K) + 4\eta^2\tau^2K^3(1-\eta\mu)^{K-2}\rb{A(K(r-1)) + \phi_\star^2}\enspace.
+\end{align*}
+This finishes the proof. 
+\end{proof}

@@ -1,0 +1,343 @@
+\chapter{Coordinate Descent}
+\label{chap:coordinate_descent}
+
+In this chapter, we introduce the problem setting, along with the notations and assumptions that will be used throughout. We then propose our novel method and detail its mechanics. Following this, we provide a theoretical analysis of the method, including convergence guarantees. We conclude the chapter by presenting the total oracle complexity, communication complexity, and comparisons with other coordinate descent (CD) methods.
+
+\section{Problem Setting}
+% Begin inlined sections/1_problem_setting/problem_definition_and_notation.tex
+
+\subsection{Problem Definition and Notation}
+Below, we summarize the notation and assumptions used throughout. We consider the general minimization problem  
+\[
+\min_{\mathbf{x}\in\mathbb{R}^N} \; f(\mathbf{x}),
+\]
+where the vector \(\mathbf{x}\) is partitioned into \(n\) blocks according to a decomposition of \(\mathbb{R}^{N}\) into \(n\) subspaces.  Concretely, we write  \(
+\mathbf{x} \;=\; \sum_{i=1}^{n} U_i\,x^{(i)}, 
+\)where \(U = [U_1,\dots, U_n]\) is a column permutation (or block decomposition) of the \(N\times N\) identity matrix, and each \(U_i\in\mathbb{R}^{N\times N_i}\) satisfies \(\sum_{i=1}^n N_i = N\).  By definition,\(
+x^{(i)} \;=\; U_i^T\,\mathbf{x} \quad \in \mathbb{R}^{N_i},
+\)In view of this structure, we shall often refer to \(x^{(i)}\) as the \(i\)-th block of \(\mathbf{x}\) and write simply \(
+\mathbf{x} \;=\; \bigl(x^{(1)},\,x^{(2)},\,\dots,\,x^{(n)}\bigr).
+\) Such a decomposition underlies many block-coordinate or iterative methods, since one may then exploit partial separability or block Lipschitz continuity assumptions involving \(\{x^{(i)}\}\).  In the sequel, we will leverage this notation to develop and analyze algorithms tailored to block-structured problems. To facilitate the analysis of block-coordinate methods, we introduce the partial gradient with respect to the \(i\)-th block. For a differentiable function \(f: \mathbb{R}^N \to \mathbb{R}\), the partial gradient \(\nabla_i f(\mathbf{x})\) is defined as \(
+\nabla_i f(\mathbf{x}) = U_i^T \nabla f(\mathbf{x}),
+\) where \(\nabla f(\mathbf{x}) \in \mathbb{R}^N\) is the full gradient of \(f\) with respect to \(\mathbf{x}\), and \(\nabla_i f(\mathbf{x}) \in \mathbb{R}^{N_i}\) represents the gradient of \(f\) projected onto the \(i\)-th block subspace.
+
+
+ For a block matrix \( M \) partitioned into blocks \( M_{ij} \) of sizes \( N_i \times N_j \) for \( i, j = 1, \ldots, n \), we denote by \( M_{i\cdot} \) the matrix formed by concatenating all the off-diagonal blocks in the \( i \)-th block row, excluding the diagonal block \( M_{ii} \). That is, \(
+M_{i\cdot} = [M_{i1}, \ldots, M_{i(i-1)}, M_{i(i+1)}, \ldots, M_{in}],
+\) which is a matrix of size \( N_i \times (N - N_i) \), where \( N = \sum_{j=1}^n N_j \).  We denote by \( U_{-i} \) the matrix that selects all blocks of a vector \( \mathbf{x} \in \mathbb{R}^N \) except the \( i \)-th block. Specifically, \( U_{-i} \) is a matrix of size \( (N - N_i) \times N \) such that
+ \( U_{-i} = [U_1, \dots, U_{i-1}, U_{i+1}, \dots, U_n] \)
+where \( \mathbf{x}^{(j)} \) is the \( j \)-th block of \( \mathbf{x} \), and the result is a vector in \( \mathbb{R}^{N - N_i} \). We define \( \mathbf{x}^{(-i)} = U_{-i} \mathbf{x} \), which is the vector consisting of all blocks of \( \mathbf{x} \) except the \( i \)-th block,
+
+% End inlined sections/1_problem_setting/problem_definition_and_notation.tex
+% Begin inlined sections/1_problem_setting/assumptions.tex
+
+\subsection{Assumptions}
+Throughout this section, we assume that the function \( f : \mathbb{R}^N \to \mathbb{R} \) is differentiable. We will use the following assumptions later on in this chapter. The first assumption, Assumption \ref{assumption:Coordinatewise-smoothness}, is the commonly used smoothness condition that ensures the function is smooth along each coordinate. However, Assumption \ref{assumption:Multi-coordinate-smoothness} is a novel assumption that we propose in this work, and it forms the foundation of the theoretical results presented here. It introduces an alternative smoothness criterion that quantifies the level of ``coupling'' between each coordinate and the rest of the coordinates. Following that, we continue with standard convexity assumptions: one assumes a looser form of convexity, requiring convexity only along individual coordinates, while the second is the common overall convexity.
+\begin{assumption}[Coordinate-wise smoothness]
+\label{assumption:Coordinatewise-smoothness}
+A differentiable function \(f : \mathbb{R}^N \to \mathbb{R}\) is called \(L_i\)-smooth along the $i$-th coordinate of variable $\xx$ ,if there exists a constant \(L_{i} > 0\) such that for all \(\xx \in \mathbb{R}^N \)and \(\hh \in \mathbb{R}^{N_i} \):
+\begin{equation}
+    \|\nabla_i f(\xx) - \nabla_i f(\xx + U_i \hh)\| \leq L_{i} \|\hh\|.
+\end{equation}
+\end{assumption}
+\begin{assumption}[Coordinate-wise complement smoothness]
+\label{assumption:Multi-coordinate-smoothness}
+A differentiable function \(f : \mathbb{R}^N \to \mathbb{R}\) is called \(\bar L_i\)-smooth if there exists a constant \(\bar L_i > 0\) such that for all \(\xx,\yy \in \mathbb{R}^N\) such that :
+\begin{equation}
+    \|\nabla_i f(\xx) - \nabla_i f(\yy)\| \leq \bar L_i \|\xx-\yy\|, \quad \xx^{(i)} = \yy^{(i)}.
+\end{equation}
+\end{assumption}
+
+\begin{remark}
+Intuitively, $\bar{L}_i$ measures how much the gradient of block $i$ changes when the \emph{other} blocks move, while $x^{(i)}$ itself is kept fixed. If $\bar{L}_i = 0$, then changing the remaining coordinates does not affect $\nabla_i f$, which corresponds to a diagonal Hessian and fully independent blocks. Larger values of $\bar{L}_i$ indicate that block $i$ is strongly entangled with the rest of the model, since small moves in other coordinates can cause large changes in $\nabla_i f$.
+\end{remark}
+
+\begin{assumption}[Coordinate-wise convexity]
+\label{assumption:coordinatewise-convexity}
+A function \(f : \mathbb{R}^N \to \mathbb{R}\) is called coordinate-wise convex if, for each block \(i\), the restriction of \(f\) to the \(i\)-th coordinate block is convex when the other coordinates are fixed. That is, for all \(\xx \in \mathbb{R}^N\) and all \(\xx, \yy \in \mathbb{R}^{N_i}\), and for any \(\lambda \in [0,1]\),
+
+This is equivalent to: for all \(\xx \in \mathbb{R}^N\) and all \(\xx, \yy \in \mathbb{R}^{N_i}\),
+\begin{equation}
+\langle \nabla_i f(\xx + U_i \xx) - \nabla_i f(\xx + U_i \yy), \xx - \yy \rangle \geq 0.
+\end{equation}
+\end{assumption}
+\begin{assumption}[Coordinate-wise \(\mu_i\)-strong convexity]
+\label{assumption:coordinatewise-strong-convexity}
+A differentiable function \(f : \mathbb{R}^N \to \mathbb{R}\) is called coordinate-wise \(\mu_i\)-strongly convex along the \(i\)-th coordinate if there exists a constant \(\mu_i > 0\) such that, for all \(\xx \in \mathbb{R}^N\) and all \(\xx,\yy \in \mathbb{R}^{N_i}\),
+\begin{equation}
+\langle \nabla_i f(\xx + U_i \xx) - \nabla_i f(\xx+ U_i \yy), \xx-\yy \rangle \geq \mu_i \|\xx-\yy\|^2.
+\end{equation}
+\end{assumption}
+\begin{assumption}[Polyak-Łojasiewicz (PL) condition]
+\label{assumption:PL-condition}
+A differentiable function \(f : \mathbb{R}^N \to \mathbb{R}\) is said to satisfy the Polyak-Łojasiewicz (PL) condition if there exists a constant \(\mu > 0\) such that, for all \(\xx \in \mathbb{R}^N\),
+\begin{equation}
+    \|\nabla f(\xx)\|^2 \geq 2\mu \bigl(f(\xx) - f^\star\bigr),
+\end{equation}
+where \(f^\star := \inf_{\xx \in \mathbb{R}^N} f(\xx)\) denotes the optimal function value.
+\end{assumption}
+\begin{assumption}[Overall convexity]
+\label{assumption:overall-convexity}
+A function \(f : \mathbb{R}^N \to \mathbb{R}\) is called convex if, for all \(\xx, \yy \in \mathbb{R}^N\) and for any \(\lambda \in [0,1]\),
+
+\begin{equation}
+\langle \nabla f(\xx) - \nabla f(\yy), \xx - \yy \rangle \geq 0.
+\end{equation}
+\end{assumption}
+
+For a quadratic function \( f(\mathbf{x}) = \frac{1}{2} \mathbf{x}^\top A \mathbf{x} + \mathbf{b}^\top \mathbf{x} + c \), where \( A \) is a symmetric positive definite matrix, \( \mathbf{b} \in \mathbb{R}^N \), and \( c \in \mathbb{R} \), the function satisfies Assumptions~\ref{assumption:Coordinatewise-smoothness}, \ref{assumption:Multi-coordinate-smoothness}, \ref{assumption:coordinatewise-convexity}, \ref{assumption:coordinatewise-strong-convexity}, and \ref{assumption:overall-convexity}, with constants and the overall Lipschitz constant of the gradient $\nabla f$ that can be chosen as follows: (Check section \ref{section:clarifying_the_assumtpoions_and_coeficients} in Appendix for more details.)
+\[
+L_i = \| A_{ii} \|, \quad \bar{L}_i = \| A_{i \cdot} \|, \quad \mu_i = \lambda_{\min}(A_{ii}), \quad L = \| A \|
+\]
+
+\begin{remark}[Smoothness via Hessian bounds]
+Assumptions~\ref{assumption:Coordinatewise-smoothness} and \ref{assumption:Multi-coordinate-smoothness} can also be expressed as constraints on the second derivative of the function $f$:
+$$\sup_{\mathbf{z} \in \mathbb{R}^N} \left\| U_i^\top \nabla^2 f(\mathbf{z}) U_i \right\| \leq L_i, \quad
+\sup_{\mathbf{z} \in \mathbb{R}^N} \left\| U_i^\top \nabla^2 f(\mathbf{z}) U_{-i} \right\| \leq \bar{L}_i.$$
+\end{remark}
+For intuition, it is helpful to picture the Hessian as a $3\times 3$ block matrix:
+\[
+\nabla^2 f(\xx) \approx
+\begin{bmatrix}
+\color{convexblue}{A_{11}} & \color{quadorange}{A_{12}} & \color{quadorange}{A_{13}}\\
+\color{quadorange}{A_{21}} & \color{convexblue}{A_{22}} & \color{quadorange}{A_{23}}\\
+\color{quadorange}{A_{31}} & \color{quadorange}{A_{32}} & \color{convexblue}{A_{33}}
+\end{bmatrix}.
+\]
+Here, the blue diagonal blocks $A_{ii}$ are controlled by the usual smoothness constants $L_i$, while the orange off-diagonal blocks $A_{ij}$, $i \neq j$, are controlled by the complement smoothness constants $\bar L_i$. When the off-diagonal blocks are small (small $\bar L_i$), the blocks interact weakly and the problem is close to being block-diagonal.
+
+\begin{remark}[Convexity via Hessian bounds]
+Assumptions~\ref{assumption:coordinatewise-convexity}, \ref{assumption:coordinatewise-strong-convexity}, and \ref{assumption:overall-convexity} can also be expressed as constraints on the second derivative of the function $f$ (assuming $f$ is twice differentiable), respectively:
+$$U_i^\top \nabla^2 f(\mathbf{x}) U_i \succeq \mu_i I_{N_i} \quad \forall\mathbf{x} \in \mathbb{R}^N, \quad
+U_i^\top \nabla^2 f(\mathbf{x}) U_i \succeq 0 \quad \forall\mathbf{x} \in \mathbb{R}^N, \quad
+\nabla^2 f(\mathbf{x}) \succeq 0 \quad \forall\mathbf{x} \in \mathbb{R}^N.$$
+\end{remark}
+
+
+\section{Method}
+% Begin inlined sections/2_method/the_abstract_method.tex
+
+Our proposed method is a proximal block coordinate descent (BCD) algorithm designed for distributed optimization of large-scale, high-dimensional problems. By partitioning the parameter space into $n$ disjoint blocks---each corresponding to a subset of variables---the algorithm decomposes the full optimization problem into $n$ smaller subproblems. These subproblems are solved in parallel across multiple compute nodes, enabling efficient scaling to distributed environments. To enhance stability and convergence, particularly for ill-conditioned objectives $f$, we incorporate a proximal term in each subproblem. This quadratic regularization encourages updates to stay close to the current iterate, mitigating oscillations and promoting smoother progress.
+In the ideal case, each subproblem would be solved exactly. However, for complex objectives (e.g., non-quadratic loss functions in machine learning), exact minimization may be prohibitively expensive or impossible. To address this, our framework allows approximate solutions, controlled by a per-block accuracy parameter $\delta_i > 0$. Specifically, for block $i \in [n]$ at iteration $t$, the approximate update $\hat{\mathbf{x}}^{(i)}_{t+1} \in \mathbb{R}^{n_i}$ (where $n_i$ is the block dimension) satisfies the following optimality condition with respect to the subproblem objective:
+$$  f\left(\mathbf{x}_t^{(-i)} + U_i \hat{\mathbf{x}}^{(i)}_{t+1}\right) + \frac{\lambda_i}{2} \|\hat{\mathbf{x}}^{(i)}_{t+1} - \mathbf{x}^{(i)}_t\|^2_2 \leq \min_{\mathbf{x}^{(i)} \in \mathbb{R}^{n_i}} \left[ f\left(\mathbf{x}_t^{(-i)} + U_i \mathbf{x}^{(i)}\right) + \frac{\lambda_i}{2} \|\mathbf{x}^{(i)} - \mathbf{x}^{(i)}_t\|^2_2 \right] + \delta_i.
+  \label{eq:approx-subproblem}$$
+Here, $\mathbf{x}_t^{(-i)}$ denotes the current iterate with block $i$ masked out (i.e., fixed), $U_i \in \mathbb{R}^{d \times n_i}$ is the embedding matrix that places the block update into the full $d$-dimensional space, and $\lambda_i > 0$ is a proximal strength parameter tailored to block $i$. This condition ensures that the approximate solution's objective value is at most $\delta_i$ worse than the true minimizer, providing a flexible tolerance for practical implementation.
+The full algorithm proceeds iteratively: after parallel subproblem solves, the block updates are assembled into a candidate iterate $\hat{\mathbf{x}}_{t+1}$, which is then blended with the previous iterate via a damped (convex combination) step. This damping, controlled by $\gamma \in (0,1]$, further stabilizes the process and can accelerate convergence in nonconvex settings.
+\begin{algorithm}[H]
+\caption{Proximal Block Coordinate-Wise Minimization}
+\label{alg:prox_bcd}
+\label{alg:bcw_minimization_prox}
+\begin{algorithmic}[1]
+    \Require Step size $\gamma \in (0,1]$, initial point $\mathbf{x}^{(0)} \in \mathbb{R}^d$, maximum iterations $T \in \mathbb{N}$, block structure $\{n_i\}_{i=1}^n$ with $\sum_{i=1}^n n_i = d$, proximal parameters $\{\lambda_i\}_{i=1}^n \subset \mathbb{R}_{++}$, block accuracies $\{\delta_i\}_{i=1}^n \subset \mathbb{R}_{++}$
+    \Ensure Approximate minimizer $\mathbf{x}^{(T)}$
+    \State $\mathbf{x}^{(0)} \gets$ initialization
+    \For{$t = 0, 1, \dots, T-1$}
+        \State \textbf{// Parallel block updates with proximal terms}
+        \ParFor{$i = 1, \dots, n$}
+            \State $\quad \hat{\mathbf{x}}^{(i)}_{t+1} \gets \arg\min_{\mathbf{z} \in \mathbb{R}^{n_i}} \left\{ f\left( \mathbf{x}_t^{(-i)} + U_i \mathbf{z} \right) + \frac{\lambda_i}{2} \bigl\| \mathbf{z} - \mathbf{x}_t^{(i)} \bigr\|_2^2 \right\}$ \Comment{Solve to accuracy $\delta_i$}
+        \EndParFor
+        \State $\hat{\mathbf{x}}_{t+1} \gets \bigl( \hat{\mathbf{x}}^{(1)}_{t+1}, \dots, \hat{\mathbf{x}}^{(n)}_{t+1} \bigr)^\top$ \Comment{Assemble full update}
+        \State $\mathbf{x}_{t+1} \gets (1 - \gamma) \mathbf{x}_t + \gamma \hat{\mathbf{x}}_{t+1}$ \Comment{Convex combination (damping step)}
+    \EndFor
+    \State \textbf{return} $\mathbf{x}^{(T)}$
+\end{algorithmic}
+\end{algorithm}
+
+This design promotes parallelism, each node handles one or more blocks independently, with communication only needed for synchronization after each iteration. 
+\begin{remark}[Exact subproblem solves]
+For subproblems solvable in closed form (e.g., quadratic losses within a block), one can set $\delta_i = 0$ to enforce exact minimization. The algorithm and subsequent analysis remain valid, so exact and approximate block solvers can seamlessly coexist.
+\end{remark}
+
+
+\section{Convergence Guarantees}
+% Begin inlined sections/3_analysis_abstract/quadratic_functions.tex
+
+In this section, we establish theoretical convergence guarantees for our proposed proximal block coordinate descent (BCD) algorithm (Algorithm~\ref{alg:prox_bcd}), focusing on its performance in distributed settings with approximate subproblem solves. We begin by deriving descent properties and gradient-related inequalities under coordinate-wise convexity assumptions, demonstrating that the method generates descent directions and converges to stationary points. Building on this foundation, we present explicit rates for the average squared gradient norm and function value gap in the convex case, followed by linear convergence results for strongly convex and Polyak-Łojasiewicz (PL) functions. These guarantees highlight the algorithm's efficiency in terms of communication rounds---where each iteration corresponds to one synchronization step across nodes---and underscore its advantages over traditional full-gradient methods in high-dimensional, resource-constrained environments.
+
+\subsection{Convergence for Coordinate-wise Convex Functions}
+In this section, we provide convergence guarantees for Algorithm \ref{alg:prox_bcd} toward a stationary point of the function $f$. We consider the realistic setting where subproblems may be solved approximately. We begin with the following lemma, which certifies that each iteration of Algorithm~\ref{alg:prox_bcd} generates a descent direction; we use this lemma later on for proving our main theorem.
+
+\begin{lemma}[Gradient-related inequality]
+\label{lem:gradient_related}
+Suppose the function \( f: \mathbb{R}^N \to \mathbb{R} \) satisfies Assumption~\ref{assumption:coordinatewise-strong-convexity}. Let \(\mathbf{h} \in \mathbb{R}^N\) be a vector such that for all \(i\) and any $\alpha_i>0 ,\;\forall i$, \[\norm{\nabla_i f(\mathbf{x} + U_i (\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)})) -\lambda_i (\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)})}\le \delta_i \le \alpha_i\norm{\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)}}.\] Then, for any \(\theta \in [0,1]\) and for all \(i\), the following inequality holds:
+\begin{equation}
+        \label{eq:gradient_related}
+        \langle \nabla_i f(\mathbf{x} + \theta U_i (\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)})),   \mathbf{x}_t^{(i)} - \hat{\mathbf{x}}_{t+1}^{(i)}\rangle \ge \left(\lambda_i-\alpha_i+\mu_i (1 - \theta) \right)\|\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)}\|^2,
+    \end{equation}    where \(\mu_i \) is the block-wise strong convexity parameter from Assumption~\ref{assumption:coordinatewise-strong-convexity}.
+\end{lemma}
+
+\begin{remark}
+    For the \emph{coordinate-wise convex case} ($\forall i\;\mu_i = 0$) when  $\forall i\;\alpha_i \le \lambda_i$ is satisfied and 
+    for the \emph{coordinate-wise strongly convex case} ($\forall i\;\mu_i > 0$), when $\forall i\; \alpha_i \le \lambda_i + \mu_i (1 - \theta)$ holds, then we have,
+    \begin{equation}
+        \langle \nabla f(\mathbf{x}), \hat{\mathbf{x}}_{t+1} - \mathbf{x}_t \rangle \leq 0.
+    \end{equation}
+    This implies that the update vector \(\hat{\mathbf{x}}_{t+1} - \mathbf{x}_t\) is a \textbf{descent direction}.
+\end{remark}
+
+
+\begin{remark}
+    For \emph{coordinate-wise convex functions}, where \(f\) is convex with respect to each block \(x^{(i)}\) while holding other blocks fixed, and if an exact solver, $\forall i \;\delta_i=0$, Lemma~\ref{lem:gradient_related} simplifies to:
+    \begin{equation}
+        \langle \nabla_i f(\mathbf{x} + \gamma U_i (\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)})),   \hat{\mathbf{x}}_{t+1}^{(i)}- \mathbf{x}_t^{(i)}\rangle \le -\lambda_i \|\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)}\|^2.
+    \end{equation}
+    This implies that by choosing $\forall i\;\lambda_i>0$ , \(\hat{\mathbf{x}}_{t+1} - \mathbf{x}_t\) is always \textbf{descent direction} regardless of the other parameters of the problem.
+\end{remark}
+
+
+
+
+\begin{corollary}[Convergence to stationary points]
+\label{cor:9}
+For Algorithm \ref{alg:prox_bcd}, under the assumptions of Theorem~\ref{theorem:communication_complexity_realisitic_method}, there exists a step size $\gamma > 0$ such that the sequence $(x_t)_{t \in \mathbb{N}}$ converges to a stationary point of the function $f$.
+\end{corollary}
+With these results in place, we can now state our main convergence guarantee. The next theorem targets smooth, coordinate-wise convex objectives. This assumption is milder than global convexity yet still ensures that each block subproblem in Algorithm~\ref{alg:prox_bcd} remains well-behaved and efficiently solvable.
+
+\begin{theorem}[Communication complexity under coordinate-wise convexity]
+\label{theorem:communication_complexity_realisitic_method}
+% Non-convex convergence result (average gradient norm)
+\label{theorem:non-convex-convergence}
+Suppose the function $f$ satisfies Assumptions~\ref{assumption:Coordinatewise-smoothness} and~\ref{assumption:Multi-coordinate-smoothness}, and is coordinate-wise convex in the sense of Assumption~\ref{assumption:coordinatewise-convexity}. Then, for the sequence $\mathbf{x}_t$ generated by Algorithm~\ref{alg:prox_bcd} with $\gamma = 1$, $\lambda_i = \sqrt{n} \, \bar{L}_{\max}$,  and accuracy $\delta_i = \frac{\lambda_i}{2}\norm{ \hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)} } = \frac{\sqrt{n} \bar{L}_{\max}}{2}\norm{ \hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)} }$ for all $i$, we have
+
+\begin{equation}
+    \frac{1}{T} \sum_{t=1}^T \|\nabla f(\xx_t)\|^2 \leq \frac{ 2\sqrt{n} \, \bar{L}_{\max}}{T} [f(\xx_0) - f(\xx^\star)].
+\end{equation}
+
+\end{theorem}
+
+
+
+\begin{remark}
+    In this section, all the convergence rates that we discuss consider the communication complexity, and $T$ represents one communication round or an iteration of the outer loop. we define the one communication for a distributed algorithm as when compute nodes send back the result fo their local computations to the server.
+\end{remark}
+
+
+There is only one hyperparameter that we need to tune or know for achieving this rate, $\bar L_{\max}$. As you can see, we chose $\delta_i = \frac{\lambda_i}{2}\norm{ \hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)} }$ and we solve the subproblems defined in Algorithm~\ref{alg:prox_bcd} up to this accuracy. The reason we chose this is that, with this specific choice of $\delta_i$, we can later on, in the next section, easily compute the order of the computations needed for solving the subproblems. In practice, the solver that solves the subproblems can check if the update it generated, along with the gradient norm of the subproblem at the already generated update $\hat \xx_{t+1}^{(i)}$, satisfies the condition $\delta_i \le \frac{\lambda_i}{2}\norm{ \hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)} }$. If this condition is satisfied, it can terminate and return the update.
+Note that checking $\delta_i \le \frac{\lambda_i}{2}\|\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)}\|$ only requires the gradient of the local subproblems (the gradient of $f$ on block $i$) at $\hat{\mathbf{x}}_{t+1}^{(i)}$. In other words, we never compute the full gradient of $f$ just to check the condition; the test is as cheap as one block-gradient evaluation.
+
+\begin{remark}
+In this theorem, instead of the general smoothness constant $L$ or the coordinate-wise $L_i$ smoothness constants, only our newly proposed smoothness constant $\bar{L}_{\max} = \max\{\bar L_i\}$ appears in the convergence rate. This means that the number of iterations of the outer loop needed to achieve an $\epsilon$-accurate solution for the minimization problem is only determined by the $\bar L$ constants and is independent of the coordinate smoothness constants (it is independent of the complexity of the subproblems that we define on the coordinates).
+\end{remark}
+
+In the next theorem, we provide a convergence guarantee with the general convexity assumption. With the addition of this assumption, we get a new rate which, in contrast to Theorem~\ref{theorem:communication_complexity_realisitic_method} (which guarantees the convergence of the average of the gradient norm), now guarantees the convergence of the function value to the optimal value. Here, $\mathcal{D}(\xx_0)$ is the maximum distance from the initial point $\xx_0$ to any point $\xx$ in the level set $\{ \xx : f(\xx) \leq f(\xx_0) \}$, assuming this level set is bounded.
+
+
+\begin{theorem}[Function gap decay under bounded level sets]
+    Suppose the function $f$ satisfies Assumptions~\ref{assumption:Coordinatewise-smoothness} and~\ref{assumption:Multi-coordinate-smoothness}, and is coordinate-wise convex. Choose $\xx_0 \in \text{dom}\, F$ satisfaying
+    \begin{equation}
+        \mathcal{D}(\xx_0) \stackrel{\mathrm{def}}{=} \max_{\xx} \left\{ \|\xx - \xx^*\| : F(\xx) \leq F(\xx_0) \right\} < +\infty 
+    \end{equation}
+     
+    Then, for the sequence $\mathbf{x}_t$ generated by Algorithm~\ref{alg:prox_bcd} with $\gamma = 1$, $\lambda_i = \sqrt{n} \, \bar{L}_{\max}$ and accuracy $\delta_i = \frac{\lambda_i}{2}\norm{ \hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)} } = \frac{\sqrt{n} \bar{L}_{\max}}{2}\norm{ \hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)} }$  for all $i$, we have
+    \begin{equation}
+        f(\xx_{t+1}) - f(\xx^\star) \le \frac{2\sqrt{n}\bar{L}_{\max} \mathcal{D}(\xx_0)}{T + \frac{\sqrt{n}\bar{L}_{\max} \mathcal{D}(\xx_0)}{f(\xx_0)-f(\xx^\star)}}
+            \le \frac{2\sqrt{n}\bar{L}_{\max} \mathcal{D} (\xx_0)}{T}
+    \end{equation}
+\end{theorem}
+
+
+
+
+
+
+\begin{remark}[Beyond convex objectives]
+The convex analysis above already illustrates how Algorithm~\ref{alg:prox_bcd} behaves under modest assumptions. We next extend the discussion to multi-convex and PL functions to highlight the method's linear-rate behavior in richer settings.
+\end{remark}
+
+\subsection{Multi-Convex and PL Functions}
+In this section, by adding a stronger assumption---general strong convexity---we achieve a linear convergence rate, which is an improvement from the former rate that had sublinear convergence.
+\begin{theorem}[Linear convergence under PL condition]
+Suppose the function $f$ satisfies Assumptions~\ref{assumption:Coordinatewise-smoothness} and~\ref{assumption:Multi-coordinate-smoothness}, is coordinate-wise strongly convex with parameter $\mu_{\min}$ as in Assumption~\ref{assumption:coordinatewise-strong-convexity}, and satisfies the PL condition in Assumption~\ref{assumption:PL-condition} with parameter $\mu > 0$. 
+
+Then, for the sequence $\xx_t$ generated by Algorithm \ref{alg:prox_bcd} with $\gamma = 1$ and $\lambda_i = \sqrt{n} \, \bar{L}_{\max}$ for all $i$,, $\lambda_i = \sqrt{n} \, \bar{L}_{\max}$ and accuracy $\delta_i = \frac{\lambda_i}{2}\norm{ \hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)} } = \frac{\sqrt{n} \bar{L}_{\max}}{2}\norm{ \hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)} }$  for all $i$ we have
+\[
+f(\xx_{t+1}) - f^\star \leq \left( \frac{2\sqrt{n} \, \bar{L}_{\max}}{\mu + \sqrt{n} \, \bar{L}_{\max}} \right)^T [f(\xx_0) - f^\star].
+\]
+\end{theorem}
+
+
+
+
+
+\section{Computational Complexity}
+
+In the previous section, we analyzed only the convergence rate of Algorithm~\ref{alg:prox_bcd} in terms of the number of outer-loop iterations $T$, which corresponds to the communication rounds in our notation. In this section, we instead assume that Nesterov's accelerated gradient descent~\cite{nesterov1983method} is used as the local solver to obtain a $\delta_i$-accurate solution to the subproblems on each compute node. Under this assumption, we derive the communication complexity of our proposed method and, from there, obtain the total computational complexity.
+\begin{lemma}[Local GD iteration complexity]
+\label{lem:local-gd-complexity}
+Suppose the function $f: \mathbb{R}^N \to \mathbb{R}$ satisfies Assumption~\ref{assumption:Coordinatewise-smoothness} and is additionally coordinate-wise convex (i.e., for each block $i$, $f$ is convex in the $i$-th coordinate block when the others are fixed).
+The number of iterations required for gradient descent (adapted for strongly convex objectives) to solve the subproblem
+\begin{align*}
+    &\arg\min_{\zz \in \mathbb{R}^{n_i}} g_i(\zz) \\
+    &g_i(\zz) := f\left( \xx^{(-i)}_0 + U_i \zz \right) + \frac{\lambda_i}{2} \|\zz - \xx^{(i)}_0\|^2.
+\end{align*}
+to $\delta_i$-accuracy---that is, to reach an iterate $\zz_t$ satisfying
+$\|\nabla g_i(\zz_t)\| \le \delta_i,$
+where $\delta_i := \alpha_i \|\xx^\star - \xx_0\|$ for some $\alpha_i > 0$---is
+\begin{equation}
+\label{eq:local-iterations}
+\mathcal{N}_l^i(\delta_i) \in \tilde{\mathcal{O}}\left( \frac{L_i + \lambda_i}{\lambda_i}  \right).
+\end{equation}
+\end{lemma}
+\begin{proof}
+By Assumption~\ref{assumption:Coordinatewise-smoothness} and the additional coordinate-wise convexity assumption, the function $g_i$ is $(L_i + \lambda_i)$-smooth and $\lambda_i$-strongly convex, where $L_i$ denotes the coordinate-wise smoothness constant along block $i$. Suppose we apply gradient descent to minimize $g_i$, initializing at $\zz_0 := \xx^{(i)}_0$ and running for $K$ iterations. With an appropriate step size (e.g., $2/(L_i + \lambda_i + \lambda_i)$ or standard choice for strongly convex functions), the convergence satisfies
+\[
+\|\zz_K - \zz^\star\|^2 \le \left(1 - \frac{\lambda_i}{L_i + \lambda_i}\right)^K \|\zz_0 - \zz^\star\|^2,
+\]
+where $\zz^\star := \arg\min g_i$. By the $(L_i + \lambda_i)$-smoothness of $g_i$,
+\[
+\|\nabla g_i(\zz_t)\| \le (L_i + \lambda_i) \|\zz_t - \zz^\star\|.
+\]
+To ensure $\|\nabla g_i(\zz_t)\| \le \delta_i$ for some $t \le K$, it suffices to have
+\[
+\|\zz_t - \zz^\star\| \le \frac{\delta_i}{L_i + \lambda_i}.
+\]
+This requires
+\[
+K \ge \frac{L_i + \lambda_i}{\lambda_i} \log \left( \frac{(L_i + \lambda_i) \|\zz_0 - \zz^\star\|}{\delta_i} \right).
+\]
+Since $\|\zz_0 - \zz^\star\| \le \|\xx_0 - \xx^\star\|$, we have
+\[
+K \in \mathcal{O}\left( \frac{L_i + \lambda_i}{\lambda_i} \log \left( \frac{L_i + \lambda_i}{\alpha_i} \right) \right),
+\]
+where the final step follows because $\delta_i = \alpha_i \|\xx^\star - \xx_0\|$.
+\end{proof}
+
+\begin{corollary}[Communication complexity]
+    \label{corollary:communication_complexity}
+    According to Theorem \ref{theorem:communication_complexity_realisitic_method} the communication complexity of Algorithm~\ref{alg:prox_bcd} is,
+    \begin{equation}
+    \label{eq:comm_complexity}
+    \mathcal N_c(\epsilon,\delta) \in\mathcal O\left(\frac{\sqrt{n}\bar L_{\max} (f(\xx_0)-f(\xx^\star))}{\epsilon}\right),
+    \end{equation}
+    where $\delta_i $ for all coordinates is chosen $\delta_i = \frac{\sqrt{n} \bar{L}_{\max}}{2}\norm{ \hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)} }$.
+\end{corollary}
+
+
+A noteworthy aspect of this communication complexity bound is its independence from the individual coordinate-wise smoothness constants $L_i$. Instead, it depends solely on the average off-diagonal smoothness constant $\bar{L}_{\max}$, which captures interactions between blocks. This implies that the number of synchronization rounds remains unaffected by the conditioning of individual subproblems---even if some blocks are poorly conditioned (high $L_i$)---as long as the overall cross-block coupling is moderate.
+
+
+\begin{remark}
+The communication complexity scales sublinearly with the number of blocks $n$, specifically as $\mathcal{O}(\sqrt{n})$.
+\end{remark}
+
+\begin{corollary}[Total oracle complexity]
+By choosing \(\delta_i = \frac{\sqrt{n} \bar{L}_{\max}}{2} \|\xx^\star - \xx_0\| \ \forall i\) we have,
+\begin{equation}
+\label{eq:local_complexity}
+\mathcal N_l(\delta_i) \in \mathcal{O}\left( \frac{L_i}{\sqrt{n} \bar{L}_{\max}}+1\right).
+\end{equation}
+Therefore, according to Corollary~\ref{corollary:communication_complexity} the \textbf{total number of oracle calls} of the algorithm---(all clients)---when we solve the subproblems to the accuracy $\delta_i=\delta = \frac{\sqrt{n} \bar{L}_{\max}}{4}\norm{ \hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)} }$,
+\begin{equation}
+\label{eq:total_complexity}
+\mathcal{N}(\epsilon)=\mathcal{N}_c(\epsilon,\delta)\cdot\left(\sum_{i=1}^n \mathcal{N}_l^{i}(\delta)\right) \in \mathcal{O}\left( \frac{n \left( \tilde{L} +\sqrt{n}\bar{L}_{\max} \right) [f(\xx_0)-f(\xx^\star)]}{\epsilon}\right),
+\end{equation}
+where $\tilde L := \frac{1}{d}\sum_{i=1}^N L_i$.
+\end{corollary}
+
+
+As shown in the local computation complexity (Equation~\eqref{eq:local_complexity}) and communication complexity (Equation~\eqref{eq:comm_complexity}), when $\bar{L}_{\max}$ decreases---indicating weaker inter-block dependencies---our method requires fewer communication rounds to achieve the desired accuracy $\epsilon$, albeit with more local computations per round. This trade-off is particularly desirable, as communication is often far more costly and time-consuming than local computations.
+
+
+\begin{remark}[Comparison to Nesterov's Coordinate Descent Methods with Importance Sampling]
+For smooth convex minimization, Nesterov's randomized coordinate descent (RCD)~\cite{nesterov2012efficiency} with importance sampling achieves randomized coordinate descent (RCD) yields $\mathcal{O}\left( \frac{ n \tilde{L} [f(\mathbf{x}_0) - f(\mathbf{x}^\star)] }{\epsilon} \right)$. Our distributed proximal block coordinate descent has total complexity $\mathcal{O}\left( \frac{n (\tilde{L} + \sqrt{n} \bar{L}_{\max}) [f(\mathbf{x}_0) - f(\mathbf{x}^\star)]}{\epsilon} \right)$, but with $n$ parallel nodes, the wall-clock complexity reduces to $\mathcal{O}\left( \frac{ (\tilde{L} + \sqrt{n} \bar{L}_{\max}) [f(\mathbf{x}_0) - f(\mathbf{x}^\star)] }{\epsilon} \right)$. This parallel rate outperforms both sequential baselines, especially when $\bar{L}_{\max} << \tilde{L}$ (e.g., near-block-diagonal Hessians in LLMs), approximating $\mathcal{O}\left( \frac{ \tilde{L} [f(\mathbf{x}_0) - f(\mathbf{x}^\star)] }{\epsilon} \right)$,$n$-independent and superior to RCD's linear $n$ scaling. 
+\end{remark}

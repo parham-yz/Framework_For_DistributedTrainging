@@ -1,0 +1,493 @@
+\chapter{Decoupled Gradient Descent Ascent}
+\label{chap:decoupled_gradient_descent_ascent}
+In this chapter, we build upon the foundational concepts introduced in the previous chapter on coordinate descent methods for minimization problems—particularly our proposed proximal coordinate descent algorithm, which emphasizes efficient distributed computations across partitioned parameter spaces. While the prior focus was on optimizing a single objective function by iteratively updating individual coordinates or blocks in a decentralized manner, we now transition to the related yet distinct challenge of finding equilibria in two-player games. This shift represents a natural extension, as minimax problems in game theory can often be reformulated as saddle-point optimizations, sharing structural similarities with minimization tasks, such as the use of gradient-based updates and the potential for coordinate-wise or block-wise decompositions to enable parallelism.
+
+At their core, both minimization and game equilibrium problems involve seeking stationary points through iterative refinements, and they benefit from distributed strategies that reduce communication overhead and leverage local computations. Just as coordinate descent decouples updates across variables to handle high-dimensional models scalably, game-solving methods can decouple player strategies to facilitate asynchronous or parallel progress, making them suitable for large-scale distributed settings. 
+
+In the remainder of this chapter, we begin by describing the problem context, the notations used, and the foundational assumptions. Then, we present our proposed method, Decoupled Stochastic Gradient Descent Ascent (Decoupled SGDA), which innovatively \textbf{separates player updates while maintaining convergence properties}. We follow this with  convergence guarantees under various regimes, including weakly and strongly coupled scenarios. Finally, we provide empirical validation through experiments on quadratic games, non-convex functions, and GAN training, demonstrating the method's communication efficiency and practical advantages over baselines like Local SGDA.
+
+Conceptually, we now treat the two players $u$ and $v$ as high-level `blocks' of the decision variable $x = (u,v)$. Just as Chapter~\ref{chap:coordinate_descent} decoupled parameter blocks $x^{(i)}$ to reduce communication in minimization, this chapter decouples the players to reduce communication in games. In both settings, the main challenge is handling stale information from the rest of the system: stale parameter blocks in the minimization chapter, and stale opponent strategies in this chapter. Note that while Chapter~\ref{chap:coordinate_descent} viewed $x$ as a single vector of blocks, here we work with two distinct players $u$ and $v$ and write $x = (u,v)$; each player now plays a similar role to a `block' in the previous chapter, but their objectives are opposed.
+\section{Setting and preliminaries}\label{sec:prelim}
+
+In the main body of the paper, we focus on the two-player setting, as this allows us to clearly present the key ideas and insights of our approach. The extension to the more general $N$-player games is detailed in Appendix~\ref{app:n_player_setting}.
+Specifically, we consider the following saddle-point problem over $\mathcal{X} = \mathcal{X}_u  \times \mathcal{X}_v$, with $\mathcal{X}_u = \R^{d_u}, \mathcal{X}_v = \R^{d_v}$:
+\begin{align}  \tag{SP} \label{eq: 2player}
+    \min_{\uu \in \mathcal{X}_u} \max_{\vv \in \mathcal{X}_v} f(\uu,\vv),
+\end{align}
+
+where $f \colon \mathcal{X} \to \R$ is a differentiable function.
+Its solution is defined as a point $\xx^\star \equiv (\uu^\star,\vv^\star) \in \mathcal{X}$ satisfying the following variational principle:
+$f(\uu^\star,\vv) \leq f(\uu^\star,\vv^\star) \leq f(\uu,\vv^\star)$ for all $(\uu, \vv) \in \mathcal{X}$.
+%
+In ISC-games, players often have access only to the outdated strategies of their opponents. To address this in our analysis, it is useful to define the following operator $F_{\bar \xx} (\xx)\colon \mathcal{X} \to \mathcal{X}$, which incorporates a reference point $\bar \xx \equiv (\bar \uu,\bar \vv) \in \mathcal{X}$---typically the most recent synchronization point---to account for this delay:
+%
+%We define the following operator $F_{\bar \xx} (\xx)\colon \mathcal{X} \to \mathcal{X}$ with respect to the fixed point $\bar \xx \equiv (\bar \uu,\bar \vv) \in \mathcal{X}$ as follows:
+\begin{equation}
+\begin{aligned}
+    \label{eq:Operator-F}
+    &F_{\bar \xx}(\xx) := (\nabla_{u} f(\uu,\bar \vv) , -\nabla_{v} f(\bar \uu,\vv)),
+    \qquad
+    \xx,\bar \xx \in \mathcal{X}, \\
+    &F(\xx) := (\nabla_{u} f(\uu, \vv),-\nabla_{v} f(\uu, \vv)), \qquad \xx \in \mathcal{X}.
+\end{aligned}
+\end{equation}
+In the special case of $\bar \xx = \xx$, we recover the definition of the commonly used operator $F(\xx) = F_{\bar \xx = \xx}(\xx) =(\nabla_{u} f(\uu, \vv) , -\nabla_{v} f( \uu,\vv))$.
+
+\paragraph{Notation.}
+% In this work, we use bold lower-case letters for vectors and bold capital letters for matrices.
+Bold lower and upper case denote vectors and matrices, respectively.
+% We consider unconstrained two-player games where the decision vectors of the players (typically denoted by $\uu$ and $\vv$) live in the spaces $\mathcal{X}_u = \R^{d_u}$ and $\mathcal{X}_v = \R^{d_v}$, respectively. 
+We often denote the two players as $\uu \in (\mathcal{X}_u = \R^{d_u})$ and $\vv \in (\mathcal{X}_v = \R^{d_v})$.  
+The product space $\mathcal{X} = \mathcal{X}_u \times \mathcal{X}_v = \R^d$ (with $d = d_u + d_v$) consists of vectors $\xx = (\uu, \vv) \in \R^d$, where $\uu \in \mathcal{X}_u$ and $\vv \in \mathcal{X}_v$. For a differentiable function $f \colon \mathcal{X} \to \R$, we denote partial gradients at a point $\xx = (\uu, \vv) \in \mathcal{X}$ w.r.t.\ the corresponding variables by $\nabla_u f(\xx)$ and $\nabla_v f(\xx)$, respectively, so that $\nabla f(\xx) = (\nabla_u f(\xx), \nabla_v f(\xx))$. 
+% We use $\langle \cdot, \cdot \rangle$ to denote the standard inner product, keeping the same notation for each of the vector spaces we consider. 
+$\langle \cdot, \cdot \rangle$  denotes inner product.
+We assume that the spaces $\mathcal{X}_u$ and $\mathcal{X}_v$ are equipped with certain Euclidean norms, $\Norm{\uu}_u := \langle \PPP_u \uu, \uu\rangle^{1/2}$ and $\Norm{\vv}_v := \langle \PPP_v \vv, \vv\rangle^{1/2}$, respectively, where $\PPP_u$ and $\PPP_v$ are given symmetric positive definite matrices. The norm in the space $\mathcal{X}$ is then defined by $\Norm{\xx} = (\alpha_u \Norm{\uu}_u^2 + \alpha_v \Norm{\vv}_v^2)^{1 / 2}$ where $\alpha_u, \alpha_v > 0$; thus, $\Norm{\xx} = \langle \PPP \xx, \xx \rangle^{1 / 2}$, where $\PPP$ is the block-diagonal matrix with blocks $\alpha_u \PPP_u$ and $\alpha_v \PPP_v$ ($\PPP = \diag(\alpha_u \PPP_u,\alpha_v \PPP_v)$). The parameters $\alpha_u,\alpha_v$ can be seen as scaling factors for players that can be optimized separately. One can easily assume $\PPP_u = \PPP_v = \II,\, \PPP = \II$ and $\alpha_u = \alpha_v = 1$ and recover the common euclidean norm $\Norm{\xx} = \sqrt{\langle \xx,\xx \rangle}$. The corresponding dual norms are defined in the standard way: $\Norm{\mathbf{g}_u}_{u, *} := \max_{\| \uu \|_u = 1} \langle \mathbf{g}_u, \uu \rangle = \langle \mathbf{g}_u, \PPP_u^{-1} \mathbf{g}_u \rangle^{1 / 2}$ ($\mathbf{g}_u \in \mathcal{X}_u$), $\Norm{\mathbf{g}_v}_{v, *} := \max_{\| \vv \|_v = 1} \langle \mathbf{g}_v, \vv \rangle = \langle \mathbf{g}_v, \PPP_v^{-1} \mathbf{g}_v \rangle^{1 / 2}$ ($\mathbf{g}_v \in \mathcal{X}_v$), and $\Norm{\mathbf{g}}_*:= \max_{\| \xx \| = 1} \langle \mathbf{g},\xx \rangle = (\frac{1}{\alpha_u} \| \mathbf{g}_u \|_{u, *}^2 + \frac{1}{\alpha_v} \| \mathbf{g}_v \|_{v, *}^2)^{1 / 2} = \langle \mathbf{g},\PPP^{-1} \mathbf{g} \rangle^{1 / 2}$ ($\mathbf{g} \equiv (\mathbf{g}_u, \mathbf{g}_v) \in \mathcal{X}$).
+
+
+Now we outline the necessary assumptions for establishing the convergence of our method.
+
+\begin{assumption}[Strong monotonicity] \label{assumption: strong monotonicity}
+Operators $F_{\bar \xx}$ and $F$ from \eqref{eq:Operator-F} are strongly monotone with parameters $\bar \mu, \mu >0$, i.e., for all \( \xx, \bar \xx,\xx' \in \mathcal{X} \), the following inequalities hold:
+\begin{equation}
+\begin{aligned}
+    &\langle F_{\bar \xx}(\xx) - F_{\bar \xx}(\xx'), \xx - \xx' \rangle \geq \bar \mu \Norm{\xx - \xx'}^2 \,, \\ 
+    &\langle F(\xx) - F(\xx'), \xx - \xx' \rangle \geq \mu \Norm{\xx - \xx'}^2\,.
+\end{aligned}  
+\end{equation}
+\end{assumption}
+We can show that $\bar \mu = \min\{\mu_u/\alpha_u,\mu_v / \alpha_v\}$ (Proof in Lemma \ref{lemma: definition of mu bar}) where $\mu_u$ is the strong convexity parameter of $f$ in $\uu$ and $\mu_v$ is the strong concavity parameter of $f$ in $\vv$.
+
+
+\begin{assumption}[Lipschitz smoothness] \label{assumption: L and L bar}
+Operators $F_{\bar \xx}$ and $F$ from \eqref{eq:Operator-F} are Lipschitz with parameters $\bar L$ and $L$, i.e., for all $\xx, \xx', \bar \xx \in \mathcal{X}$, the following inequalities hold:
+\begin{equation}
+    \begin{aligned}
+        &\Norm{F_{\bar \xx}(\xx) - F_{\bar \xx}(\xx')}_* \leq \bar L \Norm{\xx - \xx'} \,, \\
+        &\Norm{F(\xx) - F(\xx')}_* \leq L \Norm{\xx - \xx'} \,.
+    \end{aligned}
+\end{equation}
+\end{assumption}
+While we assume both operators are smooth, Lemma \ref{lemma: relation between different Ls} shows that \(\bar{L} \leq L\).
+
+
+\begin{assumption}\label{assumption:L_c}
+    The norm of the difference between operators $F_{\bar \xx}$ from \eqref{eq:Operator-F} is upper bounded with parameter $L_c$ for for all $\xx,\bar \xx \in \mathcal{X}$ as follows: 
+    \begin{align}
+        \Norm{F_{\bar \xx}(\xx) - F(\xx)}_* \leq L_c \Norm{\xx - \bar \xx} \,.
+    \end{align}
+\end{assumption}
+It is possible to show $ L_c = 1/\sqrt{\alpha_u \alpha_v} \max\{L_{uv},L_{vu}\}$ (Proof in Lemma \ref{lemma: definition of L bar}) where $\Norm{\nabla_u f(\mathbf{u}, \mathbf{v}) - \nabla_u f(\mathbf{u}, \mathbf{v}')}_{u,*} \leq L_{uv} \Norm{\mathbf{v} - \mathbf{v}'}_{v}$ and $\Norm{\nabla_v f(\mathbf{u}, \mathbf{v}) - \nabla_v f(\mathbf{u}', \mathbf{v})}_{v,*} \leq L_{vu} \Norm{\mathbf{u} - \mathbf{u}'}_{u}$. Here, we take the derivative with respect to one variable while varying the other. We will demonstrate in Section~\ref{sec: convergence} that this constant plays an important role in communication acceleration as it quantifies the interaction level of the game. In fact, $L_c$ can be much smaller than $L$ and can be even zero. We show it always holds that $L_c \leq L$ (Proof in Lemma \ref{lemma: relation between different Ls}).
+
+
+
+
+
+
+For the reader's convenience, we also present Tables~\ref{tab:two_player_L_mu_terms} and~\ref{tab:N_player_L_mu_terms} in the appendix, summarizing our notations.
+
+\begin{assumption}\label{assumption: noise of sgd}
+    There exists finite constants $\bar \sigma^2$ such that for all $\xx,\bar \xx \in \mathcal{X}$:
+    \begin{align}
+        \E_{\xi} \left[\Norm{G_{\bar \xx}(\xx,\xi) - F_{\bar \xx}(\xx)}^2_*\right] \leq \bar \sigma^2\,.
+    \end{align}
+    where $G_{\bar \xx}(\xx,\xi)$ is an unbiased stochastic gradient oracle that each player has access to with the property $\E[G_{\bar \xx}(\xx,\xi)] = F_{\bar \xx}(\xx)$.
+\end{assumption}
+As we assumed that the above inequality holds for all $\bar \xx \in \mathcal{X}$, we also cover the common operator $F$ and we denote $G(\xx,\xi) \equiv G_{\bar \xx = \xx} (\xx,\xi)$.
+
+
+\section{Decoupled SGDA for two-player games} \label{sec: algorithm explanation}
+In this section we introduce Decoupled SGDA and explain its motivation.
+\paragraph{Common Approach: Stochastic Gradient Descent Ascent (SGDA).}
+A standard way for solving~\eqref{eq: 2player} is as follows: 
+\begin{equation}\label{eq:sgda}
+\begin{aligned} 
+    &\xx_{t+1} = \xx_t - \gamma \PPP^{-1} G(\xx_t,\xi), \\
+    &G(\xx,\xi) \equiv \begin{pmatrix} \nabla_u f(\uu,\vv;\xi) \\ -\nabla_{v} f(\uu,\vv;\xi)  \end{pmatrix},
+\end{aligned}
+\end{equation}
+for a given positive definite matrix $\PPP$.\footnote{In optimization literature, the matrix $\PPP$ is known as the preconditioning matrix. For simplicity, we can assume $\PPP = \II$ without disrupting the flow of the paper.} However, in a distributed setting, the players need one \emph{round of communication} to exchange their parameters $(\uu_t,\vv_t)$ in every step of the method. This is because SGDA requires the most recent parameters from each player to take a step. In many real-world scenarios, however, communicating at every step may not be feasible due to the high cost.
+
+\paragraph{Communication Efficient Strategy Exchange.}
+To alleviate this communication issue, earlier works proposed so-called \emph{local update methods} that reduce the amount of communication by performing local parameter updates for each player separately. For these methods, it is common to assume that both players---the minimization player $\uu$, and the maximization player $\vv$---have access unbiased stochastic oracles $G_u(\xx,\xi)$, $G_v(\xx,\xi):\mathcal{X} \to \mathcal{X}$, with the property $\E_{\xi}[G_u(\xx,\xi)] = F(\xx)$, $\E_{\xi}[G_v(\xx,\xi)] = F(\xx)$ and following bound on the variance of the noise:
+%
+\begin{equation}\label{equation: noise}
+\begin{aligned}
+    &\begin{cases}
+        \E_{\xi}[\Norm{[G_u(\xx,\xi)]_u - [F(\xx)]_u}^2_{u,*}] \leq \sigma^2_{uu}, \\
+        \E_{\xi}[\Norm{[G_u(\xx,\xi)]_v - [F(\xx)]_v}^2_{v,*}] \leq \sigma^2_{uv} ,
+    \end{cases} \\
+    &\begin{cases}
+        \E_{\xi}[\Norm{[G_v(\xx,\xi)]_v - [F(\xx)]_v}^2_{v,*}] \leq \sigma^2_{vv}, \\
+        \E_{\xi}[\Norm{[G_v(\xx,\xi)]_u - [F(\xx)]_u}^2_{u,*}] \leq \sigma^2_{vu} .
+    \end{cases}
+\end{aligned}
+\end{equation}
+
+
+Here, we use the operator $[\cdot]_i$ to denote the coordinates corresponding to player $i \in \{u,v\}$. Both players could perform $K \geq 1$ updates on a local copy of the parameters. After every communication round, local variables are initialized as $\xx_t^v=\xx_t^u=\xx_t$, and updated as:
+\begin{equation}\label{eq:localGDA} 
+\begin{aligned} 
+&\xx_{t+K}^u = \xx^u_t - \gamma (\alpha_u \PPP_u)^{-1} \sum_{i=0}^{K-1} G_u(\xx_{t+i}^u,\xi_{t+i}), \\
+&\xx_{t+K}^v = \xx^v_t - \gamma (\alpha_v \PPP_v)^{-1} \sum_{i=0}^{K-1} G_v(\xx_{t+i}^v,\xi_{t+i}).
+\end{aligned}
+\end{equation}
+The local variables are then synchronized in a communication round, $\xx_{t+K} := \frac{1}{2}\left(\xx_{t+K}^u + \xx_{t+K}^v \right)$.
+This is a standard approach in distributed optimization. However, this method does not apply to our setting, as we would need to assume that the stochastic noise of the oracles $\sigma^2_{uv}$ and $\sigma^2_{vu}$ are bounded. 
+
+\paragraph{Decoupled SGDA: Communication Efficient with Reliable Information.}
+We are considering a setting where the two players may not have access to their opponent's strategies or gradients, and only assume that the private components of the gradients have bounded variance, see Assumption~\ref{assumption: noise of sgd}. This reflects real-world challenges where it is hard to share reliable (with bounded noise) information between the communication rounds. For this setting, we therefore propose that each player should only use the \textit{reliable information}, that is $[G_u(\xx,\xi)]_u$ for player $\uu$, and $[G_v(\xx,\xi)]_v$ for player $\vv$, and wait for the communication round to get reliable information about the other players. We introduce the oracle $G_0(\xx,\xi) \equiv G_{\bar \xx = \xx^r_0}(\xx,\xi)$ for $i=\{u,v\}$ where $\xx_0=(\uu_0,\vv_0)$ refers to the parameters of each player at the beginning of the round. Now we can write the update rule of our method as: 
+%In this notation, we can write our proposed method as:
+\begin{equation}
+\begin{aligned} 
+&\xx^r_{K} = \xx^r_{0} - \gamma \PPP^{-1}\sum_{t=0}^{K-1} G_0(\xx_t^r,\xi_{t}), \\
+&G_0(\xx_t^r) \equiv \begin{pmatrix} [G_u(\uu^r_t,\vv^r_0)]_u \\ [G_v(\uu^r_0,\vv^r_t)]_v \end{pmatrix} \equiv \begin{pmatrix} \nabla_u f(\uu^r_t,\vv^r_0) \\ -\nabla_{v} f(\uu^r_0,\vv^r_t) \end{pmatrix}.
+\end{aligned}
+\end{equation}
+Here, the index $t$ denotes the local update step in the current local update phase, and the superscript $r$ indexes the local phases. One communication round is needed for exchanging the updated parameters $(\uu_{K}^r,\vv_{K}^r)$ when passing to the next round. Here we allow the variances $\sigma^2_{uv}$ and $\sigma^2_{vu}$ to be arbitrarily large and we only need $\bar \sigma^2 \leq \sigma^2_{uu}+\sigma^2_{vv}$ to be finite which is an advantage of our method compared to local update methods. This setting models situations where cross-player information is sent over a very noisy or intermittent channel (for example, sporadic, heavily compressed messages between data centers), so the gradients with respect to the opponent’s parameters are almost useless between synchronization rounds, while each player still has a reasonably accurate local gradient for its own parameters.
+
+\begin{algorithm}[tb!] 
+\begin{minipage}{\linewidth}
+\caption{Decoupled SGDA for two-player\protect\footnotemark{} games}
+\begin{algorithmic}[1]
+\State \textbf{Input:} step size $\gamma$, initialization $\xx_0 = (\uu_0,\vv_0)$, number of rounds $R$, number of local GD steps $K$,
+%\State \phantom{\textbf{Input:}} 
+$\alpha_u$, $\alpha_v$, $\PPP$\footnote{The constants $\alpha_u,\alpha_v$, $\PPP$ are determined by the vector norm that we specify. For simplicity, the reader can assume that $\alpha_u = \alpha_v = 1$ and $\PPP_u = \PPP_v = \II$. These terms are included for the sake of completeness, though they are not essential for the main results.}
+
+\For{$r\in\{1, \ldots, R\}$}
+\For{$t\in\{1, \ldots, K\}$}
+
+\State $\uu^r_{t+1} \gets \uu^r_{t} - \gamma (\alpha_u \PPP_u )^{-1} \nabla_u f(\uu^r_t,\vv^r_0;\xi)$ 
+\State $\vv^r_{t+1} \gets \vv^r_{t} + \gamma (\alpha_v \PPP_v )^{-1} \nabla_v f(\uu^r_0,\vv^r_t;\xi)$  
+\EndFor
+\State \textbf{Communicate} $(\uu^r_K,\vv^r_K)$ to each player
+\EndFor
+\State \textbf{Output:} $\xx^R_K = (\uu^R_K,\vv^R_K)$ 
+\end{algorithmic}   
+\label{alg: two player games}
+\end{minipage}
+\end{algorithm}
+\footnotetext{The extension to $N$-player games is displayed in Appendix~\ref{app:n_player_setting} in Alg.~\ref{alg:N-player-games}.}
+
+
+\paragraph{Method.}
+ We formalize our method in Algorithm \ref{alg: two player games}. 
+%We begin this section by providing details of our method. 
+Decoupled SGDA has a round-wise update scheme allowing each player to share his parameters only once in a while. At the beginning of each round $r$, each player receives the most recent parameters of the other player. Then all players start taking $K$ local steps and updating \textbf{only} their own parameters using the information they received at the beginning of the round from other players. Note that our method is a general framework and one can use any first-order method to take local steps and not just the GD steps as illustrated here.
+%As a baseline in this work, we consider simple GD updates. 
+%We formalize our method in Algorithm \ref{alg: two player games}. 
+%For simplicity in notation, we now consider a two-player minimax game to motivate our method and highlight its differences from existing paradigms.
+%The constants $\alpha_u,\alpha_v$ are determined by the vector norm that we specify\footnote{For simplicity, one can assume that $\alpha_u = \alpha_v = 1$ and $\PPP_u = \PPP_v = \II$. These terms are included for the sake of completeness, though they are not essential for the main results.}.
+The extension to $N$-player games is displayed in Appendix~\ref{app:n_player_setting} in Alg.~\ref{alg:N-player-games}.
+
+
+
+
+\paragraph{Intuition.}
+To provide some intuition on why Decoupled SGDA might work, consider that the objective of minimax games \eqref{eq: 2player} can be written as:
+\begin{align} \label{eq: minimax decomposed equation}
+    f(\uu,\vv) = g(\uu) - h(\vv) + r(\uu,\vv)
+\end{align}
+where \(g(\uu)\) and \(h(\vv)\) represent the independent contributions of each player, and \ captures the interaction between them. Note that in this formulation, \( r(\uu, \vv) \) cannot be decomposed in the same way as  $f$, as it specifically captures the interdependent aspects of \( \uu \) and \( \vv \).
+
+In the special case when $r(\uu,\vv)\equiv 0$, i.e., \ there is no interaction, the problem does not require any communication: the optimal solution can be found by minimizing $g$ and $h$ \textbf{separately}. A method like SGDA is, therefore, not a good choice in this setting, as it requires to communicate parameters $(\uu,\vv)$ in every step of the method, although this is unnecessary. 
+In contrast, when the coupling $r(\uu,\vv)$ is significant, then optimizing $g$ and $h$ separately might not be a good strategy. Decoupled SGDA aims to find a balance between the two extremes. In the following, we will characterize some settings where Decoupled SGDA provably uses significantly fewer communication rounds than SGDA or other baselines (see also Table~\ref{table:comparison_methods}). 
+
+
+\paragraph{Extensions of Decoupled SGDA (Appendix \ref{sec: ghost}).}
+It is clear that our method is a general framework, providing flexibility for various modifications and adaptations. For instance, our method allows for any first-order update rule to be applied for the local steps like GDA, Extra Gradient (EG), and Optimistic Gradient Descent Ascent (OGDA). Note that in this work, we focused on GDA updates, leaving the analysis of other methods for future work. Moreover, in Section \ref{sec: ghost}, we present \textbf{Ghost-SGDA}, where each player aims to estimate the other player's parameters using the so-called \textbf{Ghost Sequence}, which leads to further acceleration in terms of the number of rounds.
+
+
+
+\section{Convergence Guarantees} \label{sec: convergence}
+We \emph{could} analyze our method under the common smoothness assumptions in the literature  (see Appendix \ref{sec: non weakly coupled proof} for the details). However, these assumptions are often overly pessimistic in distributed settings, as they fail to account for the interaction level between players. Specifically, they treat games with high and low interaction identically, yielding the same convergence rates in both cases.
+%ssumption 
+%existing assumptions 
+%can be very pessimistic in some cases and fail to capture an important aspect of solving games in a distributed setting:\ it does not account for the level of interaction between players.
+In contrast, we introduce an important parameter $L_c$ (see Assumption \ref{assumption:L_c}) that quantifies the interaction level of the game.
+This allows us to achieve communication acceleration in games with low interaction through a novel proof technique (see Section~\ref{sec: weakly coupled proof}).  To formalize this, we first introduce the notion of \textbf{\textit{Weakly Coupled Games / Regime}} and then provide the convergence guarantee for our method.
+
+
+%n other words, these assumptions and analyses remain identical for games with either very high or very low interaction, resulting in the same convergence rate across all cases. 
+
+%In contrast, we introduce an important parameter $L_c$ (see Assumption \ref{assumption:L_c}) that quantifies the interaction level of the game. We then demonstrate how this parameter enables us to achieve \textbf{communication acceleration} in solving games with low interaction using a novel proof (see Section \ref{sec: weakly coupled proof}). To formalize this, we first introduce the notion of \textbf{\textit{Weakly Coupled Games / Regime}} and then provide the convergence guarantee for our method. 
+
+Given a strongly-convex strongly-concave (SCSC) zero-sum minimax game $f(\uu,\vv)$, we define the \textbf{coupling degree} parameter $\kappa_c$ for this game as follows:
+    \setlength{\fboxrule}{.4mm}  % Set the box thickness to 1mm (adjust as needed)
+    \begin{align}
+        \label{eq:DefinitionOfTheta}
+        \boxed{
+             \kappa_c
+            :=
+            \frac{L_c}{\bar \mu}
+        }
+    \end{align}
+    
+This variable measures the level of interaction in the game. A smaller value of $\kappa_c$ indicates less interaction. For any $f(\uu,\vv)$, we say the game is \textbf{Weakly Coupled} if: % the following inequality holds: 
+\begin{align}
+      \kappa_c \leq \frac{1}{4} \,.
+\end{align}
+We say the game is \textbf{Fully Decoupled} if $ \kappa_c = 0$, which implies that $r(\uu,\vv) = 0$ (see Eq. \eqref{eq: minimax decomposed equation} and Lemma \ref{lemma:L_c zero means fully decoupled}). These games are an extreme case of weakly coupled games. %, where interaction between players is low. 
+In weakly coupled games, each player’s dynamics are mostly driven by their own pay-off function, with little influence from the other player.
+
+
+
+
+\renewcommand{\arraystretch}{2.0} % Increase row height
+\setlength{\tabcolsep}{5pt} % Adjust column width
+
+\begin{table*}[t] % Use table* for spanning both columns
+\caption{Comparison of Communication Complexity and Acceleration Condition for Different Methods. 
+\textit{Speed up} lists the conditions under which Decoupled SGDA achieves acceleration relative to the respective method. Note that for simplicity and in order to compare our results with other works, we consider $\PPP_u = \PPP_v = \II,\, \PPP = \II$ and $\alpha_u = \alpha_v = 1$.}
+\centering % Centering the table on the page
+\scriptsize % Make the font size smaller
+\vspace{2mm}
+\begin{tabular}{cccc} 
+\toprule
+Method & \parbox{3.0cm}{Communication Complexity \\ \phantom{xxxxx}\tiny {\textit{(Fully Decoupled})}} & \parbox{2.8cm}{Communication Complexity \\ \phantom{xxxxxx}\tiny {\textit{(General Bound)}}} & Speed Up \\
+
+\toprule
+\begin{tabular}[c]{@{}c@{}} \vspace{-0.1cm} GDA \vspace{-0.2cm} \\  \scriptsize{\cite{lee2024fundamental}} \end{tabular} & 
+$(\kappa_u+\kappa_v)\log \frac{1}{\epsilon}$ & 
+$(\kappa_u+\kappa_v+\kappa^2_{uv})\log \frac{1}{\epsilon}$ & 
+$\kappa_c \leq \frac{1}{4}$ (weakly coupled) \\
+\hline 
+
+\begin{tabular}[c]{@{}c@{}} EG/OGDA \vspace{-0.25cm} \\ \scriptsize{\cite{mokhtari2020unified}} \end{tabular} & 
+$(\kappa_u + \kappa_v)\log \frac{1}{\epsilon}$ & 
+$(\kappa_u + \kappa_v)\log \frac{1}{\epsilon}$ & 
+$\kappa_c \leq \frac{1}{2} \sqrt{1-\frac{1}{\max\{\kappa_u \kappa_v\}}}$ \\
+\hline 
+
+\begin{tabular}[c]{@{}c@{}} APPA\vspace{-0.25cm}\\ \scriptsize{\cite{lin2020near}} \end{tabular} & 
+$\sqrt{\kappa_u\kappa_v} \log^3\frac{1}{\epsilon}$ & 
+$\sqrt{\kappa_u\kappa_v} \log^3\frac{1}{\epsilon}$ & 
+$ \kappa_c \leq \frac{1}{2} \sqrt{1-\frac{1}{\sqrt{\kappa_u \kappa_v}}}$ \\
+\hline 
+
+\begin{tabular}[c]{@{}c@{}} \vspace{-0.2cm} FOAM \vspace{-0.05cm}\\ \scriptsize{\cite{kovalev2022first}} \end{tabular} & 
+$\sqrt{\kappa_u\kappa_v}\log \frac{1}{\epsilon}$ & 
+$\sqrt{\kappa_u\kappa_v}\log \frac{1}{\epsilon}$ & 
+$\kappa_c \leq \frac{1}{2} \sqrt{1-\frac{1}{\sqrt{\kappa_u \kappa_v}}}$ \\
+\hline 
+
+\begin{tabular}[c]{@{}c@{}} \vspace{-0.2cm} PEARL-SGD \vspace{-0.05cm}\\ \scriptsize{\cite{yoon2025multiplayer}} \end{tabular} & 
+$\kappa^2 \log \frac{1}{\epsilon}$ & 
+$\kappa^2 \log \frac{1}{\epsilon}$ & 
+$\kappa_c \leq \frac{1}{4}$ (weakly coupled) \\
+\hline 
+
+\begin{tabular}[c]{@{}c@{}} \textbf{Decoupled SGDA (ours)} \end{tabular} & 
+$\mathbf{0}$ & 
+$\min\left\{\frac{1}{1-4\kappa_c} \log \frac{1}{\epsilon}, \ \kappa^2 \log \frac{1}{\epsilon} \right\}$ & 
+- \\
+\bottomrule
+
+\end{tabular}
+
+\label{table:comparison_methods} % Label for referencing the table
+\end{table*}
+
+
+
+\begin{theorem}\label{theorem: decoupled sgda for two player games}
+   
+For any $R \geq 1$ and any $K \geq  \frac{1}{\gamma \mu} \log \left(\frac{4}{\kappa_c}\right)$, after running Decoupled SGDA for a total of $T=KR$ iterations on a function $f$, with the stepsize $\gamma \leq \frac{\bar \mu}{\bar L^2}$ in the weakly coupled regime ($4 \kappa_c \leq 1$), we get a rate of:
+\begin{align*}
+    \E \bigl[\Norm{\xx_K^R-\xx^\star}^2 \bigr] \leq D^2 \exp\Bigl( - (1-4\kappa_c)R \Bigr) + \frac{8 \kappa_c \bar \sigma^2 \gamma}{\mu(1-4\kappa_c)}.
+\end{align*}
+
+Moreover, For any $R,K\geq 1$, after running Decoupled SGDA for a total of $T=KR$ iterations on a function $f$, with the stepsize $\gamma \leq \min\left\{\frac{\mu}{L^2}, \frac{\mu}{KL L_c}\right\}$ in the non-weakly coupled regime, we get a rate of:
+\[
+    \E \bigl[\Norm{\xx_K^R-\xx^\star}^2 \bigr]
+    \le
+    D^2 \exp\Bigl( - \frac{\gamma \mu}{2} KR \Bigr) +\frac{2\bar \sigma^2 \gamma}{\mu}.
+\]
+where $D = \norm{\xx_0-\xx^\star}$.
+
+\end{theorem}
+
+
+\begin{corollary}
+\label{corr: decoupled}
+    Decoupled GDA with a stepsize of $\gamma =\frac{\bar \mu}{\bar L^2}$ converges to the saddle point \textbf{without} any communication on fully decoupled games ($\kappa_c = 0$) if $K \to \infty$. 
+\end{corollary}
+
+\paragraph{Fully Decoupled Games.} For the sake of comparison, we define the condition numbers\footnote{$\Norm{\nabla_u f(\uu,\vv) - \nabla_u f(\uu',\vv)} \leq L_u \Norm{\uu-\uu'}$ and $\Norm{\nabla_v f(\uu,\vv) - \nabla_v f(\uu,\vv')} \leq L_v \Norm{\vv-\vv'}$}: $\kappa_u = \frac{L_u}{\mu_u}$, $\kappa_v = \frac{L_v}{\mu_v}$, and $\kappa_{uv} =\kappa_{vu} = \frac{L_{c}}{\sqrt{\mu_u \mu_v}}$. We also use $\kappa = \frac{L}{\mu}$. The most recent rate proposed for GDA \cite{lee2024fundamental} requires $\mathcal{O}\left((\kappa_u+\kappa_v) \log \frac{1}{\epsilon}\right)$ rounds of communication when the game is fully decoupled. A major drawback of GDA and several other common methods in this setting is that poor conditioning in one of the players (large $\kappa_u,\kappa_v$) significantly increases the number of communication rounds. In contrast, our method overcomes this issue by utilizing local steps, effectively eliminating the dependency on players' conditioning.
+
+
+
+\begin{corollary}
+    With the choice of $\gamma = \frac{\bar \mu}{RL^2}$ if the game is weakly coupled we get:
+    \[
+        \E \bigl[\Norm{\xx_K^R-\xx^\star}^2\bigr]
+        \le
+        D^2 \exp\Bigl( - (1-4\kappa_c)R \Bigr)+  \frac{8\bar \sigma^2 \bar \mu\kappa_c }{R\mu L^2(1-4\kappa_c)}. 
+    \]
+Consequently, to reach $\E [\Norm{\xx_K^R-\xx^\star}^2] \leq \epsilon$, it suffices to perform $R = \max\{\frac{1}{4-\kappa_c} \log (\frac{2D^2}{\epsilon}),\frac{16 \bar \mu \kappa_c \bar \sigma^2}{\mu L^2(1-4\kappa_c)\epsilon}\}$ rounds with $K = \frac{L^2}{\mu \bar \mu}\log(\frac{4}{\kappa_c})$. Moreover, with the choice of $\gamma = \min\bigl\{\frac{\mu}{32KL^2},\frac{1}{\mu KR} \log(\max\{2, \frac{\mu^2 D^2}{\bar \sigma^2} K R\})\bigr\}$ if the game is not weakly coupled we get: 
+    \begin{align*}
+        \E \bigl[\Norm{\xx_K^R-\xx^\star}^2\bigr] \leq D^2 \exp\Bigl( - \frac{\mu^2}{2L^2} R \Bigr) +  \frac{\bar \sigma^2}{\mu^2KR}.
+    \end{align*}
+  
+    Consequently, to reach $\E [\Norm{\xx_K^R-\xx^\star}^2] \leq \epsilon$, it suffices to perform $R = \frac{2L^2}{\mu^2} \log(\frac{D^2}{\epsilon})$ with $K = \frac{2 \bar \sigma^2}{\mu^2 \epsilon}$. 
+
+\end{corollary}
+
+
+
+\textbf{Weakly and Non-Weakly Coupled Games.} The main property of our rate for weakly coupled games is the \textbf{absence} of \(\kappa_u\), \(\kappa_v\), or \(\kappa\), which can be very large even if the player interaction is low. We are able to capture this effect due to differentiating between different smoothness parameters. In addition, mathematically identifying the regime in which we can benefit from low interaction and achieve communication acceleration is another important aspect of our work. This stands in contrast to most popular methods, whose communication complexity always depends on the quantities $\kappa_u,\kappa_v$ or $\kappa$ (see Table \ref{table:comparison_methods}), which can be overly pessimistic, especially in the weakly coupled regime. Moreover, for non-weakly coupled games, our rate recovers the standard \(\mathcal{O}(\kappa^2 \log(1/\epsilon))\) rate for GDA from \cite{zhang2022near,azizian2020accelerating}. 
+
+\textbf{Noise Term.} Our method does not depend on \(\sigma_{uv}\) or \(\sigma_{vu}\), allowing them to be arbitrarily large. In contrast, existing federated minimax methods assume these quantities are bounded, which may not hold in many real-world settings. In the weakly coupled regime, \(\bar{\sigma}\) is multiplied by \(\kappa_c\), a small quantity, reducing the effect of noise. In the non-weakly coupled regime, we can mitigate noise by taking more local steps. %In the following, 
+Herein, we state the communication complexity of our method and compare it with GDA as the baseline.
+
+
+
+\begin{figure*}[th]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/trajectories.pdf}
+    \vskip-.5em
+    \caption{
+    \textbf{Trajectories (top row) and distance to equilibrium over synchronization rounds (bottom row) of GDA ($K=1$) and Decoupled SGDA with $K=\{2,5\}$ on the \eqref{eq:quadratic_game} problem ($d=2$).}
+    $\CC$ in \eqref{eq:quadratic_game} is a constant here---the larger, the stronger the interactive term. \textbf{Left-to-right:} decreasing the constant $c\in \{ 10, 3.5, 2,7, 0\}$.
+    The markers denote the local steps and star the solution.
+    See \S~\ref{sec:experiments} for discussion.
+    }
+    \label{fig:trajectories}
+\end{figure*}
+
+
+\begin{corollary}\label{corollary: comm complexity of decoupled gda vs gda}
+     For any $K \geq  \frac{1}{\gamma \mu} \log \left(\frac{4}{\kappa_c}\right)$, after running Decoupled SGDA on a weakly coupled game, we have the following communication complexity in order to achieve $\epsilon$ accuracy in the noiseless setting: 
+\newcommand{\thickbox}[1]{%
+    \setlength{\fboxrule}{1pt}% Adjust thickness here
+    \boxed{#1}%
+}
+\begin{equation*}\label{eq:comm_complexity}
+    \stackrel{\text{Decoupled GDA}}{\thickbox{\mathcal{O}\Bigl(\frac{1}{1-4\kappa_c} \log \frac{1}{\epsilon}\Bigr)}} \,\, \text{vs.} \,\, \stackrel{\text{GDA}}{\thickbox{\mathcal{O}\Bigl( (\kappa_u + \kappa_v + \kappa_{uv}^2) \log \frac{1}{\epsilon}\Bigr)}}
+\end{equation*}
+Moreover, Decoupled SGDA in the weakly coupled regime \textbf{always} has better communication complexity compared to the baseline GDA. In other words, 
+$\frac{1}{1-4\kappa_c} \leq \kappa_u + \kappa_v + \kappa_{uv}^2$.
+
+\end{corollary}
+
+Table \ref{table:comparison_methods} compares our method with other first-order methods in terms of \textbf{communication complexity} in both the fully decoupled and weakly coupled regimes. It is clear that in the fully decoupled regime, our method outperforms all other methods. Furthermore, it is expected to compare our method with GDA by considering it as the baseline because our method uses GD local updates (and not updates using EG or momentum). In Corollary \ref{corollary: comm complexity of decoupled gda vs gda}, we stated that we always have a better complexity compared to GDA in the weakly coupled regime. However, we can show that under a slightly stronger assumption, our method achieves better communication complexity than the optimal first-order method for solving SCSC games.
+
+
+\begin{figure*}[!tb]
+    \centering
+    % \vspace{-1.7em}
+    \includegraphics[width=0.9\linewidth]{figures/combined_epsilon_accuracy_plot.pdf}
+    % \vspace{-1.7em}
+    \vskip-.5em
+    \caption{
+    \textbf{Number of rounds (log-scale; lower is better) to reach epsilon accuracy for varying \(\lambda_{\text{max}}(\CC)\) in \eqref{eq:quadratic_game}.} \textbf{Left:} Decoupled GDA with different \(K\)-values and GDA ($K=1$). \textbf{Right:} comparison between GDA, Decoupled GDA, Optimistic GDA~\parencite{popov1980modification}, Alternating GDA and Extragradient~\parencite{korpelevich1976extragradient}.
+    }
+    \label{fig:rounds_vs_accuracy}
+\end{figure*}
+
+
+\begin{corollary}\label{corollary: beating FOAM}
+    For any SCSC zero-sum minimax game with coupling degree $\kappa_c \leq \frac{1}{2} \sqrt{1-\frac{1}{\sqrt{\kappa_u \kappa_v}}}$, our method achieves a better communication complexity than FOAM which is the optimal first-order method for solving SCSC games. In another word, if $\frac{1}{1-4\kappa_c} \ll \sqrt{\kappa_u \kappa_v} $, our method achieves significant communication acceleration compared to FOAM. 
+\end{corollary}
+
+Corollary \ref{corollary: beating FOAM} shows that our method can even outperform the optimal first-order method in terms of communication rounds. The assumption $\kappa_c \leq \frac{1}{2} \sqrt{1 - \frac{1}{\sqrt{\kappa_u \kappa_v}}}$ can recover the weakly coupled condition if $\max\{\kappa_u, \kappa_v\} \to \infty$. Although the rate $\mathcal{O}(\sqrt{\kappa_u \kappa_v}\log(1/\epsilon))$ is optimal and matches the lower bound from \cite{zhang2022lower}, large condition number of players ($\kappa_u, \kappa_v$) can increase the communication overhead significantly. 
+
+\begin{remark}
+    \label{rem:yoon}
+The recent work of \textcite{yoon2025multiplayer} considers a similar method in the general $N$-player setting (we also address this case in \Cref{app:n_player_setting}) and establishes a linear convergence rate of 
+$
+\mathcal{O}\left( \left( \frac{\ell + L_{\max} \sqrt{\ell/\mu}}{\mu} \right) \log(1/\epsilon) \right),
+$
+where $\ell$ denotes the star-cocoercivity constant and $L_{\max} = \max\{L_1, \dots, L_N\}$ is the largest smoothness parameter among the players. For the class of $\mu$-strongly monotone and $L$-Lipschitz continuous operators considered in our work, it holds that $L_{\max} \sqrt{\ell/\mu} \leq \ell$ (see \textcite{yoon2025multiplayer}, Appendix D), which simplifies their rate to 
+$
+\mathcal{O}\left( \frac{\ell}{\mu} \log(1/\epsilon) \right).
+$ 
+In general, one has the bound $\ell \leq \frac{L^2}{\mu}$~\parencite{facchinei2003finite}, which implies a worst-case convergence rate of $\mathcal{O}(\kappa^2 \log(1/\epsilon))$, offering no communication acceleration. While acceleration is theoretically possible when $\ell$ is small, the improvement is limited: since $L \leq \ell$, the best achievable rate is $\mathcal{O}(\kappa \log(1/\epsilon))$. In the fully decoupled setting, this matches the convergence rate of GDA~\parencite{lee2024fundamental}, which, as discussed earlier, is suboptimal. By contrast, our method requires only a single round of communication in this regime (see \Cref{corr: decoupled}), demonstrating a significant advantage.
+%
+A key distinction between the two works is in how interaction between players is modeled. Our analysis introduces and leverages the coupling parameter $L_c$, which more directly captures the interaction structure and leads to sharper communication complexity bounds.
+    %similar to our non-weakly coupled regime,  similar to our non-weakly coupled regime.
+    %$\mathcal{O}(\kappa^2 \log(1/\epsilon))$ similar to our non-weakly coupled regime~ \cite[Thm. 3.3]{yoon2025multiplayer},
+    %For $L$-smooth, $\ell \geq \sqrt{\kappa}L_{\max}$
+    %We also note that 
+    %    This result arises because their rate always depends on the quantity $L_{\max} = \max\{L_1,\dots,L_N\}$, where $L_i$ denotes the smoothness parameter of the $i$th player. However, this dependence on $L_{\max}$ can be overly pessimistic, especially in games with weak interactions between players. Such interactions are better captured by the parameter $L_c$, which we introduce in this paper.
+\end{remark}
+
+
+\section{Experiments} \label{sec:experiments}
+
+In this section, we evaluate the empirical performance of Decoupled GDA.
+For all experiments described in this section, we provide additional implementation details (and hyperparameters) in \Cref{sec:experimental_setup}.
+
+\subsection{Quadratic Games}\label{subsec:experiment1}
+%
+Herein, we consider the following problem class:
+\begin{equation}\label{eq:quadratic_game}
+    \min_{\uu} \ \max_{\vv}  \quad \frac{1}{2}  \langle  \uu, \AAA\uu \rangle - \frac 1 2 \langle  \vv, \BB\vv \rangle  + \langle  \uu, \CC\vv \rangle \,,
+\end{equation}
+where $\uu, \vv \in \R^{\frac{d}{2}}$, and $\AAA,\BB,\CC$ are  $\frac{d}{2}\times \frac{d}{2}$ positive definite matrices. We will use varying $\CC$ to control the players' interaction.
+
+Figure~\ref{fig:trajectories} illustrates the performances of Decoupled SGDA on the \eqref{eq:quadratic_game} for varying numbers of local steps $K$ and different intensities of the interactive term of \eqref{eq:quadratic_game}.
+The results show that as the interactive term weakens, Decoupled SGDA converges more quickly than the GDA baseline ($K=1$). Additionally, with a stronger interactive term, increasing the number of local steps $K$ leads to faster convergence for the same number of synchronization rounds.
+Figure~\ref{fig:rounds_vs_accuracy} depicts the performances over a spectrum of payoff functions controlled by the constant matrix  $\CC$ in \eqref{eq:quadratic_game}. 
+In the Weakly Coupled Game regime, highlighted by shading, Decoupled SGDA outperforms the baseline GDA.
+In Figure~\ref{fig:rounds_vs_accuracy} (right), we compare it with other optimization methods, demonstrating that Decoupled SGDA achieves similar results with significantly fewer communication rounds in the weakly coupled regime.
+
+
+
+
+\subsection{Communication Efficiency For Non-convex Functions} \label{subsec:experiment2}%
+While our theoretical focus was on SCSC games, in this section, we explore if our insights extend to broader problem instances.
+We focus on a \emph{Toy GAN} non-convex game as follows:
+\begin{equation}
+\begin{aligned}
+\label{eq:ToyGan}
+&\min_{\uu} \max_{\vv} \bigl\{ \mathbb{E}_{\phi \sim \mathcal{N}(0, \Sigma)}[\phi^T \vv 
+\phi] - \\ &\mathbb{E}_{\phi\sim \mathcal{N}(0, 1)}[(\uu \phi)^T \vv (\uu \phi)] + \lambda_1 \|\uu\|^2 - \lambda_2 \|\vv\|^2 \bigr\} \,,
+\end{aligned}
+\end{equation}
+where $\uu\in \R^{d_1}$, $\vv\in \R^{d_2}$. Figure \ref{fig:nonconvex} shows the smallest gradient norm (lower is better) each algorithm can achieve for a fixed number of communication rounds, with varying values of $1/\lambda$. As $\lambda$ decreases, the regularization terms dominate, making the game less interactive (similar to the weakly coupled regime). When $\lambda$ increases, reducing interaction, Decoupled GDA achieves a much lower gradient norm with the same number of communication rounds. This demonstrates that Decoupled GDA efficiently solves non-convex problems in settings analogous to the weakly coupled regime by leveraging local updates to reduce communication. This experiment highlights the method’s capabilities beyond SCSC games. The trajectory of Decoupled GDA iterations for this non-convex minimax problem can be found in Appendix~\ref{subsec:additional_experiments_nonconvex}. %\vspace{-0.3cm}
+
+
+\begin{figure*}[tb]
+    \centering
+    %\vspace{-.7em}
+    \includegraphics[width=0.9\linewidth]{figures/ToyGan.pdf}
+    % \vspace{-2.1em}
+    \vskip-.5em
+    \caption{ 
+    \textbf{Lowest gradient norm reached after a fixed number of communication rounds, for varying $1/\lambda$ in \eqref{eq:ToyGan}}.
+    \textbf{ Left:} Effect of $K$. \textbf{Right:} different optimization methods, GDA, Decoupled GDA, Optimistic GDA~\parencite{popov1980modification}, ALT--alternating GDA and Extragradient~\parencite{korpelevich1976extragradient}.
+    See \S~\ref{sec:experiments} for discussion.
+    }
+    \label{fig:nonconvex}
+\end{figure*}
+\noindent\textbf{Decoupled SGDA with gradient approximation.}
+\label{subsec:experiment3}
+Herein, we compare \emph{Decoupled SGDA} with Federated Minimax, aka 
+ \eqref{eq:localGDA}.
+We study environments with gradient oracles that exhibit \emph{unbalanced noise}. Each player has access to a gradient oracle that provides low-variance noise for their own gradients but high-variance noise for the remaining players. In the quadratic game introduced earlier, each oracle adding zero-mean Gaussian noise to the gradient. The variance differs between gradients for a player’s own parameters (diagonal variance) and those of others (off-diagonal variance). Equation \ref{equation: noise} formalizes this. In both experiments, we kept the diagonal variance ($\sigma^2_{uu}, \sigma^2_{vv}$) constant, while varying the off-diagonal variance ($\sigma^2_{vu}$, $\sigma^2_{uv}$) in the second experiment. Figure~\ref{fig:noise_comparison} compares \emph{Decoupled SGDA} and \emph{Local SGDA}, the latter being the most commonly used method for federated minimax problems~\parencite{deng2021local}. It depicts the smallest gradient norm each algorithm achieves within a fixed number of communication rounds across different scenarios. The left plot demonstrates how both methods perform in games with varying levels of interaction. When the interaction is weaker, Decoupled SGDA achieves significantly lower gradient norms with the same number of communication rounds. The right plot highlights the effect of noise variance, showing that while high noise negatively impacts Local SGDA, it has minimal to no effect on Decoupled SGDA. In the presence of imbalanced noise, the results suggest that switching from local SGDA to Decoupled SGDA is beneficial, even for highly interactive games. 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/comparison_plots.pdf}
+    \vskip-.5em
+    \caption{
+    \textbf{Lowest gradient norm reached by Decoupled SGDA and Local SGDA for a \textbf{fixed number of communication rounds} using unbalanced noisy gradient oracles. } \textbf{Left:} \emph{Decoupled SGDA} vs.\ \emph{Federated Minimax} for varying values of $\norm{\CC}$ and fixed variance. 
+    \textbf{Left:} \emph{Decoupled SGDA} vs.\ \emph{Local SGDA} for varying levels of off-diagonal variance noise ($\sigma_{uv}$, $\sigma_{vu}$). See~\ref{sec:experiments}.}
+    \label{fig:noise_comparison}
+\end{figure} 
+\subsection{Communication Efficiency in GAN Training.} \label{subsec:experiment4} 
+Figure~\ref{fig:gan_training} compares Decoupled SGDA with baseline methods in terms of FID score over communication rounds. The results show that Decoupled SGDA converges faster and requires fewer communication rounds than standard GDA and its variants. This advantage is particularly evident on the CIFAR-10 and SVHN datasets, where increasing the number of local steps (K) leads to lower FID scores. These findings highlight the efficiency of our approach in reducing communication overhead while maintaining strong performance in complex, non-convex tasks such as GAN training.
+\begin{figure}[H]
+    \centering
+    %\vspace{-.5em}
+    \includegraphics[width=1\linewidth]{figures/GAN.pdf}
+    \vskip-.5em
+    \caption{\textbf{ $y$-axis: FID scores (log scale; lower is better) during GAN training, versus $x$-axis communication rounds.} \textbf{ Left:} results on the \emph{CIFAR-10}~\parencite{cifar10} dataset. \textbf{Right:} results on the \emph{SVHN}~\parencite{svhn} dataset.}
+    \label{fig:gan_training}
+\end{figure}
+\begin{remark}[theory vs.\ practice]
+Strictly speaking, GAN training does not satisfy our SCSC assumptions, since the objective is highly non-convex/non-concave. We therefore use these experiments to test how robust the decoupling idea is beyond the regime covered by our theory. Empirically, we observe that the local behavior near the iterates still resembles a quadratic game, and the communication gains predicted in the SCSC setting remain visible in practice.
+\end{remark}
+
+
+
+

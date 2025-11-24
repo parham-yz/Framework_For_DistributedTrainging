@@ -1,0 +1,388 @@
+%% simplified version for slides
+
+\usepackage{amssymb,amsmath,amsthm,dsfont}
+
+\providecommand{\lin}[1]{\ensuremath{\left\langle #1 \right\rangle}}
+\providecommand{\abs}[1]{\left\lvert#1\right\rvert}
+\providecommand{\norm}[1]{\left\lVert#1\right\rVert}
+
+\providecommand{\refLE}[1]{\ensuremath{\stackrel{(\ref{#1})}{\leq}}}
+\providecommand{\refEQ}[1]{\ensuremath{\stackrel{(\ref{#1})}{=}}}
+\providecommand{\refGE}[1]{\ensuremath{\stackrel{(\ref{#1})}{\geq}}}
+\providecommand{\refID}[1]{\ensuremath{\stackrel{(\ref{#1})}{\equiv}}}
+
+  % basec sets
+  \providecommand{\R}{\mathbb{R}} % Reals
+  \providecommand{\N}{\mathbb{N}} % Naturals
+  
+  % random variables
+  \DeclareMathOperator{\E}{{\mathbb E}}
+  \providecommand{\E}[1]{{\mathbb E}\left.#1\right. }     %expectation
+  \providecommand{\Eb}[1]{\E \left[#1\right] }             %expectation, with brackets
+  \providecommand{\EE}[2]{\E_{#1} \! #2 }      %expectation  
+  \providecommand{\EEb}[2]{\E_{#1}\!\! \left[#2\right] } %expectation,  with brackets
+  \providecommand{\prob}[1]{{\rm Pr}\left[#1\right] } 
+  \providecommand{\Prob}[2]{{\rm Pr}_{#1}\left[#2\right] } 
+  \providecommand{\P}[1]{{\rm Pr}\left.#1\right. }
+  \providecommand{\Pb}[1]{{\rm Pr}\left[#1\right] }
+  \providecommand{\PP}[2]{{\rm Pr}_{#1}\left[#2\right] }
+  \providecommand{\PPb}[2]{{\rm Pr}_{#1}\left[#2\right] }
+
+  % operators
+  \DeclareMathOperator*{\argmin}{arg\,min}
+  \DeclareMathOperator*{\argmax}{arg\,max}
+  \DeclareMathOperator*{\supp}{supp}
+  \DeclareMathOperator*{\diag}{diag}
+  \DeclareMathOperator*{\Tr}{Tr}
+  
+  % bold vectors
+  \providecommand{\0}{\mathbf{0}}
+  \providecommand{\1}{\mathbf{1}}
+  \renewcommand{\aa}{\mathbf{a}}
+  \providecommand{\bb}{\mathbf{b}}
+  \providecommand{\cc}{\mathbf{c}}
+  \providecommand{\dd}{\mathbf{d}}
+  \providecommand{\ee}{\mathbf{e}}
+  \providecommand{\ff}{\mathbf{f}}
+  \let\ggg\gg
+  \renewcommand{\gg}{\mathbf{g}}
+  \providecommand{\gv}{\mathbf{g}}
+  \providecommand{\hh}{\mathbf{h}}
+  \providecommand{\ii}{\mathbf{i}}
+  \providecommand{\jj}{\mathbf{j}}
+  \providecommand{\kk}{\mathbf{k}}
+  \let\lll\ll
+  \renewcommand{\ll}{\mathbf{l}}
+  \providecommand{\mm}{\mathbf{m}}
+  \providecommand{\nn}{\mathbf{n}}
+  \providecommand{\oo}{\mathbf{o}}
+  \providecommand{\pp}{\mathbf{p}}
+  \providecommand{\qq}{\mathbf{q}}
+  \providecommand{\rr}{\mathbf{r}}
+  \renewcommand{\ss}{\mathbf{s}}
+  \providecommand{\tt}{\mathbf{t}}
+  \providecommand{\uu}{\mathbf{u}}
+  \providecommand{\vv}{\mathbf{v}}
+  \providecommand{\ww}{\mathbf{w}}
+  \providecommand{\xx}{\mathbf{x}}
+  \providecommand{\yy}{\mathbf{y}}
+  \providecommand{\zz}{\mathbf{z}}
+  
+  % bold matrices
+  \providecommand{\mA}{\mathbf{A}}
+  \providecommand{\mB}{\mathbf{B}}
+  \providecommand{\mC}{\mathbf{C}}
+  \providecommand{\mD}{\mathbf{D}}
+  \providecommand{\mE}{\mathbf{E}}
+  \providecommand{\mF}{\mathbf{F}}
+  \providecommand{\mG}{\mathbf{G}}
+  \providecommand{\mH}{\mathbf{H}}
+  \providecommand{\mI}{\mathbf{I}}
+  \providecommand{\mJ}{\mathbf{J}}
+  \providecommand{\mK}{\mathbf{K}}
+  \providecommand{\mL}{\mathbf{L}}
+  \providecommand{\mM}{\mathbf{M}}
+  \providecommand{\mN}{\mathbf{N}}
+  \providecommand{\mO}{\mathbf{O}}
+  \providecommand{\mP}{\mathbf{P}}
+  \providecommand{\mQ}{\mathbf{Q}}
+  \providecommand{\mR}{\mathbf{R}}
+  \providecommand{\mS}{\mathbf{S}}
+  \providecommand{\mT}{\mathbf{T}}
+  \providecommand{\mU}{\mathbf{U}}
+  \providecommand{\mV}{\mathbf{V}}
+  \providecommand{\mW}{\mathbf{W}}
+  \providecommand{\mX}{\mathbf{X}}
+  \providecommand{\mY}{\mathbf{Y}}
+  \providecommand{\mZ}{\mathbf{Z}}
+  \providecommand{\mLambda}{\mathbf{\Lambda}}
+  
+  % caligraphic
+  \providecommand{\cA}{\mathcal{A}}
+  \providecommand{\cB}{\mathcal{B}}
+  \providecommand{\cC}{\mathcal{C}}
+  \providecommand{\cD}{\mathcal{D}}
+  \providecommand{\cE}{\mathcal{E}}
+  \providecommand{\cF}{\mathcal{F}}
+  \providecommand{\cG}{\mathcal{G}}
+  \providecommand{\cH}{\mathcal{H}}
+  \providecommand{\cI}{\mathcal{I}}
+  \providecommand{\cJ}{\mathcal{J}}
+  \providecommand{\cK}{\mathcal{K}}
+  \providecommand{\cL}{\mathcal{L}}
+  \providecommand{\cM}{\mathcal{M}}
+  \providecommand{\cN}{\mathcal{N}}
+  \providecommand{\cO}{\mathcal{O}}
+  \providecommand{\cP}{\mathcal{P}}
+  \providecommand{\cQ}{\mathcal{Q}}
+  \providecommand{\cR}{\mathcal{R}}
+  \providecommand{\cS}{\mathcal{S}}
+  \providecommand{\cT}{\mathcal{T}}
+  \providecommand{\cU}{\mathcal{U}}
+  \providecommand{\cV}{\mathcal{V}}
+  \providecommand{\cX}{\mathcal{X}}
+  \providecommand{\cY}{\mathcal{Y}}
+  \providecommand{\cW}{\mathcal{W}}
+  \providecommand{\cZ}{\mathcal{Z}}
+  
+  \providecommand{\bxi}{\boldsymbol{\xi}}
+
+
+% Commenting
+\RequirePackage[colorinlistoftodos,bordercolor=orange,backgroundcolor=orange!20,linecolor=orange,textsize=scriptsize]{todonotes}
+\providecommand{\mycomment}[3]{\todo[inline,caption={},color=#3!20]{\textbf{#1: }#2}}%
+\providecommand{\inlinecomment}[3]{%
+  %\@getnewcolor%
+  %\edef\@tempa{\@colstring}%
+  {\color{#1}#2: #3}}%
+\newcommand\commenter[2]%
+{%
+  \expandafter\newcommand\csname i#1\endcsname[1]{\inlinecomment{#2}{#1}{##1}}
+  \expandafter\newcommand\csname #1\endcsname[1]{\mycomment{#1}{##1}{#2}}
+}
+
+
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}[lemma]{Corollary}
+%\newtheorem{conjecture}[lemma]{Conjecture}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}[lemma]{Remark}
+\newtheorem{assumption}{Assumption}
+\newtheorem{theorem}[lemma]{Theorem}
+\newtheorem{example}[lemma]{Example}
+\newtheorem{assumptionRoman}{Assumption}
+\renewcommand\theassumptionRoman{\Roman{assumptionRoman}}
+
+\definecolor{mydarkblue}{rgb}{0,0.08,0.45}
+%\usepackage[colorlinks=true,linkcolor=blue]{hyperref} 
+%\hypersetup{ %
+%    colorlinks=true,
+%    linkcolor=mydarkblue,
+%    citecolor=mydarkblue,
+%    filecolor=mydarkblue,
+%    %urlcolor=mydarkblue
+%    }
+\usepackage[capitalize,noabbrev]{cleveref}
+
+
+\usepackage{url}
+\def\UrlBreaks{\do\/\do-}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue
+}
+\AtBeginDocument{%
+  \ifdefined\PrintBib
+    \renewcommand{\PrintBib}{\printbibliography}
+  \else
+    \newcommand{\PrintBib}{\printbibliography}
+  \fi
+}
+
+%mathematical operators
+\newcommand\inner[2]{\left\langle #1, #2 \right\rangle}
+\newcommand{\Norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand\ess[0]{\text{ess}}
+\newcommand{\eqdef}{\coloneqq}  % new
+\newcommand{\PPP}{\mathbf{P}}
+\newcommand{\II}{\mathbf{I}}
+\newcommand{\AAA}{\mathbf{A}}
+\newcommand{\BBB}{\mathbf{B}}
+\newcommand{\CCC}{\mathbf{C}}
+\newcommand{\CC}{\mathbf{C}}
+\newcommand{\BB}{\mathbf{B}}
+% \renewcommand{\sb}[1]{\left[ #1 \right]}
+% \newcommand{\rb}[1]{\left( #1 \right)}
+\newcommand{\pdot}[2]{\left\langle #1 , #2 \right\rangle}
+
+%vectors
+\newcommand{\vectletter}[1]{\boldsymbol{#1}}
+\renewcommand\a[0]{\vectletter{a}}
+\let\accentb\b
+\DeclareRobustCommand{\b}{%
+  \ifmmode
+    \vectletter{b}%
+  \else
+    \accentb
+  \fi}
+\let\accentc\c
+\DeclareRobustCommand{\c}{%
+  \ifmmode
+    \vectletter{c}%
+  \else
+    \accentc
+  \fi}
+\let\accentd\d
+\DeclareRobustCommand{\d}{%
+  \ifmmode
+    \vectletter{d}%
+  \else
+    \accentd
+  \fi}
+\newcommand\e[0]{\vectletter{e}}
+\newcommand\f[0]{\vectletter{f}}
+\newcommand\g[0]{\vectletter{g}}
+\newcommand\h[0]{\vectletter{h}}
+\let\dotlessi\i
+\DeclareRobustCommand{\i}{%
+  \ifmmode
+    \vectletter{i}%
+  \else
+    \dotlessi
+  \fi}
+\let\dotlessj\j
+\DeclareRobustCommand{\j}{%
+  \ifmmode
+    \vectletter{j}%
+  \else
+    \dotlessj
+  \fi}
+\let\accentk\k
+\DeclareRobustCommand{\k}{%
+  \ifmmode
+    \vectletter{k}%
+  \else
+    \accentk
+  \fi}
+\let\strokell\l
+\DeclareRobustCommand{\l}{%
+  \ifmmode
+    \vectletter{l}%
+  \else
+    \strokell
+  \fi}
+\newcommand\m[0]{\vectletter{m}}
+\newcommand\n[0]{\vectletter{n}}
+\let\slashedo\o
+\DeclareRobustCommand{\o}{%
+  \ifmmode
+    \vectletter{o}%
+  \else
+    \slashedo
+  \fi}
+\newcommand\p[0]{\vectletter{p}}
+\newcommand\q[0]{\vectletter{q}}
+\let\accentr\r
+\DeclareRobustCommand{\r}{%
+  \ifmmode
+    \vectletter{r}%
+  \else
+    \accentr
+  \fi}
+\newcommand\s[0]{\vectletter{s}}
+\let\accentt\t
+\DeclareRobustCommand{\t}{%
+  \ifmmode
+    \vectletter{t}%
+  \else
+    \accentt
+  \fi}
+\let\accentu\u
+\DeclareRobustCommand{\u}{%
+  \ifmmode
+    \vectletter{u}%
+  \else
+    \accentu
+  \fi}
+\let\accentv\v
+\DeclareRobustCommand{\v}{%
+  \ifmmode
+    \vectletter{v}%
+  \else
+    \accentv
+  \fi}
+\newcommand\w[0]{\vectletter{w}}
+\newcommand\x[0]{\vectletter{x}}
+\newcommand\y[0]{\vectletter{y}}
+\newcommand\z[0]{\vectletter{z}}
+
+%\newcommand{\ab}{\mathbf{a}}
+\newcommand{\vbb}{\mathbf{v}}
+\newcommand{\abb}{\mathbf{a}}
+
+%cursive letters
+\newcommand\aaa[0]{\mathcal{A}}
+\newcommand\bbb[0]{\mathcal{B}}
+\newcommand\ccc[0]{\mathcal{C}}
+\newcommand\ddd[0]{\mathcal{D}}
+\newcommand\eee[0]{\mathcal{E}}
+\newcommand\fff[0]{\mathcal{F}}
+\renewcommand\ggg[0]{\mathcal{G}}
+\newcommand\hhh[0]{\mathcal{H}}
+\newcommand\iii[0]{\mathcal{I}}
+\newcommand\jjj[0]{\mathcal{J}}
+\newcommand\kkk[0]{\mathcal{K}}
+\renewcommand\lll[0]{\mathcal{L}}
+\newcommand\mmm[0]{\mathcal{M}}
+\newcommand\nnn[0]{\mathcal{N}}
+\newcommand\ooo[0]{\mathcal{O}}
+\newcommand\ppp[0]{\mathcal{P}}
+\newcommand\qqq[0]{\mathcal{Q}}
+\newcommand\rrr[0]{\mathcal{R}}
+\newcommand\sss[0]{\mathcal{S}}
+\newcommand\ttt[0]{\mathcal{T}}
+\newcommand\uuu[0]{\mathcal{U}}
+\newcommand\vvv[0]{\mathcal{V}}
+\newcommand\www[0]{\mathcal{W}}
+\newcommand\xxx[0]{\mathcal{X}}
+\newcommand\yyy[0]{\mathcal{Y}}
+\newcommand\zzz[0]{\mathcal{Z}}
+
+\newcommand\opt[0]{\x^\star}
+
+%brackets
+\newcommand\rb[1]{\left(#1\right)}
+\renewcommand\sb[1]{\left[#1\right]}
+\newcommand\cb[1]{\left\{#1\right\}}
+\newcommand\Exp[0]{\mathbb{E}}
+
+\usepackage[makeroom]{cancel}
+\newcommand{\highlight}[1]{%
+	\colorbox{yellow!50}{$\displaystyle#1$}}
+
+\usepackage{lipsum}
+\newcommand\NoIndent[1]{%
+	\begingroup
+	\par
+	\parshape0
+	#1\par
+	\endgroup
+}
+
+%answer box
+\usepackage[most]{tcolorbox}
+\newcommand{\ans}[1]{
+\NoIndent{\begin{tcolorbox}[breakable, enhanced, width=\textwidth]
+#1
+\end{tcolorbox}}
+%\NoIndent{\hspace{0.2in}\\\fcolorbox{black}{gray!10}{%
+%		\parbox{\textwidth}{\textbf{Solution:} #1 \qed}}\\}
+}
+
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, shapes, calc, patterns, decorations.pathreplacing}
+
+% Modern, softer colors
+\definecolor{convexblue}{RGB}{88, 138, 190}
+\definecolor{thirdgreen}{RGB}{124, 180, 115}
+\definecolor{quadorange}{RGB}{255, 140, 90}
+
+\usepackage{multirow}
+
+\newcommand{\la}{\langle}
+\newcommand{\ra}{\rangle}
+
+% \usepackage[algo2e,ruled]{algorithm2e} 
+\usepackage{algorithm}
+% \usepackage{algorithmic}
+\usepackage{algpseudocode}
+\algnewcommand{\ParFor}[1]{\State \textbf{parallel for }#1\textbf{ do}}
+\algnewcommand{\EndParFor}{\State \textbf{end parallel for}}
+
+
+\commenter{edit}{gray}
+\commenter{suggestion}{blue}

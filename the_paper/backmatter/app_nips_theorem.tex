@@ -1,0 +1,128 @@
+
+
+\theoremnips*
+
+\begin{lemma}
+    Under \Cref{ass:sc_and_smooth,ass:stoch_bounded_moment,ass:bd_optima,ass:zeta_star,ass:phi_star,ass:tau} using $\eta<1/H$ and such that $$\rho_1=\rb{1-\eta\mu}^K + \rb{1-\rb{1-\eta\mu}^K}\frac{4\eta^2H^2\tau^2}{\mu^2}K^2(1-\eta\mu)^{K-2}<1$$ we can get the following convergence guarantee with initialization $x_0=0$,
+    \begin{align*}
+        A(KR) &\leq \rho_1^RB^2 + \frac{1-\rb{1-\eta\mu}^K}{1-\rho_1}\cdot\frac{\eta\sigma^2}{\mu M} + \frac{1-\rb{1-\eta\mu}^K}{1-\rho_1}\cdot\frac{4\eta^2\tau^2H^2K^2(1-\eta\mu)^{K-2} \phi_\star^2}{\mu^2}\\
+        &\quad + \frac{1-(1-\eta\mu)^K}{1-\rho_1}\rb{\frac{2\eta^2 H^4K^2\zeta_\star^2}{\mu^2} + \frac{2\eta^3H^2\tau^2K^2\sigma^2}{\mu^3} + \frac{2\eta^2H^2\sigma^2K\ln(K)}{\mu^2}}\enspace.
+    \end{align*}
+\end{lemma}
+\begin{proof}
+    First recall the round-wise recursion from \Cref{lem:iterate_error_second_recursion} for $r=R$,
+    \begin{align*}
+        A(KR) &\leq \rb{1-\eta\mu}^KA(K(R-1)) + \frac{\eta H^2}{\mu}\sum_{j=K(R-1)}^{KR-1}(1-\eta\mu)^{KR-1-j}C(j)\\
+        &\quad + \rb{1-\rb{1-\eta\mu}^K}\frac{\eta\sigma^2}{\mu M}\enspace,\\
+        &\leq^{\text{(\Cref{lem:consensus_error_second_recursion})}} \rb{1-\eta\mu}^KA(K(R-1)) + \rb{1-\rb{1-\eta\mu}^K}\frac{\eta\sigma^2}{\mu M}\\
+        &\quad \frac{1-(1-\eta\mu)^K}{\mu^2}\rb{2\eta^2 H^4K^2\zeta_\star^2 + \frac{2\eta^3H^2\tau^2K^2\sigma^2}{\mu} + 2\eta^2H^2\sigma^2K\ln(K)}\\
+        &\quad + \frac{1-(1-\eta\mu)^K}{\mu^2}4\eta^2\tau^2H^2K^2(1-\eta\mu)^{K-2}\rb{A(K(r-1)) + \phi_\star^2}\enspace,\\
+        &= \rb{\rb{1-\eta\mu}^K + \rb{1-\rb{1-\eta\mu}^K}\frac{4\eta^2H^2\tau^2}{\mu^2}K^2(1-\eta\mu)^{K-2}}A(K(R-1))\\
+        &\quad + \rb{1-\rb{1-\eta\mu}^K}\frac{\eta\sigma^2}{\mu M}+ \frac{1-(1-\eta\mu)^K}{\mu^2}4\eta^2\tau^2H^2K^2(1-\eta\mu)^{K-2} \phi_\star^2\\
+        &\quad + \frac{1-(1-\eta\mu)^K}{\mu^2}\rb{2\eta^2 H^4K^2\zeta_\star^2 + \frac{2\eta^3H^2\tau^2K^2\sigma^2}{\mu} + 2\eta^2H^2\sigma^2K\ln(K)}\enspace,\\
+        &\leq \rho_1^RB^2 + \frac{1-\rb{1-\eta\mu}^K}{1-\rho_1}\cdot\frac{\eta\sigma^2}{\mu M} + \frac{1-\rb{1-\eta\mu}^K}{1-\rho_1}\cdot\frac{4\eta^2\tau^2H^2K^2(1-\eta\mu)^{K-2} \phi_\star^2}{\mu^2}\\
+        &\quad + \frac{1-(1-\eta\mu)^K}{1-\rho_1}\rb{\frac{2\eta^2 H^4K^2\zeta_\star^2}{\mu^2} + \frac{2\eta^3H^2\tau^2K^2\sigma^2}{\mu^3} + \frac{2\eta^2H^2\sigma^2K\ln(K)}{\mu^2}}\enspace,
+    \end{align*}
+    where we defined $\rho_1=\rb{1-\eta\mu}^K + \rb{1-\rb{1-\eta\mu}^K}\frac{4\eta^2H^2\tau^2}{\mu^2}K^2(1-\eta\mu)^{K-2}$. This proves the lemma. 
+\end{proof}
+We can tune the step-size in the above guarantee, using standard techniques while making sure that $\tau$ is small enough and $K$ is large enough. This gives the following result,
+\begin{lemma}[Strongly Convex Functions Iterate Convergence with $\tau, \zeta_\star, \phi_\star$]\label{lem:UB_Sconvex_wo_Q}
+    Assuming $$R\geq \max\cb{\frac{3H\tau}{\mu^2}\ln\rb{\frac{B^2}{\epsilon}}, \frac{2H\tau}{\mu^2}\ln^{3/2}\rb{\frac{B^2}{\epsilon}}}$$ we can get the following convergence guarantee for local SGD, initializing at $x_0=0$ and optimizing functions satisfying \Cref{ass:sc_and_smooth,ass:stoch_bounded_moment,ass:bd_optima,ass:zeta_star,ass:phi_star,ass:tau},
+    \begin{align*}
+        A(KR) &= \tilde\ooo\rb{e^{-\frac{\mu KR}{2H}}B^2 + \frac{\sigma^2}{\mu^2MKR} + \frac{\tau^2H^2\phi_\star^2}{\mu^4R^2} + \frac{H^4\zeta_\star^2}{\mu^4R^2} + \frac{H^2\tau^2\sigma^2}{\mu^6KR^3} + \frac{H^2\sigma^2\ln(K)}{\mu^4KR^2}}\enspace,
+    \end{align*}
+    where we pick the step-size,
+    \begin{align*}
+        \eta = \min\cb{\frac{1}{2H}, \frac{1}{\mu KR}\ln\rb{\frac{B^2}{\epsilon}}}\enspace,
+    \end{align*}
+    for the choice of $\epsilon$,
+    \begin{align*}
+        \epsilon := \max\cb{\frac{2\sigma^2}{\mu^2MKR}, \frac{8\tau^2H^2\phi_\star^2}{\mu^4R^2}, \frac{4H^4\zeta_\star^2}{\mu^4R^2}, \frac{4H^2\tau^2\sigma^2}{\mu^6KR^3}, \frac{4H^2\sigma^2\ln(K)}{\mu^4KR^2}, \epsilon_{target}}\enspace,
+    \end{align*}
+    where $\epsilon_{target}$ is a target, which is greater than or equal to the machine precision.
+\end{lemma}
+\begin{proof}
+    We will pick our step-size as follows, where we will specify some $\epsilon$ bigger than machine-precision in the end:
+    \begin{align*}
+        \eta = \min\cb{\frac{1}{2H}, \frac{1}{\mu KR}\ln\rb{\frac{B^2}{\epsilon}}}\enspace.
+    \end{align*}
+    We will now derive conditions that are enough to bound $\frac{1-(1-\eta\mu)^K}{1-\rho_1}$ by $2$. Note the following, 
+    \begin{align*}
+        &\frac{1-(1-\eta\mu)^K}{1-\rho_1}\leq 2\enspace,\\
+        &\Leftrightarrow \rho_1 \leq \frac{1 + (1-\eta\mu)^K}{2}\enspace,\\
+        &\Leftrightarrow \rb{1-\rb{1-\eta\mu}^K}\frac{4\eta^2H^2\tau^2}{\mu^2}K^2(1-\eta\mu)^{K-2} \leq \frac{1 - (1-\eta\mu)^K}{2}\enspace,\\
+        &\Leftrightarrow \frac{4\eta^2H^2\tau^2}{\mu^2}K^2(1-\eta\mu)^{K-2} \leq \frac{1}{2}\enspace,\\
+        &\Leftarrow \frac{4H^2\tau^2}{\mu^4 R^2}\ln^2\rb{\frac{B^2}{\epsilon}} \leq \frac{1}{2}\enspace,\\
+        &\Leftarrow R\geq \frac{3H\tau}{\mu^2}\ln\rb{\frac{B^2}{\epsilon}}\enspace,
+    \end{align*}
+    Hence it is sufficient to assume that $\textcolor{red}{R\geq \frac{3H\tau}{\mu^2}\ln\rb{\frac{B^2}{\epsilon}}}$.    
+    % Let us consider two cases, in the first case $\frac{1}{2H}\leq \frac{1}{\mu KR}\ln\rb{\frac{B^2}{\epsilon}}$ and vice-versa in the second case. In the first case, we have,
+    % \begin{align*}
+    %     \rho_1 &\leq \rb{1-\eta\mu}^K + \frac{4\eta^2H^2\tau^2}{\mu^2}K^2(1-\eta\mu)^{K-2}\enspace,\\
+    %     &\leq e^{-\frac{K}{2\kappa}} + \frac{4H^2\tau^2}{\mu^4 R^2}e^{-\frac{K-2}{2\kappa}}\enspace,\\
+    %     &\leq^{\text{(a)}} \frac{1}{4} + \frac{4H^2\tau^2}{\mu^4 R^3}\enspace,\\
+    %     &\leq^{\text{(b)}} \frac{1}{2}\enspace.
+    % \end{align*}
+    % where in (a) we assume $K\geq 2\kappa\ln(4)$; and in (b) we assume $\frac{4H\tau}{\mu^2}\leq R$. Thus, in the first case, we can upper bound $\frac{1-(1-\eta\mu)^K}{1-\rho_1}$ by $2$. The second case is more interesting, but can also be dealt with by first noting that $\eta=\frac{1}{\mu KR}\ln\rb{\frac{B^2}{\epsilon}}$, which implies,
+    % \begin{align*}
+    %     \textcolor{red}{\frac{4\eta^2H^2\tau^2}{\mu}K^2(1-\eta\mu)^{K-2}} &\leq \frac{4\eta^2H^2\tau^2}{\mu}K^2\enspace,\\
+    %     &= \frac{4H^2\tau^2}{\mu^4R^2}\ln^2\rb{\frac{B^2}{\epsilon}}\enspace,\\
+    %     &\leq^{\text{(a)}} \frac{1}{4R}\ln\rb{\frac{B^2}{\epsilon}}\enspace,\\
+    %     &\leq^{\text{(b)}} \frac{1}{2}\rb{1 - \rb{1-\frac{1}{KR}\ln\rb{\frac{B^2}{\epsilon}}}^K}\enspace,\\
+    %     &= \textcolor{red}{\frac{1 - (1-\eta\mu)^K}{2}}\enspace,
+    % \end{align*}
+    % where to get (a), we will assume $\frac{16H^2\tau^2}{\mu^4}\ln\rb{\frac{B^2}{\epsilon}}\leq R$; and for (b), we assume that $\ln\rb{\frac{B^2}{\epsilon}}\leq R$ and the fact that for $K\geq 2$ and $a\in(0,1)$,
+    % \begin{align*}
+    %     \frac{a}{2} \leq 1 - \rb{1-\frac{a}{K}}^{K}\enspace.
+    % \end{align*}
+    % Now using the \textcolor{red}{red} inequality we get in the second case,
+    % \begin{align*}
+    %     1-\rho_1 &\geq 1-(1-\eta\mu)^K - \frac{4\eta^2H^2\tau^2}{\mu^2}K^2(1-\eta\mu)^{K-2}\enspace,\\
+    %     &\geq \frac{1 - (1-\eta\mu)^K}{2}\enspace,
+    % \end{align*}
+    % which implies that in the second case as well,
+    % \begin{align*}
+    %     \frac{1 - (1-\eta\mu)^K}{1-\rho_1} \leq 2\enspace.
+    % \end{align*}
+    This allows us to simplify the convergence rate from the previous lemma as follows,
+    \begin{align*}
+        A(KR) &\leq \rho_1^RB^2 + \frac{2\eta\sigma^2}{\mu M} + \frac{8\eta^2\tau^2H^2K^2(1-\eta\mu)^{K-2} \phi_\star^2}{\mu^2}\\
+        &\quad + \frac{4\eta^2 H^4K^2\zeta_\star^2}{\mu^2} + \frac{4\eta^3H^2\tau^2K^2\sigma^2}{\mu^3} + \frac{4\eta^2H^2\sigma^2K\ln(K)}{\mu^2}\enspace,\\
+        &\leq \rho_1^RB^2 + \frac{2\eta\sigma^2}{\mu M} + \frac{8\eta^2\tau^2H^2K^2\phi_\star^2}{\mu^2}+ \frac{4\eta^2 H^4K^2\zeta_\star^2}{\mu^2} + \frac{4\eta^3H^2\tau^2K^2\sigma^2}{\mu^3}\\
+        &\quad + \frac{4\eta^2H^2\sigma^2K\ln(K)}{\mu^2}\enspace.
+    \end{align*}
+    Now, let us upper bound the exponential term more carefully. Recall that due to the choice of our step-size, as we used this before,
+    \begin{align*}
+        \rho_1 &=  \rb{1-\eta\mu}^K + \rb{1-\rb{1-\eta\mu}^K}\frac{4\eta^2H^2\tau^2}{\mu^2}K^2(1-\eta\mu)^{K-2}\enspace,\\
+        &\leq^{\text{(a)}} \rb{1-\eta\mu}^K + \eta\mu K\frac{4\eta^2H^2\tau^2}{\mu^2}K^2(1-\eta\mu)^{K-2}\enspace,\\
+        &\leq \rb{1-\eta\mu}^K + \frac{4H^2\tau^2}{\mu^4R^3}\ln^3\rb{\frac{B^2}{\epsilon}}(1-\eta\mu)^{K-2}\enspace,\\
+        &\leq \rb{1-\eta\mu}^{K-2} + \frac{4H^2\tau^2}{\mu^4R^3}\ln^3\rb{\frac{B^2}{\epsilon}}(1-\eta\mu)^{K-2}\enspace,\\
+        &\leq \rb{1 +  \frac{4H^2\tau^2}{\mu^4R^3}\ln^3\rb{\frac{B^2}{\epsilon}}}\rb{1-\eta\mu}^{K-2}\enspace,\\
+        &\leq e^{-\eta\mu(K-2) + \frac{4H^2\tau^2}{\mu^4R^3}\ln^3\rb{\frac{B^2}{\epsilon}}}. 
+    \end{align*}
+    where in (a) we use Bernoulli's inequality, and the choice of the step-size which implies that $\eta\mu < 1$. 
+    Assuming $K\geq 4$, and raising the power of both sides to $R$ gives us,
+    \begin{align*}
+        \rho_1^R &\leq e^{-\frac{\eta\mu KR}{2} + \frac{4H^2\tau^2}{\mu^4R^2}\ln^3\rb{\frac{B^2}{\epsilon}}},\\
+        &\leq^{\text{(a)}} e^{-\frac{\eta\mu KR}{2} + 1}\enspace,
+    \end{align*}
+    where in (a) we assumed that \textcolor{red}{$R\geq \frac{2H\tau}{\mu^2}\ln^{3/2}\rb{\frac{B^2}{\epsilon}}$}. Finally, we will pick the $\epsilon$ as follows,
+    \begin{align*}
+        \epsilon := \max\cb{\frac{2\sigma^2}{\mu^2MKR}, \frac{8\tau^2H^2\phi_\star^2}{\mu^4R^2}, \frac{4H^4\zeta_\star^2}{\mu^4R^2}, \frac{4H^2\tau^2\sigma^2}{\mu^6KR^3}, \frac{4H^2\sigma^2\ln(K)}{\mu^4KR^2}, \epsilon_{target}}\enspace,
+    \end{align*}
+    where $\epsilon_{target}$ is a target, which is greater than or equal to the machine precision (say, floating point precision), thus implying that $\ln\rb{\frac{B^2}{\epsilon}}$ is a numerical constant. We note two things that justify that choice of this step-size,
+    \begin{itemize}
+        \item The largest $\epsilon$ will lead to the step size we end up using, an in particular determine govern which term dominates the convergence rate. For instance, let us assume that $\epsilon = \frac{2\sigma^2}{\mu^2 MKR}$. Furthermore, let $\frac{1}{2H}\geq \frac{1}{\mu KR}\ln\rb{\frac{B^2}{\epsilon}}$ which implies that $e^{-\frac{\mu KR}{2H}} \leq \frac{2\sigma^2}{\mu^2 MKR}$. With $\eta = \frac{1}{\mu KR}\ln\rb{\frac{B^2}{\epsilon}}$, this makes the convergence rate,
+        \begin{align*}
+            A(KR) \leq \frac{2\sigma^2}{\mu^2 MKR} + \frac{2\sigma^2}{\mu^2 MKR}\ln\rb{\frac{B^2}{\frac{2\sigma^2}{\mu^2 MKR}}} = \tilde\ooo\rb{e^{-\frac{\mu KR}{2H}} + \frac{\sigma^2}{\mu^2 MKR}}\enspace.
+        \end{align*}
+        \item On the other hand if $\frac{1}{2H}\leq \frac{1}{\mu KR}\ln\rb{\frac{B^2}{\epsilon}}$, then it implies that, $e^{-\frac{\mu KR}{2H}} \geq \frac{2\sigma^2}{\mu^2 MKR}$, which makes the convergence rate,
+        \begin{align*}
+            A(KR) \leq e^{-\frac{\mu KR}{2H}} + \frac{\sigma^2}{\mu HM} =  \tilde\ooo\rb{e^{-\frac{\mu KR}{2H}} + \frac{\sigma^2}{\mu^2 MKR}}\enspace.
+        \end{align*}
+    \end{itemize}
+    Using the above logic for all possible choices of $\epsilon$ (ant thus $\eta$) allows us to give the following convergence rate,
+    \begin{align*}
+        A(KR) &= \tilde\ooo\rb{e^{-\frac{\mu KR}{2H}}B^2 + \frac{\sigma^2}{\mu^2MKR} + \frac{\tau^2H^2\phi_\star^2}{\mu^4R^2} + \frac{H^4\zeta_\star^2}{\mu^4R^2} + \frac{H^2\tau^2\sigma^2}{\mu^6KR^3} + \frac{H^2\sigma^2\ln(K)}{\mu^4KR^2}}\enspace.
+    \end{align*}
+\end{proof}

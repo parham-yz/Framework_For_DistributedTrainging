@@ -1,0 +1,822 @@
+%% an example of appendix
+\appendix
+\makeatletter
+\newcommand{\appendixtableofcontents}{%
+  \chapter*{Appendix Contents}%
+  \addcontentsline{toc}{chapter}{Appendix Contents}%
+  \@starttoc{app}}
+\makeatother
+
+\newcommand{\appchapter}[1]{%
+  \chapter{#1}%
+  \addcontentsline{app}{chapter}{\protect\numberline{\thechapter}#1}}
+
+\let\origsection\section
+\newcommand{\appsection}[1]{%
+  \origsection{#1}%
+  \addcontentsline{app}{section}{\protect\numberline{\thesection}#1}}
+
+\appendixtableofcontents
+
+\appchapter{Missing Proofs for Chapter \ref{chap:coordinate_descent}}
+\label{section:clarifying_the_assumtpoions_and_coeficients}
+
+\begin{lemma}
+    \label{lem:gradient_related_appendix}
+    Suppose the function \( f: \mathbb{R}^N \to \mathbb{R} \) satisfies Assumption~\ref{assumption:coordinatewise-strong-convexity}. Let \(\mathbf{h} \in \mathbb{R}^N\) be a vector such that for all \(i\) and any $\alpha_i>0 ,\;\forall i$, \[\norm{\nabla_i f(\mathbf{x} + U_i (\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)})) -\lambda_i (\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)})}\le \delta_i \le \alpha_i\norm{\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)}}.\] Then, for any \(\theta \in [0,1]\) and for all \(i\), the following inequality holds:
+\begin{equation}
+        \label{eq:gradient_related_appendix}
+        \langle \nabla_i f(\mathbf{x} + \theta U_i (\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)})),   \mathbf{x}_t^{(i)} - \hat{\mathbf{x}}_{t+1}^{(i)}\rangle \ge \left(\lambda_i-\alpha_i+\mu_i (1 - \theta) \right)\|\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)}\|^2,
+    \end{equation}    where \(\mu_i \) is the block-wise strong convexity parameter from Assumption~\ref{assumption:coordinatewise-strong-convexity}.
+\end{lemma}
+
+ \begin{proof}
+\begin{align*}
+    &\langle \nabla_i f(\mathbf{x} + \theta U_i (\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)})), \hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)} \rangle \\
+    &= \langle \nabla_i f(\mathbf{x} + \theta U_i (\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)})) - \nabla_i f(\mathbf{x} + U_i (\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)})) - \lambda_i (\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)}), \hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)} \rangle \\
+    &\quad +\langle \nabla_i f(\mathbf{x} + U_i (\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)})) + \lambda_i (\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)}), \hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)} \rangle \\
+    &= \langle \nabla_i f(\mathbf{x} + \theta U_i (\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)})) - \nabla_i f(\mathbf{x} + U_i (\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)})) - \lambda_i (\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)}), \hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)} \rangle \\
+    &\quad +\norm{ \nabla_i f(\mathbf{x} + U_i (\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)})) + \lambda_i (\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)}) } \norm{ \hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)} } \\
+    &= -\langle \nabla_i f(\mathbf{x} + U_i (\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)})) - \nabla_i f(\mathbf{x} + \theta U_i (\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)})), \hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)} \rangle -( \lambda_i -\rho'_i) \norm{ \hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)} }^2 \\
+    &= -\frac{1}{1-\theta} \langle \nabla_i f(\mathbf{x} + U_i (\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)})) - \nabla_i f(\mathbf{x} + \theta U_i (\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)})), (1-\theta) (\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)}) \rangle - ( \lambda_i -\rho'_i) \norm{ \hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)} }^2 \\
+    &\leq -\frac{\mu_i}{1-\theta} \norm{ (1-\theta) (\hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)}) }^2 - ( \lambda_i -\rho'_i) \norm{ \hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)} }^2 \\
+    &\leq -\mu_i (1-\theta) \norm{ \hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)} }^2 - ( \lambda_i -\rho'_i) \norm{ \hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)} }^2
+\end{align*}
+\end{proof}
+
+
+\appsection{Proof of Theorem \ref{theorem:non-convex-convergence}}
+
+\begin{lemma}
+\label{lem:smoothness_upperbound}
+Suppose the function $f$ satisfies Assumption~\ref{assumption:Multi-coordinate-smoothness} (Coordinate-wise complement smoothness). Then, for a vector $\hh \in \mathbb{R}^N$ and $\bar L_{\max} = \max_i \bar L_i$,
+    \begin{equation}
+        f(\xx + \hh) \le f(\xx) + \sum_{i=1}^n \int_0^1 \langle \nabla_i f(\xx + t U_i \hh^{(i)}), \hh^{(i)} \rangle \, dt + \frac{\sqrt{n} \bar L_{\max}}{2} \| \hh \|^2.
+    \end{equation}
+\end{lemma}
+\begin{proof}
+By integration along the line segment from $\xx$ to $\xx + \hh$, we have
+\begin{align*}
+f(\xx + \hh) - f(\xx) &= \int_0^1 \langle \nabla f(\xx + t \hh), \hh \rangle \, dt \\
+&= \sum_{i=1}^n \int_0^1 \langle \nabla_i f(\xx + t \hh), \hh^{(i)} \rangle \, dt,
+\end{align*}
+where the second equality follows from $\hh = \sum_{i=1}^n U_i \hh^{(i)}$. For each term, we decompose as follows:
+\begin{align*}
+\langle \nabla_i f(\xx + t \hh), \hh^{(i)} \rangle &= \langle \nabla_i f(\xx + t U_i \hh^{(i)}), \hh^{(i)} \rangle + \langle \nabla_i f(\xx + t \hh) - \nabla_i f(\xx + t U_i \hh^{(i)}), \hh^{(i)} \rangle \\
+&\le \langle \nabla_i f(\xx + t U_i \hh^{(i)}), \hh^{(i)} \rangle + \| \nabla_i f(\xx + t \hh) - \nabla_i f(\xx + t U_i \hh^{(i)}) \| \| \hh^{(i)} \|\\
+&\le \langle \nabla_i f(\xx + t U_i \hh^{(i)}), \hh^{(i)} \rangle + \bar L_it \|  \hh^{(-i)} \| \| \hh^{(i)} \| 
+\end{align*}
+
+
+where $\hh^{(-i)} = \sum_{j \ne i} U_j \hh^{(j)}$ .Thus,
+\begin{align*}
+f(\xx + \hh) - f(\xx) &= \sum_{i=1}^n \int_0^1 \langle \nabla_i f(\xx + t \hh), \hh^{(i)} \rangle \, dt \\
+&\le \sum_{i=1}^n \int_0^1 \langle \nabla_i f(\xx + t U_i \hh^{(i)}), \hh^{(i)} \rangle \, dt + \sum_{i=1}^n \int_0^1 \bar L_i t \| \hh^{(-i)} \|  \| \hh^{(i)} \| \, dt \\
+&= \sum_{i=1}^n \int_0^1 \langle \nabla_i f(\xx + t U_i \hh^{(i)}), \hh^{(i)} \rangle \, dt + \sum_{i=1}^n \frac{\bar L_i}{2} \| \hh^{(-i)} \| \| \hh^{(i)} \|\\
+&\le \sum_{i=1}^n \int_0^1 \langle \nabla_i f(\xx + t U_i \hh^{(i)}), \hh^{(i)} \rangle \, dt + \frac{\bar L_{\max}}{2} \sqrt{n} \, \| \hh \|^2.
+\end{align*}
+
+Where the last inequality is resulted from bounding the second sum, 
+\begin{align*}
+\sum_{i=1}^n \| \hh^{(-i)} \|  \| \hh^{(i)} \| &\le \sqrt{ \sum_{i=1}^n \| \hh^{(-i)} \|^2 }  \sqrt{ \sum_{i=1}^n \| \hh^{(i)} \|^2 } && \text{(Cauchy--Schwarz)} \\
+&= \sqrt{ (n-1) \| \hh \|^2 }  \| \hh \| &&  \\
+&= \sqrt{n-1} \, \| \hh \|^2.
+\end{align*}
+Approximating $\sqrt{n-1} \le \sqrt{n}$ and using $\bar L_i \le \bar L_{\max}$, we obtain
+\begin{align*}
+\sum_{i=1}^n \frac{\bar L_i}{2} \| \hh^{(-i)} \|  \| \hh^{(i)} \| &\le \frac{\bar L_{\max}}{2} \sqrt{n} \, \| \hh \|^2.
+\end{align*}
+This completes the proof.
+\end{proof}
+
+
+
+\begin{theorem}
+\label{theorem:communication_complexity_realisitic_method_appendix}
+Suppose the function $f$ satisfies Assumptions~\ref{assumption:Coordinatewise-smoothness} and~\ref{assumption:Multi-coordinate-smoothness}, and is coordinate-wise convex. Then, for the sequence $\mathbf{x}_t$ generated by Algorithm~\ref{alg:prox_bcd} with $\gamma = 1$, $\lambda_i = \sqrt{n} \, \bar{L}_{\max}$,  and accuracy $\delta_i = \frac{1}{4}\lambda_i\norm{ \hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)} } = \frac{1}{4}\sqrt{n} \bar{L}_{\max}\norm{ \hat{\mathbf{x}}_{t+1}^{(i)} - \mathbf{x}_t^{(i)} }$ for all $i$, we have
+\[
+\frac{1}{T} \sum_{t=1}^T \|\nabla f(\xx_t)\|^2 \leq \frac{ 4\sqrt{n} \, \bar{L}_{\max}}{T } [f(\xx_0) - f(\xx^\star)].
+\]
+
+
+
+\begin{proof}
+    
+
+
+From Lemma \ref{lem:smoothness_upperbound}, 
+
+\begin{align*}
+ f(\xx_{t+1}) - f(\xx_t) &\leq  + \gamma \sum_{i=1}^n \int_0^1 \langle \nabla_i f(\xx_t + t \gamma (\hat \xx_{t+1}^{(i)} - \xx_t^{(i)}) ), \hat \xx_{t+1}^{(i)} - \xx_t^{(i)} \rangle \, dt  + \frac{\sqrt{n} \bar L_{\max}}{2} \gamma^2 \|\hat \xx_{t+1} - \xx_t \|^2 \\
+ &\le - \gamma \sum_{i=1}^n \left(1-\frac{1}{4}\right)\lambda_i \norm{\hat \xx_{t+1}^{(i)} - \xx_t^{(i)}}^2  + \frac{\sqrt{n} \bar L_{\max}}{2} \gamma^2 \|\hat \xx_{t+1} - \xx_t \|^2 \\
+ &\le\gamma \left(  \gamma \frac{\sqrt{n} \bar L_{\max}}{2}-\left(1-\frac{1}{4}\right)\lambda_{\min}\right) \left\| \hat \xx_{t+1} - \xx_t \right\|^2 \\
+ &=  \left(   \frac{\sqrt{n} \bar L_{\max}}{2}-\left(1-\frac{1}{4}\right)\lambda_{\min}\right) \left\| \hat \xx_{t+1} - \xx_t \right\|^2 \\
+\end{align*}
+
+Using Lemma \textup{(gradient upper bound, stated in the main text)} and substituting $\lambda_i = \sqrt{n}\bar L_{\max}$ we have,
+\begin{align*}
+ f(\xx_{t+1}) - f(\xx_t) &\le - \frac{  \frac{\sqrt{n} \bar L_{\max}}{2}-\left(1-\frac{1}{4}\right)\lambda_{\min}}{\sum_{i=1}^n \bar L_i^2  + \max_i\{\lambda_i\}^2 } \left\| \nabla f(\xx_{t+1})\right\|^2 \\
+ & \le - \frac{\frac{1}{4}}{\sqrt{n} \bar L_{\max}} \left\| \nabla f(\xx_{t+1})\right\|^2 \\
+\end{align*}
+
+Summing over $t = 0$ to $T-1$,
+\[
+f(\xx_T) - f(\xx_0) \leq - \frac{\frac{1}{4}}{ \sqrt{n} \, \bar{L}_{\max}} \sum_{t=0}^{T-1} \|\nabla f(\xx_{t+1})\|^2,
+\]
+\[
+\sum_{t=1}^T \|\nabla f(\xx_t)\|^2 \leq \frac{\sqrt{n} \, \bar{L}_{\max}}{\frac{1}{4}} [f(\xx_0) - f(\xx_T)] \leq \frac{\sqrt{n} \, \bar{L}_{\max}}{\frac{1}{4}} [f(\xx_0) - f(\xx^\star)].
+\]
+Therefore,
+\[
+\frac{1}{T} \sum_{t=1}^T \|\nabla f(\xx_t)\|^2 \leq \frac{ \sqrt{n} \, \bar{L}_{\max}}{T \cdot \frac{1}{4}} [f(\xx_0) - f(\xx^\star)].
+\]
+
+\end{proof}
+\end{theorem}
+
+\begin{theorem}
+Suppose the function $f$ satisfies Assumptions~\ref{assumption:Coordinatewise-smoothness} and~\ref{assumption:Multi-coordinate-smoothness}, is coordinate-wise strongly convex with parameter $\mu_{\min}$, and satisfies the PL condition in Assumption~\ref{assumption:PL-condition} with parameter $\mu > 0$. 
+
+Then, for the sequence $\xx_t$ generated by Algorithm 1 with $\gamma = 1$ and $\lambda_i = \sqrt{n} \, \bar{L}_{\max}$ for all $i$, we have
+\[
+f(\xx_{t+1}) - f^\star \leq \left( \frac{2\sqrt{n} \, \bar{L}_{\max}}{\mu + 2\sqrt{n} \, \bar{L}_{\max}} \right) [f(\xx_t) - f^\star].
+\]
+\end{theorem}
+
+\begin{proof}
+From Lemma \ref{lem:smoothness_upperbound}, 
+
+\begin{align*}
+ f(\xx_{t+1}) - f(\xx_t) &\leq  + \gamma \sum_{i=1}^n \int_0^1 \langle \nabla_i f(\xx_t + t \gamma (\hat \xx_{t+1}^{(i)} - \xx_t^{(i)}) ), \hat \xx_{t+1}^{(i)} - \xx_t^{(i)} \rangle \, dt  + \frac{\sqrt{n} \bar L_{\max}}{2} \gamma^2 \|\hat \xx_{t+1} - \xx_t \|^2 \\
+ &\le - \gamma \sum_{i=1}^n \left(1-\frac{1}{4}\right)\lambda_i \norm{\hat \xx_{t+1}^{(i)} - \xx_t^{(i)}}^2  + \frac{\sqrt{n} \bar L_{\max}}{2} \gamma^2 \|\hat \xx_{t+1} - \xx_t \|^2 \\
+ &\le\gamma \left(  \gamma \frac{\sqrt{n} \bar L_{\max}}{2}-\left(1-\frac{1}{4}\right)\lambda_{\min}\right) \left\| \hat \xx_{t+1} - \xx_t \right\|^2 \\
+ &=  \left(   \frac{\sqrt{n} \bar L_{\max}}{2}-\left(1-\frac{1}{4}\right)\lambda_{\min}\right) \left\| \hat \xx_{t+1} - \xx_t \right\|^2 \\
+\end{align*}
+
+Using Lemma \textup{(gradient upper bound, stated in the main text)} and substituting $\lambda_i = \sqrt{n}\bar L_{\max}$ we have,
+\begin{align*}
+ f(\xx_{t+1}) - f(\xx_t) &\le - \frac{  \frac{\sqrt{n} \bar L_{\max}}{2}-\left(1-\frac{1}{4}\right)\lambda_{\min}}{\sum_{i=1}^n \bar L_i^2  + \max_i\{\lambda_i\}^2 } \left\| \nabla f(\xx_{t+1})\right\|^2 \\
+ & \le - \frac{\frac{1}{4}}{\sqrt{n} \bar L_{\max}} \left\| \nabla f(\xx_{t+1})\right\|^2 \\
+\end{align*}
+By the decrease inequality for the proximal subproblems (see main text) and choosing $\lambda_i = \sqrt{n} \, \bar{L}_{\max}$ for all $i$, we obtain $\lambda_{\min} = \sqrt{n} \, \bar{L}_{\max}$
+\begin{align*}
+    f(\xx_t) - f(\xx_{t+1}) & \geq \gamma \left(\lambda_{\min} - \gamma^2 \frac{\sqrt{n} \bar{L}_{\max}}{2}\right) \left\| \hat{\xx}_{t+1} - \xx_t \right\|^2\\
+    &=\frac{\sqrt{n} \, \bar{L}_{\max} }{2} \|\hat{\xx}_{t+1} - \xx_t\|^2
+\end{align*}
+
+
+By the same gradient upper bound,
+\[
+\|\nabla f(\xx_{t+1})\|^2 \leq \gamma^2 \sum_{i=1}^n \bar{L}_i^2 \|\hat{\xx}_{t+1} - \xx_t\|^2 + \sum_{i=1}^n (L_i (1 - \gamma) + \lambda_i)^2 \|\hat{\xx}^{(i)}_{t+1} - \xx^{(i)}_t\|^2.
+\]
+We eliminate $L_i$ by choosing $\gamma = 1$,
+\[
+\|\nabla f(\xx_{t+1})\|^2 \leq \sum_{i=1}^n \bar{L}_i^2 \|\hat{\xx}_{t+1} - \xx_t\|^2 + \sum_{i=1}^n \lambda_i^2 \|\hat{\xx}^{(i)}_{t+1} - \xx^{(i)}_t\|^2 \leq \left( \sum_{i=1}^n \bar{L}_i^2 + \max_i \lambda_i^2 \right) \|\hat{\xx}_{t+1} - \xx_t\|^2.
+\]
+Bounding $\sum_{i=1}^n \bar{L}_i^2 \leq n \bar{L}_{\max}^2$ and $\max_i \lambda_i^2 = n \bar{L}_{\max}^2$,
+\[
+\|\nabla f(\xx_{t+1})\|^2 \leq 2 n \bar{L}_{\max}^2 \|\hat{\xx}_{t+1} - \xx_t\|^2.
+\]
+Thus,
+\[
+\|\hat{\xx}_{t+1} - \xx_t\|^2 \geq \frac{\|\nabla f(\xx_{t+1})\|^2}{2 n \bar{L}_{\max}^2}.
+\]
+Substituting back,
+\[
+f(\xx_t) - f(\xx_{t+1}) \geq \frac{\sqrt{n} \, \bar{L}_{\max} }{2} \cdot \frac{\|\nabla f(\xx_{t+1})\|^2}{2 n \bar{L}_{\max}^2} = \frac{\sqrt{n} \, \bar{L}_{\max} }{4 n \bar{L}_{\max}^2} \|\nabla f(\xx_{t+1})\|^2.
+\]
+By the PL condition in Assumption~\ref{assumption:PL-condition}, we have $\|\nabla f(\xx_{t+1})\|^2 \geq 2\mu [f(\xx_{t+1}) - f^\star]$, so
+\[
+f(\xx_t) - f(\xx_{t+1}) \geq \frac{1 }{4 \sqrt{n} \, \bar{L}_{\max}} \cdot 2\mu [f(\xx_{t+1}) - f^\star] = \frac{\mu }{2 \sqrt{n} \, \bar{L}_{\max}} [f(\xx_{t+1}) - f^\star].
+\]
+Let $\alpha = \frac{\mu }{2 \sqrt{n} \, \bar{L}_{\max}}$. Then
+\[
+f(\xx_t) - f^\star - [f(\xx_{t+1}) - f^\star] \geq \alpha [f(\xx_{t+1}) - f^\star],
+\]
+\[
+f(\xx_t) - f^\star \geq (1 + \alpha) [f(\xx_{t+1}) - f^\star],
+\]
+\[
+f(\xx_{t+1}) - f^\star \leq \frac{1}{1 + \alpha} [f(\xx_t) - f^\star] = \left( \frac{2\sqrt{n} \, \bar{L}_{\max}}{\mu + 2\sqrt{n} \, \bar{L}_{\max}} \right) [f(\xx_t) - f^\star].
+\]
+
+\end{proof}
+
+\appchapter{Missing Proofs for Chapter \ref{chap:decoupled_gradient_descent_ascent}}
+
+\appsection{Ghost-SGDA and additional non-convex experiments}\label{sec: ghost}
+In addition to the main Decoupled SGDA algorithm, we also considered variants where each player maintains an auxiliary \emph{ghost sequence} that tracks an estimate of the opponent's parameters between communication rounds. These Ghost-SGDA variants follow the same communication pattern as Decoupled SGDA but use the ghost variables to form more informed local gradients. A detailed empirical study of these variants, including extra trajectories for the non-convex Toy GAN game, is left for future work; here we only summarize the main idea so that the references in Chapter~\ref{chap:decoupled_gradient_descent_ascent} remain self-contained.
+
+\input{backmatter/additional_experiments}
+
+\appsection{Extension to $N$-player games}\label{app:n_player_setting}
+In the main text we focused on the two-player setting to keep the presentation simple. The generalization of Decoupled SGDA to $N$ players follows the same idea: each player performs several local gradient steps using only its own reliable gradients, and all players synchronize their parameters after every communication round. For completeness, we summarize the $N$-player version below.
+
+\begin{algorithm}[tb!]
+\caption{Decoupled SGDA for $N$-player games}\label{alg:N-player-games}
+\begin{algorithmic}[1]
+    \State \textbf{Input:} step size $\gamma$, initialization $\xx_0 = (\xx_0^{(1)},\dots,\xx_0^{(N)})$, number of rounds $R$, local steps $K$
+    \For{$r \in \{1,\dots,R\}$}
+        \State Set local copies $\xx_0^{(i,r)} \gets \xx_{r-1}$ for all players $i \in \{1,\dots,N\}$
+        \For{$t \in \{0,\dots,K-1\}$}
+            \For{each player $i \in \{1,\dots,N\}$ \textbf{in parallel}}
+                \State Update local parameters using only player-$i$ gradients (and fixed copies of the others), e.g.
+                \[
+                    \xx_{t+1}^{(i,r)} \gets \xx_{t}^{(i,r)} - \gamma\, G_i\bigl(\xx_{t}^{(i,r)},\xi_t\bigr),
+                \]
+                where $G_i$ is the stochastic gradient oracle for player $i$.
+            \EndFor
+        \EndFor
+        \State \textbf{Communicate:} aggregate the local parameters, e.g.\ set
+        \[
+            \xx_r \gets \frac{1}{N} \sum_{i=1}^N \xx_{K}^{(i,r)}.
+        \]
+    \EndFor
+\end{algorithmic}
+\end{algorithm}
+
+
+\begin{lemma}\label{lemma: recursion}
+    Let $\{r_t\}_{t>0}$ be a sequence of numbers satisfying: 
+    \begin{align*}
+        r_{t+1} \leq (1-a\gamma) r_t + \gamma b
+    \end{align*}
+    for constants $a,\gamma,b >0$ assuming $a \gamma < 1$. After unrolling the recursion $K$ times we get: 
+    \begin{align}
+        r_K \leq (1-a\gamma)^K + \frac{b}{a}
+    \end{align}
+\end{lemma}
+
+\begin{proof}
+    \begin{align*}
+        r_K &\leq (1-a\gamma)^K + \sum_{i=0}^{K-1} (1-a\gamma)^i \gamma b \\
+        &\leq (1-a\gamma)^K + \sum_{i=0}^{\infty} (1-a\gamma)^i \gamma b \leq (1-a\gamma)^K + \frac{ b}{a }
+    \end{align*}
+\end{proof}
+
+\begin{lemma}\label{lemma: relation between different Ls}
+    For the parameters $L,\bar L$ and $L_c$ from Assumptions \ref{assumption: L and L bar} and \ref{assumption:L_c}, we can say $L_c \leq L$ and $\bar L \leq L$.
+\end{lemma}
+\begin{proof}
+    Recall that: 
+    \begin{align*}
+        &\Norm{F(\xx) - F(\xx')}_* \leq L \Norm{\xx - \xx'}   \\
+        &\Norm{F_{\bar \xx}(\xx) - F_{\bar \xx}(\xx')}_* \leq \bar L \Norm{\xx - \xx'}  \\
+        &\Norm{F_{\bar \xx}(\xx) - F(\xx)}_* \leq L_c \Norm{\xx - \bar \xx} 
+    \end{align*}
+    we start with the definition of the $\Norm{F_{\bar \xx}(\xx) - F(\xx)}_* $: 
+    \begin{align*}
+        \Norm{F_{\bar \xx}(\xx) - F(\xx)}^2_* &= \frac{1}{\alpha_u} \norm{\nabla_u f(\uu,\vv) - \nabla_u f(\uu,\bar \vv)}_{u,*}^2 + \frac{1}{\alpha_v} \norm{\nabla_v f(\uu,\vv) - \nabla_v f(\bar \uu, \vv)}_{v,*}^2 \\
+        &\leq \frac{1}{\alpha_u} \norm{\nabla_u f(\uu,\vv) - \nabla_u f(\uu,\bar \vv)}_{u,*}^2 + \frac{1}{\alpha_v} \norm{\nabla_v f(\uu,\vv) - \nabla_v f(\uu,\bar \vv)}_{v,*}^2 \\
+        &+\frac{1}{\alpha_v}\norm{\nabla_v f(\uu,\vv) - \nabla_v f(\bar \uu, \vv)}_{v,*}^2 + \frac{1}{\alpha_u}\norm{\nabla_u f(\uu,\vv) - \nabla_u f(\bar \uu, \vv)}_{u,*}^2\\
+        &= \norm{F(\uu,\vv) - F(\uu,\bar \vv)}^2_* + \norm{F(\uu,\vv) - F(\bar \uu, \vv)}^2_* \\
+        &\leq L^2 \alpha_v \norm{\vv - \bar \vv}^2_v + L^2 \alpha_u \norm{\uu - \bar \uu}^2_u = L^2 \norm{\xx - \bar \xx}^2
+    \end{align*}
+    which means that we can upper bound $\Norm{F_{\bar \xx}(\xx) - F(\xx)}^2_*$ by the constant $L$ at the worst case. However, the constant $L_c$ that we use can be much smaller. Next, for the the inequality $\Norm{F_{\bar \xx}(\xx) - F_{\bar \xx}(\xx')}_*$ we have: 
+    \begin{align*}
+        \Norm{F_{\bar \xx}(\xx) - F_{\bar \xx}(\xx')}_* &= \frac{1}{\alpha_u} \norm{\nabla_u f(\uu,\bar \vv) - \nabla_u f(\uu',\bar \vv)}^2_{u,*} + \frac{1}{\alpha_v} \norm{\nabla_v f(\bar \uu,\vv) - \nabla_v f(\bar \uu,\vv')}^2_{v,*} \\
+        &\leq \frac{1}{\alpha_u} \norm{\nabla_u f(\uu,\bar \vv) - \nabla_u f(\uu',\bar \vv)}^2_{u,*} + \frac{1}{\alpha_v}\norm{\nabla_v f(\uu,\bar \vv) - \nabla_v f(\uu',\bar \vv)}^2_{v ,*} \\
+        &+ \frac{1}{\alpha_v} \norm{\nabla_v f(\bar \uu,\vv) - \nabla_v f(\bar \uu,\vv')}^2_{v,*} + \frac{1}{\alpha_u} \norm{\nabla_u f(\bar \uu,\vv) - \nabla_u f(\bar \uu,\vv')}^2_{u,*}\\
+        &= \norm{F(\uu,\bar \vv) - F(\uu',\bar \vv)}^2_* + \norm{F(\bar \uu,\vv) - F(\bar \uu,\vv')}^2_* \\
+        &\leq L^2 \alpha_u \norm{\uu - \uu'}^2_u +  L^2 \alpha_v \norm{\vv - \vv'}^2_v = L^2 \norm{\xx - \xx'}
+    \end{align*}
+	    which means we can upper bound $\Norm{F_{\bar \xx}(\xx) - F_{\bar \xx}(\xx')}_*$ by the constant $L$ in the worst case. However, the constant $\bar L$ can be much smaller. 
+	\end{proof}
+
+\begin{table}[t]
+\centering
+\caption{Notation for two-player smoothness and curvature parameters.}
+\label{tab:two_player_L_mu_terms}
+\begin{tabular}{ll}
+\toprule
+Symbol & Description \\
+\midrule
+$\mu_u, \mu_v$ & Strong convexity/concavity of $f$ in $u$ and $v$ \\
+$L$ & Global Lipschitz constant of $F$ \\
+$\bar L$ & Lipschitz constant of $F_{\bar \xx}$ (fixed reference) \\
+$L_{uv}, L_{vu}$ & Cross-smoothness between players (off-diagonal terms) \\
+$L_c$ & Coupling constant from Assumption~\ref{assumption:L_c} \\
+$\bar \mu$ & Combined strong monotonicity (see Lemma~\ref{lemma: definition of mu bar}) \\
+$\kappa_u, \kappa_v$ & Condition numbers for each player \\
+$\kappa_c$ & Coupling degree $L_c / \bar \mu$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Notation for the $N$-player extension.}
+\label{tab:N_player_L_mu_terms}
+\begin{tabular}{ll}
+\toprule
+Symbol & Description \\
+\midrule
+$L_i$ & Smoothness of player $i$'s gradient \\
+$L_{ij}$ & Cross-smoothness between players $i$ and $j$ \\
+$\mu_i$ & Strong monotonicity/convexity constant for player $i$ \\
+$L_{\max}$ & $\max_i L_i$ \\
+$\bar L$ & Lipschitz constant of the stacked operator $F_{\bar \xx}$ \\
+$\kappa_i$ & Condition number for player $i$ \\
+$\kappa_c$ & Coupling degree (generalized to $N$ players) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{lemma}\label{lemma:L_c zero means fully decoupled}
+    Given a SCSC game $f(\uu,\vv)$. If the parameter $L_c$ from Assumption \ref{assumption:L_c} is zero, the game is fully decoupled and players do not interact. 
+\end{lemma}
+\begin{proof}
+   Recall that a game can be expressed as: 
+   \begin{align*}
+       f(\uu,\vv) = g(\uu) - h(\vv) + r(\uu,\vv).
+   \end{align*}
+   We only need to show that $L_c = 0$ implies $r(\uu,\vv) = 0$. This means that each player's payoff is affected only by their own strategy. Also, recall that $L_c = \frac{1}{\sqrt{\alpha_u \alpha_v}} \max\{L_{uv},L_{vu}\}$, where $L_{uv}$ and $L_{vu}$ are defined as follows: 
+\begin{align*}
+    &\Norm{\nabla_u f(\mathbf{u}, \mathbf{v}) - \nabla_u f(\mathbf{u}, \mathbf{v}')}_{u,*} \leq L_{uv} \Norm{\mathbf{v} - \mathbf{v}'}_{v},\\
+    &\Norm{\nabla_v f(\mathbf{u}, \mathbf{v}) - \nabla_v f(\mathbf{u}', \mathbf{v})}_{v,*} \leq L_{vu} \Norm{\mathbf{u} - \mathbf{u}'}_{u}.
+\end{align*}
+Since it is clear that if $L_c=0$, then $L_{uv} = L_{vu} = 0$, the right-hand side of the above inequalities must be zero. Now, we rewrite the left-hand side of these inequalities in terms of the functions $g,h$, and $r$, which must also be zero: 
+\begin{align*}
+    \Norm{\nabla_u f(\mathbf{u}, \mathbf{v}) - \nabla_u f(\mathbf{u}, \mathbf{v}')}_{u,*} &= \Norm{\nabla_u g(\uu) + \nabla_u r(\uu,\vv) - \nabla_u g(\uu) - \nabla_u r(\uu,\vv')}_{u,*} \\
+    &= \Norm{\nabla_u r(\uu,\vv) - \nabla_u r(\uu,\vv')}_{u,*}.
+\end{align*}
+For the above expression to be zero, either $r(\uu,\vv) = 0$ or $\nabla_u r(\uu,\vv) = \nabla_u r(\uu,\vv')$ must hold. However, the latter is impossible, as it implies that $r(\uu,\vv)$ depends only on $\uu$, which contradicts our assumption (if a term depends \textbf{only} on $\uu$, it is already captured in $g(\uu)$). The same thing can be shown in the same way with respect to player $\vv$.
+\end{proof}
+
+\begin{lemma}\label{lemma: bound on x'-x*}
+    Let $\bar \xx,\xx',\xx^\star \in \mathcal{X}$ be such that $F_{\bar \xx}(\xx') = F(\xx^\star) = 0$. Then,
+    \begin{align}
+        \Norm{\xx'-\xx^\star} \leq  \kappa_c \norm{\bar \xx - \xx^\star}.
+    \end{align}
+\end{lemma}
+\begin{proof}
+    From Assumption~\ref{assumption: strong monotonicity} and the Cauchy--Schwarz inequality, it follows that $\norm{F_{\bar \xx}(\xx') - F_{\bar \xx}(\xx^\star)} \geq \bar{\mu} \Norm{\xx'-\xx^\star}$.
+    Hence,
+    \[
+        \Norm{\xx'-\xx^\star} \leq \frac{1}{\bar \mu} \norm{F_{\bar \xx}(\xx') - F_{\bar \xx}(\xx^\star)}
+        = \frac{1}{\bar \mu} \norm{F(\xx^\star) - F_{\bar \xx}(\xx^\star)}
+        \leq \frac{L_c}{\bar \mu} \norm{\bar \xx - \xx^\star} = \kappa_c \norm{\bar \xx - \xx^\star}.
+        \qedhere
+    \]
+\end{proof}
+
+
+% $$ and $$
+
+
+\begin{lemma}\label{lemma: definition of mu bar}
+For any $\bar \xx \in \mathcal{X}$, the operator $F_{\bar \xx}$ is $\bar \mu$-strongly monotone with
+\[
+    \bar \mu = \min\Bigl\{\frac{\mu_u}{\alpha_u},\frac{\mu_v}{\alpha_v}\Bigr\}.
+\]
+\end{lemma}
+
+\begin{proof}
+Recall that function $f$ is $\mu_u$-strongly convex in $\uu$ and $\mu_v$-strongly concave in $\vv$ meaning that:
+\begin{align*}
+    &\langle \nabla_u f(\uu, \vv) - \nabla_u f(\uu', \vv), \uu - \uu' \rangle \geq \mu_u \Norm{\mathbf{u} - \mathbf{u}'}^2_u \\
+    &\langle \nabla_v f(\uu, \vv) - \nabla_v f(\uu, \vv'), \vv' - \vv \rangle \geq \mu_v \Norm{\mathbf{v} - \mathbf{v}'}^2_v
+\end{align*}
+Therefore,
+\begin{align*}
+   \hspace{2em}&\hspace{-2em}
+   \langle F_{\bar \xx}(\xx) - F_{\bar \xx}(\xx'), \xx - \xx'\rangle  \\
+   &= \langle \nabla_u f(\uu,\bar \vv) - \nabla_u f(\uu',\bar \vv),\uu-\uu' \rangle + \langle \nabla_v f(\bar \uu,\vv) - \nabla_v f(\bar \uu,\vv'),\vv'-\vv \rangle \\
+   &\geq \mu_u \Norm{\uu-\uu'}^2_u + \mu_v \Norm{\vv-\vv'}^2_v
+   = \frac{\mu_u}{\alpha_u} \alpha_u \Norm{\uu-\uu'}^2_u + \frac{\mu_v}{\alpha_v} \alpha_v \Norm{\vv-\vv'}^2_v \\
+   &\geq \min\Bigl\{\frac{\mu_u}{\alpha_u},\frac{\mu_v}{\alpha_v}\Bigr\} \Norm{\xx-\xx'}^2.
+   \qedhere
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}[two-player]\label{lemma: definition of L bar}
+    For any $\xx,\bar \xx \in \mathcal{X}$, parameter $L_c$ can be expressed as:
+    \begin{align*}
+         L_c = \frac{1}{\sqrt{\alpha_u \alpha_v}} \max\{ L_{uv}, L_{vu} \}.
+    \end{align*}
+\end{lemma}
+\begin{proof}
+Recall that:
+\begin{align*}
+    &\Norm{\nabla_u f(\mathbf{u}, \mathbf{v}) - \nabla_u f(\mathbf{u}, \mathbf{v}')}_{u,*} \leq L_{uv} \Norm{\mathbf{v} - \mathbf{v}'}_{v}\\
+    &\Norm{\nabla_v f(\mathbf{u}, \mathbf{v}) - \nabla_v f(\mathbf{u}', \mathbf{v})}_{v,*} \leq L_{vu} \Norm{\mathbf{u} - \mathbf{u}'}_{u}
+\end{align*}
+Next we have:
+    \begin{align*}
+        \norm{F(\xx)-F_{\bar \xx}(\xx)}^2_* &= \frac{1}{\alpha_u} \norm{\nabla_u f(\uu,\vv) - \nabla_u f(\uu,\bar \vv)}^2_{u,*} + \frac{1}{\alpha_v} \norm{\nabla_v f(\uu,\vv) - \nabla_v f(\bar \uu, \vv)}^2_{v,*} \\
+        &\leq \frac{L_{uv}^2}{\alpha_u} \norm{\vv-\bar \vv}^2_v + \frac{L_{vu}^2}{\alpha_v} \norm{\uu-\bar \uu}^2_u \\
+        &= \frac{L_{uv}^2}{\alpha_v \alpha_u} \alpha_v \norm{\vv-\bar \vv}^2_v + \frac{L_{vu}^2}{\alpha_u \alpha_v} \alpha_u \norm{\uu-\bar \uu}^2_u \\
+        &\leq \max\left\{\frac{L_{uv}^2}{\alpha_u \alpha_v},\frac{L_{vu}^2}{\alpha_u \alpha_v}\right\} \bigl[ \alpha_v \norm{\vv-\bar \vv}^2_v + \alpha_u \norm{\uu-\bar \uu}^2_u \bigr] 
+        = L_c^2 \norm{\bar \xx - \xx}^2.
+        \qedhere
+    \end{align*}
+\end{proof}
+
+
+\begin{lemma}[two-player]\label{lemma: upper bound on x'-x* for two player games}
+    Let $\bar \xx, \xx^{\star}_0,\xx^\star \in \mathcal{X}$ be such that $F_{\bar \xx}(\xx^{\star}_0) = 0$ and $F(\xx^\star) = 0$. Then $ \kappa_c$ can be expressed as: 
+    \begin{align}
+         \kappa_c = \max\biggl\{ \sqrt{\frac{\alpha_u}{\alpha_v}} \frac{L_{uv}}{\mu_u}, \sqrt{\frac{\alpha_v}{\alpha_u}} \frac{L_{vu}}{\mu_v} \biggr\}.
+    \end{align}
+\end{lemma}
+
+\begin{proof}
+    Indeed,
+    \begin{align*}
+        \Norm{\xx^{\star}_0-\xx^\star}^2 &= \alpha_u \norm{\uu'-\uu^\star}^2_u + \alpha_v \norm{\vv'-\vv^\star}^2_v \\
+        &\leq \frac{\alpha_u}{\mu_u^2} \norm{\nabla_u f(\uu',\bar \vv) - \nabla_u f(\uu^\star,\bar \vv)}^2_{u,*} + \frac{\alpha_v}{\mu_v^2} \norm{\nabla_v f(\bar \uu,\vv') - \nabla_v f(\bar \uu,\vv^\star)}^2_{v,*} \\
+        &= \frac{\alpha_u}{\mu_u^2} \norm{\nabla_u f(\uu^\star,\vv^\star) - \nabla_u f(\uu^\star,\bar \vv)}^2_{u,*} + \frac{\alpha_v}{\mu_v^2} \norm{\nabla_v f(\uu^\star,\vv^\star) - \nabla_v f(\bar \uu,\vv^\star)}^2_{v,*} \\
+        &\leq \frac{\alpha_u L_{uv}^2}{\mu_u^2} \norm{\bar \vv - \vv^\star}^2_v + \frac{\alpha_v L_{vu}^2}{\mu_v^2} \norm{\bar \uu - \uu^\star}^2_u \\
+        &= \frac{\alpha_u L_{uv}^2}{\alpha_v\mu_u^2} \alpha_v\norm{\bar \vv - \vv^\star}^2_v + \frac{\alpha_v L_{vu}^2}{\alpha_u\mu_v^2} \alpha_u \norm{\bar \uu - \uu^\star}^2_u \\
+        &\leq \max\left\{\frac{\alpha_u L_{uv}^2}{\alpha_v\mu_u^2},\frac{\alpha_v L_{vu}^2}{\alpha_u\mu_v^2}\right\} \bigl[ \alpha_v\norm{\bar \vv - \vv^\star}^2_v +  \alpha_u \norm{\bar \uu - \uu^\star}^2_u \bigr]
+        =  \kappa_c^2 \norm{\bar \xx - \xx^\star}^2.
+        \qedhere
+    \end{align*}
+\end{proof}
+
+
+
+\appsection{Proof of Theorem \ref{theorem: decoupled sgda for two player games} in Weakly Coupled Regime} \label{sec: weakly coupled proof}
+In this section, we provide the proof of convergence for our method in the \textbf{weakly coupled regime}. In contrast to the common assumptions and proof techniques, we utilize our new parameter $L_c$, which quantifies the level of interaction in the game. We demonstrate that if the fraction $\frac{L_c}{\bar{\mu}}$ is sufficiently small (i.e., the game is weakly coupled), we can achieve \textbf{communication acceleration}. This aspect is often overlooked in the analysis of games, as existing works tend to disregard the possibility that player interactions might be very low which results in a pessimistic rate. We start with the following auxiliary lemma.
+
+\begin{lemma}\label{lemma: upper bounding x-x'}
+    For any $\xx^{\star}_0 \in \mathcal{X}$ that satisfies $F_0(\xx^{\star}_0) = 0$ where $F_0(\xx) = F_{\bar \xx = \xx_0}(\xx)$, after $K$ steps of Decoupled SGDA starting from $\xx_0$ with a stepsize of $\gamma \leq \frac{\bar \mu}{\bar L^2}$, we have: 
+    \begin{align}
+        \E\left[\norm{\xx_K - \xx^{\star}_0}^2\right] \leq (1-\gamma \bar \mu)^K \E \norm{\xx_0 - \xx^{\star}_0}^2 + \frac{\gamma \bar \sigma^2}{\bar \mu}
+    \end{align}
+\end{lemma}
+
+\begin{proof}
+We start by upper bounding the iterates generated by our method from $\xx_0^\star$ at a time step $0< t+1 \leq K$ using the update rule of our method. Recall that $G_0(\xx,\xi) \equiv G_{\bar \xx = \xx_0}(\xx,\xi)$ where $\xx_0 = (\uu_0,\vv_0)$.
+\begin{align*}
+\norm{\xx_{t+1} - \xx^{\star}_0}^2
+&= \norm{\xx_{t}- \gamma \PPP^{-1} G_0(\xx_t,\xi_t) - \xx^{\star}_0}^2 \\
+&= \norm{\xx_{t} - \xx^{\star}_0}^2 + \gamma^2 \norm{G_0(\xx_t,\xi)}^2_* - 2\gamma \langle G_0(\xx_t,\xi_t),\xx_{t} - \xx^{\star}_0\rangle.
+\end{align*}
+By taking the conditional expectation on previous iterates we have: 
+\begin{align*}
+\hspace{2em}&\hspace{-2em}
+\E_{\xi_t}\norm{\xx_{t+1} - \xx^{\star}_0}^2 \\
+&\leq \norm{\xx_{t} - \xx^{\star}_0}^2 + \gamma^2 \norm{F_0(\xx_t)- F_0(\xx^{\star}_0)}^2_* - 2\gamma \langle F_0(\xx_t) - F_0(\xx^{\star}_0),\xx_{t} - \xx^{\star}_0\rangle + \gamma^2 \bar \sigma^2  \\
+&\leq (1 - 2\gamma \bar \mu + \gamma^2 \bar L^2)\norm{\xx_t - \xx^{\star}_0}^2 + \gamma^2 \bar \sigma^2
+\end{align*}
+ With the choice of $\gamma \leq \frac{\bar{\mu}}{\bar{L}^2}$ and taking the unconditional expectation we have: 
+\begin{align*}
+\E\norm{\xx_{t+1} - \xx^{\star}_0}^2 &\leq (1-\gamma \bar \mu) \E \norm{\xx_t - \xx^{\star}_0}^2 + \gamma^2 \bar \sigma^2
+\end{align*}
+After unrolling the recursion for $K$ steps using Lemma \ref{lemma: recursion} we have:
+\begin{align*}
+\E\norm{\xx_K - \xx^{\star}_0}^2 &\leq (1-\gamma \bar \mu)^K \E \norm{\xx_0 - \xx^{\star}_0}^2 + \sum_{i=0}^{K-1} (1-\gamma \bar \mu)^i \gamma^2 \bar \sigma^2 \\
+&\leq (1-\gamma \bar \mu)^K \E \norm{\xx_0 - \xx^{\star}_0}^2 + \frac{\gamma \bar \sigma^2}{\bar \mu}
+\end{align*}
+\end{proof}
+
+Now we are ready to prove the main theorem. 
+
+\begin{theorem}
+    For any $R, K \geq  \frac{1}{\gamma \mu} \log \left(\frac{4}{\kappa_c}\right)$, after running Decoupled SGDA for a total of $T=KR$ iterations on a function $f$, with the stepsize $\gamma \leq \frac{\bar \mu}{\bar L^2}$ in weakly coupled regime ($4 \kappa_c < 1$), we get a rate of:
+    \begin{align*}
+        \E\left[\norm{\xx^{R}_K - \xx^\star}^2\right] \leq D^2\left(4\kappa_c \right)^R  + \frac{8\gamma \bar \sigma^2}{\bar \mu} \cdot \frac{\kappa_c}{1-4\kappa_c}
+    \end{align*}
+    where $D = \norm{\xx_0-\xx^\star}$.
+\end{theorem}
+
+\begin{proof}
+     We start by upper bounding the following term where $\xx_t \equiv (\uu_t,\vv_t)$ is the parameters of players at some round $r$ after $t$ local steps. 
+    \begin{align} \label{eq: decoupled triangle for n player}
+        \norm{\xx_{t+1} - \xx^\star}^2 &\leq 2\norm{\xx_{t+1} - \xx^{\star}_0}^2 + 2\norm{\xx^{\star}_0-\xx^\star}^2
+    \end{align}
+    where $\xx^{\star}_0 \in \mathcal{X}$ satisfies $F_{\bar \xx}(\xx^{\star}_0) = 0$. Recall that $F_{\bar \xx} (\xx^\star_0) = (\nabla_u f(\uu^\star_0,\bar \vv), -\nabla_v f(\bar \uu, \vv^\star_0))$. The point $\uu^\star_0$ is the minimizer of $f$ given a fixed $\vv = \bar \vv$ meaning that $\uu^\star_0 = \arg\min_{\uu\in \mathcal{X}_u} f(\uu,\bar \vv)$ and $\vv^\star_0$ is the maximizer of $f$ given a fixed $\uu = \bar \uu$ meaning that $\vv^\star_0 = \arg\max_{\vv\in \mathcal{X}_v} f(\bar \uu, \vv)$. Note that we know such minimizer and maximizer exists as the function is strongly convex in $\uu$ and strongly concave in $\vv$.
+
+    For the first term we use Lemma \ref{lemma: upper bounding x-x'} and we get: 
+    \begin{align*}
+        \E \left[\norm{\xx_{t+1} - \xx^{\star}_0}^2\right] \leq (1-\gamma \bar \mu)^K \E \norm{\xx_0 - \xx^{\star}_0}^2 + \frac{\gamma \bar \sigma^2}{\bar \mu}
+    \end{align*}
+
+    Putting this back in \eqref{eq: decoupled triangle for n player} gives us: 
+    \begin{align*}
+        &\E\norm{\xx_{t+1} - \xx^{\star}}^2 \\
+        &\leq 2(1-\gamma \bar \mu)^K \E \norm{\xx_0 - \xx^{\star}_0}^2 + 2 \E\norm{\xx_0^{\star} - \xx^{\star}}^2 + \frac{2\gamma \bar \sigma^2}{\bar \mu} \\
+        &\leq 2(1-\gamma \bar \mu)^K \E \norm{\xx_0 - \xx^{\star}_0}^2 + 2\kappa_c \E\norm{\xx_0 - \xx^{\star}}^2 + \frac{2\gamma \bar \sigma^2}{\bar \mu} \\
+        &\leq 4(1-\gamma \bar \mu)^K \E \norm{\xx_0 - \xx^\star}^2 + 4(1-\gamma \bar \mu)^K \E \norm{\xx^{\star}_0 - \xx^\star}^2+ 2\kappa_c \E\norm{\xx_0 - \xx^\star}^2 + \frac{2\gamma \bar \sigma^2}{\bar \mu} \\
+        &\leq 4(1-\gamma \bar \mu)^K \E \norm{\xx_0 - \xx^\star}^2 + \left( 4(1-\gamma \bar \mu)^K \kappa_c  +2\kappa_c\right)\E\norm{\xx_0 - \xx^\star}^2 + \frac{2\gamma \bar \sigma^2}{\bar \mu} \\
+        &\leq   \left( 4(1-\gamma \bar \mu)^K +  4(1-\gamma \bar \mu)^K \kappa_c  +2\kappa_c\right)\E\norm{\xx_0 - \xx^\star}^2 + \frac{2\gamma \bar \sigma^2}{\bar \mu} \\
+        &\leq \left(4 \exp\left(-\gamma \bar \mu K \right) + 4 \exp\left(-\gamma \bar \mu K \right) \kappa_c +2\kappa_c\right)\E\norm{\xx_0 - \xx^\star}^2 + \frac{2\gamma \bar \sigma^2}{\bar \mu}
+    \end{align*}
+    where we used Lemma \ref{lemma: bound on x'-x*} in the third line. Now we need to make sure that $4 \exp\left(-\gamma \bar \mu K \right) \leq \kappa_c \leq 1$ which is implied by $K \geq\frac{1}{\gamma \bar \mu} \log \left(\frac{4}{\kappa_c}\right)$. Next we have: 
+    \begin{align*}
+        \E\norm{\xx_{t+1} - \xx^\star}^2 &\leq 4\kappa_c\E\norm{\xx_0 - \xx^\star}^2 + \frac{2\gamma \bar \sigma^2}{\bar \mu} 
+    \end{align*}
+    The above recursion can be re-written in terms of two consecutive rounds: 
+    \begin{align*}
+        \E\norm{\xx^{r+1} - \xx^\star}^2 \leq 4\kappa_c\E\norm{\xx^r - \xx^\star}^2 + \frac{2\gamma \bar \sigma^2}{\bar \mu}
+    \end{align*}
+    After unrolling the recursion for $R$ rounds using Lemma \ref{lemma: recursion} we have: 
+
+    \begin{align*}
+        \E\norm{\xx^{R} - \xx^\star}^2 \leq \left(4\kappa_c\right)^{R} \E\norm{\xx_0 - \xx^\star}^2 + \frac{2\gamma \bar \sigma^2}{\bar \mu} \sum_{i=1}^R \left(4\kappa_c \right)^i 
+    \end{align*}
+    Note that we assumed the game is weakly coupled which implies that $4\kappa_c \leq 1$. Finally we have: 
+    \begin{align*}
+        \E\norm{\xx^{R} - \xx^\star}^2 &\leq \left(4\kappa_c\right)^{R} \E\norm{\xx_0 - \xx^\star}^2 + \frac{2\gamma \bar \sigma^2}{\bar \mu} \sum_{i=1}^R \left( 4\kappa_c\right)^i \\
+        &\leq D^2\left(4\kappa_c \right)^R  + \frac{8\gamma \bar \sigma^2}{\bar \mu} \cdot \frac{\kappa_c}{1-4\kappa_c}
+    \end{align*}
+\end{proof}
+
+\appsection{Proof of Theorem \ref{theorem: decoupled sgda for two player games} in Non Weakly Coupled Regime}\label{sec: non weakly coupled proof}
+
+We start with some auxiliary lemmas.
+
+\begin{lemma}
+    \label{lemma: Sebastian's lemma}
+    Let $\{r_t\}_{t \geq 0}$ be a non-negative sequence of numbers that satisfy
+    \[
+    r_{t+1} \leq (1- a \gamma) r_t + \frac{b}{K} \gamma \sum_{i=\max\{0,t-K+1\}}^t r_i +  c \gamma^2 \,,
+    \]
+    for constants $a > 0$, $b,c \geq 0$ and integer $K \geq 1$ and a parameter $\gamma \geq 0$, such that $a \gamma  \leq  \frac{1}{K}$. If $b \leq \frac{a}{4}$, then it holds
+    \begin{align}
+        r_t \leq \left( 1- \frac{a}{2} \gamma \right)^t r_0 + \frac{2c}{a} \gamma\,.
+    \end{align}
+\end{lemma}
+\begin{proof}
+By assumption on $r_t$: 
+
+\begin{align*}
+    r_{t+1} \leq \left(1- \frac{a \gamma} {2}\right) r_t - \frac{a \gamma} {2} r_t  + \frac{b}{K} \gamma \sum_{i=\max\{0,t-K+1\}}^t r_i +  c \gamma^2 \,,
+\end{align*}
+and by unrolling the recursion:
+\begin{align*}
+    r_{t+1} &\leq \left(1- a \frac{\gamma}{2}\right )^t r_0 + \sum_{i=0}^t \left(1 - \frac{a \gamma}{2} \right)^{t-i} \left[ - \frac{a \gamma}{2} r_i + \frac{b}{K} \gamma \sum_{j=\max\{0,i-K+1\}}^i r_j \right] + \sum_{i=0}^t \left(1 - \frac{a \gamma}{2} \right)^{t-i} c \gamma^2 \\
+    &\leq  \left(1- \frac{a \gamma}{2}\right)^t r_0 + \sum_{i=0}^t \left(1 - \frac{a \gamma}{2} \right)^{t-i} \left[ - \frac{a \gamma}{2} r_i + \frac{b}{K} \gamma \sum_{j=\max\{0,i-K+1\}}^i r_j \right] + \frac{2c}{a}\gamma \\
+    &=  \left(1- a \frac{\gamma} {2}\right)^t r_0  +    \sum_{i=0}^t \left(1 - \frac{a \gamma}{2}\right)^{t-i} \left[- \frac{a \gamma}{2} r_i +  \frac{b}{K} \gamma \sum_{j=\max\{0,i-K-1\}}^i \left(1- \frac{a \gamma} {2}\right)^{i-j} r_i \right] + \frac{2c}{a}\gamma
+\end{align*}
+where we used $\sum_{i=0}^t (1- \frac{a\gamma}{2})^i \leq \frac{2}{a \gamma}$ (for $(\frac{a\gamma}{2}) < 1$) for the second inequality.
+
+By estimating 
+\begin{align*}
+   - \frac{a \gamma}{2} r_i +  \frac{b}{K}\gamma \sum_{j=\max\{0,i-K-1\}}^i (1- \frac{a \gamma} {2})^{i-j} r_i 
+    &\leq - \frac{a \gamma} {2} r_i + \frac{b}{K}  \gamma  \sum_{j=\max\{0,i-K-1\}}^i  \left(1- \frac{a \gamma} {2}\right)^{1-K} r_i \\
+    & \leq - \frac{a \gamma} {2} r_i + b  \gamma r_i  \left(1- \frac{a \gamma} {2}\right)^{1-K} r_i \\
+    &\leq - \frac{a \gamma} {2} r_i +  2 b  \gamma r_i  \leq 0\,,
+\end{align*}
+with and $(1- \frac{a \gamma}{2})^{1-K} \leq  2$ for $a\gamma \leq \frac{1}{K}$, 
+and the assumption $ b \leq \frac{a}{4}$ (and $r_i \geq 0$). 
+
+The validity of the inequality, $(1- \frac{a \gamma}{2})^{1-K} \leq  2$ for $a\gamma \leq \frac{1}{K}$ can be shown in the following way:
+\[
+\left(1 - \frac{a\gamma}{2}\right)^{1-K} \leq \left(1 - \frac{a\gamma}{2}\right)^{-K} \leq e^{\frac{a\gamma K}{2}}
+\]
+For the last inequality above we used the approximation \((1 - x)^{-n} \leq e^{nx}\) for \(x \geq 0\) and \(n \geq 0\):
+
+Given that \(a\gamma  \leq \frac{1}{K}\), we have:
+\[
+e^{\frac{a\gamma K}{2}} \leq e^{\frac 1 2}.
+\]
+
+Thus, we have $$\left(1- \frac{a \gamma}{2}\right)^{1-K} \leq  2$$
+Going back to the main proof, we conclude
+\begin{align*}
+    r_{t+1} &\leq \left(1- \frac{a \gamma}{2}\right)^t r_0 +  \frac{2c}{a}\gamma\,.
+\end{align*}
+as claimed.
+\end{proof}
+
+
+\begin{lemma}[\textbf{Consensus error}] \label{lemma: consensus error for two player games}
+After running Decoupled SGDA for $K$ local steps at some round $r$ with a step-size of $\gamma \leq \frac{a}{32 LL_c K}$ for any constant $0<a<L$, the consensus error can be upper bounded as follows:
+\begin{align}
+     \E\norm{\xx_{t+1} - \xx_0}^2  &\leq \sum_{i=t+1-K}^{t} \frac{a^2}{64K L_c^2} \E\norm{\xx_i  - \xx^\star}^2+ 4K \gamma^2  \bar \sigma^2
+\end{align}
+
+\end{lemma}
+\begin{proof} Recall that $G_0(\xx,\xi) \equiv G_{\bar \xx = \xx_0}(\xx,\xi)$ and $\E_{\xi}[G_0(\xx,\xi)] = F_0(\xx)$ where $\xx_0 = (\uu_0,\vv_0)$ refers to the parameters of each player at the beginning of some round $r$. Using the update rule of our method we have: 
+\begin{align*}
+    &\E\norm{\xx_{t+1} - \xx_0}^2  \\
+    &= \E\norm{\xx_t - \gamma \PPP^{-1} G_0 (\xx_t,\xi)- \xx_0}^2  \\
+    &\leq \E\norm{\xx_t - \gamma \PPP^{-1}  F_0 (\xx_t)- \xx_0}^2 + \gamma^2 \bar \sigma^2\\
+    &\leq \left(1 + \frac{1}{K} \right) \E\norm{\xx_{t} - \xx_0}^2  + 2K \gamma^2 \E\norm{F_0 (\xx_t)}^2_* + \gamma^2  \bar \sigma^2 \\
+    &\leq \left(1 + \frac{1}{K} \right) \E\norm{\xx_{t} - \xx_0}^2  + 2K \gamma^2 \E\norm{F_0 (\xx_t) - F(\xx_t) + F(\xx_t)}^2_* +  \gamma^2 \bar \sigma^2 \\
+    &\leq \left(1 + \frac{1}{K} \right) \E\norm{\xx_{t} - \xx_0}^2  + 4K \gamma^2 \E\norm{F_0 (\xx_t) - F(\xx_t)} + 4K \gamma^2\E\norm{F(\xx_t)}^2_* +  \gamma^2 \bar \sigma^2 \\
+    &\leq \left(1 + \frac{1}{K} \right) \E\norm{\xx_{t} - \xx_0}^2  + 4K L_c^2\gamma^2  \E\norm{\xx_t-\xx_0}^2 + 4K L^2 \gamma^2 \E\norm{\xx_t  - \xx^\star}^2 + \gamma^2  \bar \sigma^2
+\end{align*}
+
+
+With the choice of $\gamma \leq \frac{a}{32K LL_c}$, we get: 
+\begin{align*}
+    &\E\norm{\xx_{t+1} - \xx_0}^2  \\
+    &\leq\left(1 + \frac{1}{K} \right) \E\norm{\xx_{t} - \xx_0}^2 + \frac{a^2}{256K  L^2}\E\norm{\xx_t-\xx_0}^2+ \frac{a^2}{256K  L_c^2} \E\norm{\xx_t - \xx^\star}^2+ \gamma^2 \bar \sigma^2 \\
+    &\leq\left(1 + \frac{1}{K} \right) \E\norm{\xx_{t} - \xx_0}^2 + \frac{1}{256K}\E\norm{\xx_t-\xx_0}^2+ \frac{a^2}{256K  L_c^2} \E\norm{\xx_t - \xx^\star}^2+ \gamma^2 \bar \sigma^2 \\
+    &\leq\left(1 + \frac{1}{K}  + \frac{1}{256K }\right) \E\norm{\xx_{t} - \xx_0}^2 + \frac{a^2}{256K  L_c^2} \E\norm{\xx_t - \xx^\star}^2+ \gamma^2 \bar \sigma^2 \\
+\end{align*}
+where in the third line we used the fact that $\frac{a^2}{L^2} \leq 1$ due to the assumption $a < L$. By unrolling the recursion for the last $K$ steps and considering the fact that $\left(1 + \frac{1}{K} + \frac{1}{256K} \right)^K \leq 4$ we get: 
+\begin{align*}
+    \E\norm{\xx_{t+1} - \xx_0}^2  &\leq \sum_{i=t+1-K}^{t} \frac{a^2}{64K  L_c^2} \E\norm{\xx_i  - \xx^\star}^2+ 4K \gamma^2  \bar \sigma^2
+\end{align*}
+\end{proof}
+
+
+
+
+
+
+Now we are ready to prove the following theorem.
+
+
+
+\begin{theorem}[Decoupled SGDA for two-player Games]
+For any $R, K$, after running Decoupled SGDA for a total of $T=KR$ iterations on a function $f$, with the stepsize $\gamma \leq \min\left\{\frac{\mu}{L^2}, \frac{\mu}{KL L_c},\frac{\mu}{K L_c^2}\right\}$ in the non weakly coupled regime, we get a rate of:
+\[
+    \E \bigl[\Norm{\xx_K^R-\xx^\star}^2 \bigr]
+    \le
+    D^2 \exp\Bigl( - \frac{\gamma \mu}{2} KR \Bigr)
+    +
+    \frac{2\bar \sigma^2 \gamma}{\mu} , 
+\]
+where $D = \norm{\xx_0-\xx^\star}$.
+\end{theorem}
+
+
+\begin{proof}
+We start by upper bounding the iterate $\xx$ at time step $t+1$ from the equilibrium. Recall that $F_0(\xx) \equiv F_{\bar \xx = \xx_0}(\xx)$ where $\xx_0$ refers to the parameters of players at the beginning of some round $r$.
+
+\begin{align*}
+    &\E\norm{\xx_{t+1} - \xx^\star}^2 \\
+    &\leq \E\norm{\xx_t - \gamma \PPP^{-1} G_0(\xx_t,\xi) - \xx^\star}^2 + \gamma^2 \bar \sigma^2 \\
+    &\leq \E\norm{\xx_t - \gamma \PPP^{-1} F_0(\xx_t) - \xx^\star}^2 + \gamma^2 \bar \sigma^2\\
+    &= \E\norm{\xx_t - \gamma \PPP^{-1} F(\xx_t) - \xx^\star + \gamma \PPP^{-1} F(\xx_t) - \gamma \PPP^{-1} F_0(\xx_t)}^2 + \gamma^2 \bar \sigma^2\\
+    &\leq \left(1+\frac{\gamma \mu}{2}\right) \left[\E \norm{\xx_t - \gamma \PPP^{-1} F(\xx_t) - \xx^\star}^2 \right] + \gamma \left(\gamma + \frac{2}{ \mu }\right) \E\norm{ F(\xx_t) -  F_0(\xx_t)}^2_* + \gamma^2  \bar \sigma^2\\
+    &= \left(1+\frac{\gamma \mu}{2}\right) \left[\E\norm{\xx_t - \xx^\star}^2 + \gamma^2 \E\norm{F(\xx_t) - F(\xx^\star)}^2_* -2  \gamma \langle F(\xx_t) - F(\xx^\star),\xx_t - \xx^\star \rangle \right] + \\
+    &\hspace{1cm}\gamma \left(\gamma + \frac{2}{ \mu }\right)\E \norm{ F(\xx_t) -  F_0(\xx_t)}^2_* + \gamma^2 \bar \sigma^2 \\
+    &= \left(1+\frac{\gamma \mu}{2}\right) \left[(1+\gamma^2 L^2 - 2\gamma \mu)\E\norm{\xx_t - \xx^\star}^2 \right] + \gamma \left(\gamma + \frac{2}{ \mu }\right) \E\norm{ F(\xx_t) -  F_0(\xx_t)}^2_*  + \gamma^2 \bar \sigma^2\\
+    &\leq \left(1+\frac{\gamma \mu}{2}\right) \left[(1-\gamma \mu)\E\norm{\xx_t - \xx^\star}^2 \right] + \frac{3\gamma }{\mu}\E \norm{ F(\xx_t) -  F_0(\xx_t)}^2_*  + \gamma^2 \bar \sigma^2\\
+    &\leq \left(1-\frac{\gamma \mu}{2}\right) \E\norm{\xx_t - \xx^\star}^2 + \frac{3\gamma L_c^2}{\mu} \E\norm{\xx_t - \xx_0}^2 + \gamma^2 \bar \sigma^2
+\end{align*}
+
+Where we assumed that $\gamma \leq \frac{\mu}{L^2}$. Now by using the upper bound on consensus error from Lemma \ref{lemma: consensus error for two player games} and setting $a = \mu$ we get: 
+\begin{align*}
+    &\E\norm{\xx_{t+1} - \xx^\star}^2 \\
+    &= \left(1-\frac{\gamma \mu}{2}\right)\E \norm{\xx_t - \xx^\star}^2 + \frac{\gamma \mu}{16K} \sum_{i=\max\{0,t-K\}}^t \E\norm{\xx_i - \xx^\star}^2 + \left(1+\frac{12K\gamma  L_c^2}{\mu}\right)\gamma^2 \bar \sigma^2 \\ 
+\end{align*}
+With the choice of $\gamma \leq \frac{\mu}{12K L_c^2}$ we have: 
+\begin{align*}
+    &\E\norm{\xx_{t+1} - \xx^\star}^2 \\
+    &\left(1-\frac{\gamma \mu}{2}\right)\E \norm{\xx_t - \xx^\star}^2 + \frac{\gamma \mu}{16K} \sum_{i=\max\{0,t-K\}}^t \E\norm{\xx_i - \xx^\star}^2  + 2\frac{\gamma \bar \sigma^2}{\mu} 
+\end{align*}
+By unrolling the recursion using Lemma \ref{lemma: Sebastian's lemma} we get: 
+\begin{align*}
+    \E\norm{\xx^R_K - \xx^\star}^2 \leq D^2\exp\left(-\frac{\mu^2}{L^2}R\right) + 2\frac{\gamma^2 }{\mu}\bar \sigma^2
+\end{align*}
+
+
+
+
+
+
+
+
+
+
+
+\end{proof}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\appsection{Comparison Between Decoupled SGDA and Federated Minimax (Local SGDA)}
+
+
+In this section, we aim to highlight the key differences between our method and existing distributed or decentralized methods in the literature. As mentioned earlier, our method can be classified as distributed, though it has a major difference from others. In fact, this difference lies in the problem formulation.
+\paragraph{Decentralized / Distributed minimax formulation.}  In these settings, we aim to solve the following finite-sum optimization problem over $M$ clients:
+\begin{align}\label{eq: federated minimax formulation}
+    f(\uu,\vv) = \frac{1}{M} \sum_{m=1}^M f_m(\uu,\vv)
+\end{align}
+In the above formulation, it is assumed that each client has a different data distribution $\mathcal{D}_m$ and tries to solve the game based on this data. It means that each client keeps updating \textbf{both} $\uu$ and $\vv$ at the same time for several steps. Then the server aggregates the parameters and sends them back to clients. The ultimate goal is to find the saddle point $\xx^\star = (\uu^\star,\vv^\star)$ of the global function $f$, as if the entire dataset $\mathcal{D} = \mathcal{D}_1 \cup \cdots \cup \mathcal{D}_M$ were on a single machine running GDA on it. In this setting, each client is allowed to update both players meaning that it has access to the gradient of $f_m$ with respect to $\uu$ and $\vv$. However in our approach, instead of splitting the data over clients, we split the parameter space. It means one machine is responsible for \textbf{only} updating $\uu$ and another for $\vv$. Our method also allows to have several machines for $\uu$ and several machines for $\vv$. An important point to consider is that the notions of \emph{client} and \emph{player} should not be intermixed. When the number of players is fixed, the distributed minimax approach essentially runs several instances $(f_m)$ of the main game $(f)$ in parallel to ultimately find the saddle point of $f$. In contrast, our method directly finds the saddle point of $f$ by splitting the parameter space across different machines. Figure \ref{fig: decoupled sgd vs. federated minimax} illustrates the difference between these two methods.
+
+
+\begin{figure}[H]
+\centering
+\[
+\begin{tikzpicture}[baseline=(current bounding box.center)]
+% Define style for smaller rounded boxes with light black fill
+\tikzset{rounded box/.style={
+    draw,
+    fill=gray!20, % Light black (gray) fill
+    rounded corners=5pt, % Adjust this value for more or less roundness
+    minimum width=2.0cm, % Reduced width
+    minimum height=1.5cm, % Reduced height
+    inner sep=6pt % Reduced padding
+}}
+
+\node (A) at (0, 0.5) [
+    draw, % Add border to the node
+    rounded corners, % Rounded box
+    align=center, % Center-align text
+    label=above:{\textbf{Decoupled GDA}} % Title
+] {
+    \(
+    \begin{aligned}
+        &\uu^{r}_{k+1} = \uu^{r}_{k} - \gamma \nabla_u f(\uu^{r}_{k}, \vv^{r}_{0}) \\
+        &\vv^{r}_{k+1} = \vv^{r}_{k} + \gamma \nabla_v f(\uu^{r}_{0}, \vv^{r}_{k}) 
+    \end{aligned}
+    \)
+};
+
+
+% Bottom Left Box with Title
+\node (B) at (-3.5, -2.5) [
+    draw,
+    rounded corners,
+    align=center,
+    label=above:{\textbf{GDA}}
+] {
+    \(
+    \begin{aligned}
+        &\uu_{k+1} = \uu_k - \gamma \nabla_u f(\uu_k, \vv_k) \\
+        &\vv_{k+1} = \vv_k + \gamma \nabla_v f(\uu_k, \vv_k)
+    \end{aligned}
+    \)
+};
+
+% Bottom Right Box with Title
+\node (C) at (3.5, -2.5) [
+    draw,
+    rounded corners,
+    align=center,
+    label=above:{\textbf{Federated Minimax}}
+] {
+    \(
+    \begin{aligned}
+        &\uu^{r,m}_{k+1} = \uu^{r,m}_{k} - \gamma \nabla_u f_m(\uu^{r,m}_{k}, \vv^{r,m}_{k}) \\
+        &\vv^{r,m}_{k+1} = \vv^{r,m}_{k} + \gamma \nabla_v f_m(\uu^{r,m}_{k}, \vv^{r,m}_{k})
+    \end{aligned}
+    \)
+};
+
+
+% Draw lines between the boxes
+\draw[-] (A.south) -- (B.north);
+\draw[-] (A.south) -- (C.north);
+\draw[-] (B.east) -- (C.west); % Connecting line
+
+\end{tikzpicture}
+\]
+\caption{
+Comparison of different gradient descent ascent (GDA) approaches: Decoupled GDA, standard GDA, and Federated Minimax. The top box represents Decoupled GDA, where $\uu$ and $\vv$ gradients are separated, while the bottom left and right boxes represent the standard GDA and Federated Minimax approaches, respectively.}
+\label{fig:GDA_comparison}
+\end{figure}
+
+
+
+
+
+\begin{figure}[h] % 'h' means here; other options include 't' (top), 'b' (bottom), and 'p' (page)
+    \centering
+    \includegraphics[width=1\linewidth]{Figures/Decoupled.pdf}
+    \caption{
+    Comparison of our method with the federated minimax formulation: Our method splits the parameter space, while the federated formulation splits the data. Moreover, our method only allows each player to access the gradient with respect to their own parameters, whereas in federated minimax, each player can compute the gradient with respect to both their own parameters and the other player's parameters.
+}
+    \label{fig: decoupled sgd vs. federated minimax}
+\end{figure}
+
+
+
+
+
+
+
+
+
+
+
+\appchapter{Experimental Setup}
+\label{sec:experimental_setup}
+\appsection{Finding the saddle point of quadratic games}
+In the first experiment , we conducted tests with a dimensionality of \( D = 2 \) over \( R = 31 \) synchronization rounds. The values of \( K \) tested were \( 1, 2, \) and \( 5 \), alongside parameter combinations \( (a, b, c) \) set as \( (1, 10, 10), (1, 10, 3.5), (1, 10, 2.7), \) and \( (1, 10, 0) \). For each combination, we explored gamma values uniformly spaced in the interval \( [0.0001, 0.1] \). The algorithm initializes \( x \) and \( y \) at \( 1 \) and \( -1 \) respectively and updates these variables based on the gradients \( g_x \) and \( g_y \) computed using the defined parameters. 
+
+For the second experiment, in the left figure, eigenvalues were sampled logarithmically between \( 10^{-1.5} \) and \( 10^{1.5} \), with random symmetric positive definite matrices generated for each. We tested agent counts \( K \) as \( [1, 2, 5, 10, 50] \) and learning rates \( \gamma \) from \( 10^{-10} \) to \( 1 \). The algorithm ran for \( R = 10^5 \) rounds, adjusted based on eigenvalue size, to measure the average distance from equilibrium until it fell below \( \epsilon = 10^{-6} \). Results were plotted to illustrate the relationship between \( \lambda_{\rm max}(C) \) and the number of rounds required for convergence.
+
+For the left figure, we generated random symmetric positive definite matrices as oracles, varying the maximum eigenvalue of the matrix \( C \) using logarithmic spacing between \( 10^{-1.5} \) and \( 10^{1.5} \). The accuracy threshold is set to \( \epsilon = 10^{-4} \). We evaluated five algorithms: GDA, Decoupled GDA, Optimistic, Alternating Gradient Descent, and Extragradient, with \( K \) fixed at 50. Each algorithm was executed for \( R = 10^5 \) rounds, determined based on the maximum eigenvalue, and their performance was assessed by the number of rounds required to achieve \( \epsilon \) accuracy.
+
+\appsection{Decoupled SGDA with Gradient Approximation}
+In this experiment, we analyze the performance of Decoupled and Local Stochastic Gradient Descent (SGDA) algorithms under varying conditions. We define oracles based on random symmetric positive definite matrices, with a fixed number of rounds \( R = 100 \) and \( K = 40 \). In the first experiment (left figure) The maximum eigenvalues of matrices \( C \) are sampled logarithmically between \( 10^{-0.25} \) and \( 10^{1} \).For each maximum eigenvalue, we generate corresponding matrices and evaluate the algorithms across five trials to determine the lowest gradient norm achieved. We reported the mean of these five experiments. In the second experiment (right figure), off-diagonal variances ($\sigma^2_{\vv\uu}$ and $\sigma^2_{\uu\vv}$) range linearly from 1 to 10. In this experiment they are assumed to be equal.  Results are aggregated and visualized in two plots: one depicting the relationship between the maximum eigenvalue of \( C \) and the minimum gradient norm, and the other illustrating the effect of varying off-diagonal variance on algorithm performance.
+
+\appsection{Communication Efficiency of Decoupled SGDA for Non-Convex Functions}
+In this experiment, we investigate the performance of Decoupled Single Oracle GDA under various settings of \( \lambda \) and \( K \). We evaluate the gradient norm achieved over \( R = 100 \) communication rounds. The \( \lambda \) values are sampled logarithmically between \( 10^{-4.5} \) and \( 10^{3} \), while \( K \) values range from 1 to 5. For each combination of \( \lambda \) and \( K \), we compute the lowest gradient norm over 5 independent trials. The gradient norms are averaged and plotted, with vertical lines marking the transition to the weakly coupled regime at \( \lambda = 50 \). The final results show the relationship between \( \lambda \) and the minimum gradient norm for different values of \( K \), highlighting the weakly coupled regime.
+
+\appsection{Communication Efficiency of Decoupled SGDA in GAN Training}
+In this experiment, a Generative Adversarial Network (GAN) was trained using the CIFAR-10 and SVHN datasets, both resized to \( 32 \times 32 \) pixels. The GAN was trained with a learning rate of \( 1 \times 10^{-4} \), a batch size of 256, and 50,000 rounds of updates. The hidden dimension size for the generator was 128. For evaluation, 256 samples were used to compute the Fréchet Inception Distance (FID) every 200 iterations. Both the generator and discriminator were optimized using the Adam optimizer, with a learning rate scheduler that decayed by a factor of 0.95 every 1000 steps. Additionally, a gradient penalty term was applied to stabilize training. The generator’s latent space dimension was set to 100, and its Exponential Moving Average (EMA) was maintained with a decay factor of 0.999 for evaluation purposes. Training was conducted using CUDA on an NVIDIA L4 GPU. 
+
+The Generator uses a series of transposed convolutions, starting from a 100-dimensional latent vector, to generate a \( 32 \times 32 \times 3 \) image, with BatchNorm and ReLU, ending with a Tanh activation. The Discriminator applies four convolutional layers to downsample the input, using LeakyReLU and BatchNorm, and outputs a real/fake probability through a Sigmoid activation.

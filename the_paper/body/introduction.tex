@@ -1,0 +1,62 @@
+\chapter{Introduction}
+
+\section{Distributed Optimization}
+
+With the exponential growth of data volumes and the escalating complexity of machine learning models, the necessity for distributed optimization methods has become increasingly evident. This has led to the development of algorithms that effectively leverage parallel computing resources. The emergence of large language models (LLMs)~\parencite{brown2020language} and their remarkable success across diverse domains~\parencite{radford2018improving, liu2024deepseek, team2023gemini} has further underscored this need. These models have scaled enormously, incorporating billions of parameters that require substantial computational resources for training. As Figure~\ref{fig:computation_growth} illustrates, the amount of computation required to train frontier models has been increasing by a factor of approximately 4.5 each year in the last decade. This escalating scale necessitates efficient methods to distribute computations across multiple machines, enabling scalable training while complying with hardware limitations.
+
+\textbf{In short, the hardware limitations of single devices can no longer keep pace with model growth, making efficient distributed optimization the primary bottleneck for modern AI advancement.}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{figures/computation_growth.png}
+    \caption{Growth in computational requirements for frontier scale machine learning models over time, based on data from Epoch AI~\parencite{EpochAIModels2025}.\protect\footnotemark}
+    \label{fig:computation_growth}
+\end{figure}
+
+\footnotetext{Epoch AI, ``Data on AI Models''. Published online at epoch.ai. Retrieved from \url{https://epoch.ai/data/ai-models} [online resource]. Accessed 24 Nov 2025.}
+
+\subsection{Data Distribution}
+
+One common approach for distributed optimization is to split data across different nodes, as seen in federated learning~\parencite{mcmahan2017communication}. In this paradigm, each machine processes a distinct subset of the data, performs local computations, and periodically aggregates results. While useful in privacy-sensitive scenarios where data cannot be centralized, federated learning has significant drawbacks when the objective is distributing computational burden. Since only data is partitioned, each node must host the complete model. This becomes a bottleneck as modern models often require hundreds of gigabytes of memory, exceeding the capacity of a single GPU.
+
+\textbf{While data distribution solves privacy constraints, it fails to address the memory wall: copying the full model to every node is simply infeasible for today's massive architectures.}
+
+\subsection{Pipelining Methods}
+
+Another strategy focuses on pipeline parallelism~\parencite{harlap2018pipedream, chen2022training}, which distributes the forward and backward passes across multiple GPUs (splitting the model depth-wise). Even though pipelining is widely used for training neural networks, it faces fundamental limitations~\parencite{colin2019theoretical}. Theoretical bounds suggest that for smooth convex and non-convex objectives, pipeline methods cannot surpass the optimal rates of sequential algorithms due to dependencies that scale with model depth.
+
+Practically, effective pipelining requires complex scheduling to minimize "bubbles"—idle periods when compute resources wait for dependencies. Furthermore, pipelining imposes strict hardware requirements:
+\begin{itemize}
+    \item \textbf{Communication Bottlenecks:} Nodes require expensive, high-bandwidth connections (e.g., NVLink) to manage the frequent exchange of activations, and inefficient resource allocation quickly degrades performance~\parencite{liang2024resource}.
+    \item \textbf{Pipeline Bubbles:} Synchronous methods suffer from high bubble ratios (often 20--50\% inefficiency) where GPUs sit idle~\parencite{guan2024advances}.
+    \item \textbf{Memory Overhead:} To handle backward passes, nodes must stash weights and accumulate activations, which increases memory consumption proportionally to the number of pipeline stages and often forces a cap on pipeline depth~\parencite{harlap2018pipedream}.
+\end{itemize}
+
+As noted by \textcite{llama3scaling}, even frontier models like LLaMA~3 face bottlenecks that restrict pipeline depth to roughly 16 stages.
+
+\textbf{Pipeline parallelism is a balancing act between idle compute bubbles, memory overhead, and communication latency—a balance that is becoming increasingly difficult to maintain at scale.}
+
+\subsection{Coordinate Descent Methods}
+
+Coordinate descent (CD) methods~\parencite{nesterov2012efficiency, wright2015coordinate} offer a compelling alternative by splitting the parameters into blocks (width-wise) rather than layers. CD iteratively minimizes a multivariate function by updating one block at a time, often with closed-form steps. While not originally distributed, CD's structure naturally enables model parallelism~\parencite{richtarik2016parallel, fercoq2015accelerated, mutny2018parallel, tappenden2018complexity}: the parameter space is partitioned into subspaces assigned to different nodes, which solve subproblems independently with periodic synchronization.
+
+Unlike pipeline parallelism, this block-wise view breaks strict sequential dependencies. Different parameter blocks can be updated simultaneously without the idle times associated with pipeline bubbles, and since parameters are partitioned, no single node needs to store the full model.
+
+\textbf{By partitioning the model parameters rather than the data or layers, Coordinate Descent eliminates pipeline bubbles and drastically reduces the memory footprint required per device.}
+
+\section{Overview of Contributions and Thesis Outline}
+
+This thesis presents theoretical and empirical contributions to distributed optimization, focusing on coordinate-based methods and their extensions to game-theoretic settings. The work draws from research projects undertaken during my master’s studies, including independent developments and collaborative efforts.
+
+\begin{itemize}
+    \item \textbf{Proximal Coordinate Descent for Distributed Minimization.} We introduce a novel proximal coordinate descent algorithm designed for partitioned parameter spaces. The entire development, including algorithm design and convergence analysis, is my independent contribution.
+    \item \textbf{Decoupled Stochastic Gradient Descent Ascent (SGDA).} We extend the framework to two-player games, proposing Decoupled SGDA to find Nash equilibria under intermittent communication. This work identifies "weakly coupled" regimes where communication can be significantly reduced. Based on: \textit{Ali Zindari, Parham Yazdkhasti, et al., Decoupled SGDA for Games with Intermittent Strategy Communication (ICML 2025).}
+\end{itemize}
+
+\textbf{Organization of the Thesis.}
+The remainder of this thesis is structured as follows:
+\begin{itemize}
+    \item \textbf{Chapter 2} reviews key prior works that have shaped the field.
+    \item \textbf{Chapter 3} presents our new parallel algorithm for minimization, introducing the concept of "coordinate-wise complement smoothness" to derive improved convergence guarantees.
+    \item \textbf{Chapter 4} extends this framework to minimax problems, introducing Decoupled SGDA and proving its communication efficiency in weakly coupled regimes.
+\end{itemize}

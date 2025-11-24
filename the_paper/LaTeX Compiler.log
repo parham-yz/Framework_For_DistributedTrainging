@@ -1,0 +1,739 @@
+Rc files read:
+  NONE
+Latexmk: This is Latexmk, John Collins, 7 Jan. 2023. Version 4.79.
+No existing .aux file, so I'll make a simple one, and require run of *latex.
+Latexmk: applying rule 'pdflatex'...
+Rule 'pdflatex':  Reasons for rerun
+Category 'other':
+  Rerun of 'pdflatex' forced or previously required
+
+------------
+Run number 1 of rule 'pdflatex'
+------------
+------------
+Running 'pdflatex  -synctex=1 -interaction=nonstopmode -file-line-error -recorder  "/Users/parham/Documents/master_thesis/main.tex"'
+------------
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex)
+ restricted \write18 enabled.
+entering extended mode
+(/Users/parham/Documents/master_thesis/main.tex
+LaTeX2e <2022-11-01> patch level 1
+L3 programming layer <2023-02-22> (/usr/local/texlive/2023/texmf-dist/tex/latex/base/report.cls
+Document Class: report 2022/07/02 v1.4n Standard LaTeX document class
+(/usr/local/texlive/2023/texmf-dist/tex/latex/base/size11.clo)) (/usr/local/texlive/2023/texmf-dist/tex/latex/base/inputenc.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/natbib/natbib.sty) (./feupteses.sty
+Document Style `FEUP Teses' 1.1.4 <2025/07/24>
+(/usr/local/texlive/2023/texmf-dist/tex/generic/iftex/ifpdf.sty (/usr/local/texlive/2023/texmf-dist/tex/generic/iftex/iftex.sty)) (/usr/local/texlive/2023/texmf-dist/tex/latex/base/fontenc.sty) (/usr/local/texlive/2023/texmf-dist/tex/generic/babel/babel.sty (/usr/local/texlive/2023/texmf-dist/tex/generic/babel/txtbabel.def) (/usr/local/texlive/2023/texmf-dist/tex/generic/babel-english/english.ldf)) (/usr/local/texlive/2023/texmf-dist/tex/generic/babel/locale/en/babel-english.tex) (/usr/local/texlive/2023/texmf-dist/tex/latex/geometry/geometry.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/graphics/keyval.sty) (/usr/local/texlive/2023/texmf-dist/tex/generic/iftex/ifvtex.sty)) (/usr/local/texlive/2023/texmf-dist/tex/latex/psnfss/times.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/courier-scaled/couriers.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/psnfss/helvet.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/graphics/graphicx.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/graphics/graphics.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/graphics/trig.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/graphics-cfg/graphics.cfg) (/usr/local/texlive/2023/texmf-dist/tex/latex/graphics-def/pdftex.def))) (/usr/local/texlive/2023/texmf-dist/tex/latex/url/url.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/setspace/setspace.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/caption/caption.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/caption/caption3.sty)) (/usr/local/texlive/2023/texmf-dist/tex/latex/booktabs/booktabs.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/xcolor/xcolor.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/graphics-cfg/color.cfg) (/usr/local/texlive/2023/texmf-dist/tex/latex/graphics/mathcolor.ltx)) (/usr/local/texlive/2023/texmf-dist/tex/latex/float/float.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/tools/array.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/multirow/multirow.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/tools/longtable.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/acronym/acronym.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/bigfoot/suffix.sty) (/usr/local/texlive/2023/texmf-dist/tex/generic/xstring/xstring.sty (/usr/local/texlive/2023/texmf-dist/tex/generic/xstring/xstring.tex))) (/usr/local/texlive/2023/texmf-dist/tex/latex/eurosym/eurosym.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/siunitx/siunitx.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/translations/translations.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/etoolbox/etoolbox.sty) (/usr/local/texlive/2023/texmf-dist/tex/generic/pdftexcmds/pdftexcmds.sty (/usr/local/texlive/2023/texmf-dist/tex/generic/infwarerr/infwarerr.sty) (/usr/local/texlive/2023/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty))) (/usr/local/texlive/2023/texmf-dist/tex/latex/amsmath/amstext.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/amsmath/amsgen.sty))) (/usr/local/texlive/2023/texmf-dist/tex/latex/lineno/lineno.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/fancyhdr/fancyhdr.sty) 
+File meic.cfg loaded.
+(./config/meic.cfg (/usr/local/texlive/2023/texmf-dist/tex/latex/listings/listings.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/listings/lstmisc.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/listings/listings.cfg)) (/usr/local/texlive/2023/texmf-dist/tex/latex/listings/lstlang1.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/listings/lstmisc.sty))) (/usr/local/texlive/2023/texmf-dist/tex/latex/biblatex/biblatex.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/kvoptions/kvoptions.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/kvsetkeys/kvsetkeys.sty)) (/usr/local/texlive/2023/texmf-dist/tex/latex/logreq/logreq.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/logreq/logreq.def)) (/usr/local/texlive/2023/texmf-dist/tex/latex/base/ifthen.sty)
+
+/usr/local/texlive/2023/texmf-dist/tex/latex/biblatex/biblatex.sty:212: Package biblatex Error: Incompatible package 'natbib'.
+
+See the biblatex package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.212 \blx@packageincompatibility
+                                 
+
+/usr/local/texlive/2023/texmf-dist/tex/latex/biblatex/biblatex.sty:908: LaTeX Error: Command \bibhang already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.908 \newlength{\bibhang}
+                          
+(/usr/local/texlive/2023/texmf-dist/tex/latex/biblatex/blx-dm.def)
+
+/usr/local/texlive/2023/texmf-dist/tex/latex/biblatex/biblatex.sty:12630: LaTeX Error: Command \citename already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.12630 ...*{\citename}{\blx@citexpunct{citename}}
+                                                  
+(/usr/local/texlive/2023/texmf-dist/tex/latex/biblatex/blx-compat.def) (/usr/local/texlive/2023/texmf-dist/tex/latex/biblatex/biblatex.def
+
+/usr/local/texlive/2023/texmf-dist/tex/latex/biblatex/biblatex.def:339: LaTeX Error: Command \bibfont already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.339 ...ommand*{\bibfont}{\normalfont\normalsize}
+                                                  
+
+Package biblatex Warning: Redefining '\citeauthor'.
+
+
+Package biblatex Warning: Redefining '\citeyear'.
+
+
+/usr/local/texlive/2023/texmf-dist/tex/latex/biblatex/biblatex.def:2306: LaTeX Error: Command \Citeauthor already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.2306 ...e\citeauthor*}{\bibsentence\citeauthor}}
+                                                  
+) (/usr/local/texlive/2023/texmf-dist/tex/latex/biblatex/bbx/numeric.bbx (/usr/local/texlive/2023/texmf-dist/tex/latex/biblatex/bbx/standard.bbx)) (/usr/local/texlive/2023/texmf-dist/tex/latex/biblatex/cbx/numeric.cbx) (/usr/local/texlive/2023/texmf-dist/tex/latex/biblatex/biblatex.cfg) (/usr/local/texlive/2023/texmf-dist/tex/latex/l3kernel/expl3.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def)) (/usr/local/texlive/2023/texmf-dist/tex/latex/biblatex/blx-case-expl3.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/l3packages/xparse/xparse.sty))) (/usr/local/texlive/2023/texmf-dist/tex/latex/xpatch/xpatch.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/hyperref/hyperref.sty (/usr/local/texlive/2023/texmf-dist/tex/generic/kvdefinekeys/kvdefinekeys.sty) (/usr/local/texlive/2023/texmf-dist/tex/generic/pdfescape/pdfescape.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/hycolor/hycolor.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/letltxmacro/letltxmacro.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/auxhook/auxhook.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/hyperref/nameref.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/refcount/refcount.sty) (/usr/local/texlive/2023/texmf-dist/tex/generic/gettitlestring/gettitlestring.sty)) (/usr/local/texlive/2023/texmf-dist/tex/latex/hyperref/pd1enc.def) (/usr/local/texlive/2023/texmf-dist/tex/generic/intcalc/intcalc.sty) (/usr/local/texlive/2023/texmf-dist/tex/generic/etexcmds/etexcmds.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/hyperref/puenc.def) (/usr/local/texlive/2023/texmf-dist/tex/generic/bitset/bitset.sty (/usr/local/texlive/2023/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty)) (/usr/local/texlive/2023/texmf-dist/tex/latex/base/atbegshi-ltx.sty)) (/usr/local/texlive/2023/texmf-dist/tex/latex/hyperref/hpdftex.def (/usr/local/texlive/2023/texmf-dist/tex/latex/base/atveryend-ltx.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty (/usr/local/texlive/2023/texmf-dist/tex/generic/uniquecounter/uniquecounter.sty))) (./macros.tex (/usr/local/texlive/2023/texmf-dist/tex/latex/amsfonts/amssymb.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/amsfonts/amsfonts.sty)) (/usr/local/texlive/2023/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/usr/local/texlive/2023/texmf-dist/tex/latex/amsmath/amsbsy.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/amsmath/amsopn.sty)) (/usr/local/texlive/2023/texmf-dist/tex/latex/amscls/amsthm.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/doublestroke/dsfont.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/todonotes/todonotes.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/xkeyval/xkeyval.sty (/usr/local/texlive/2023/texmf-dist/tex/generic/xkeyval/xkeyval.tex (/usr/local/texlive/2023/texmf-dist/tex/generic/xkeyval/xkvutils.tex))) (/usr/local/texlive/2023/texmf-dist/tex/latex/pgf/frontendlayer/tikz.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/pgf/basiclayer/pgf.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/pgf/utilities/pgfrcs.sty (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/utilities/pgfutil-common.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/utilities/pgfutil-latex.def) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/utilities/pgfrcs.code.tex (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/pgf.revision.tex))) (/usr/local/texlive/2023/texmf-dist/tex/latex/pgf/basiclayer/pgfcore.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/pgf/systemlayer/pgfsys.sty (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/systemlayer/pgfsys.code.tex (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/utilities/pgfkeys.code.tex (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/utilities/pgfkeyslibraryfiltered.code.tex)) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/systemlayer/pgf.cfg) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/systemlayer/pgfsys-pdftex.def (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/systemlayer/pgfsys-common-pdf.def))) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/systemlayer/pgfsyssoftpath.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/systemlayer/pgfsysprotocol.code.tex)) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/basiclayer/pgfcore.code.tex (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/math/pgfmath.code.tex (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/math/pgfmathutil.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/math/pgfmathparser.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.basic.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.trigonometric.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.random.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.comparison.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.base.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.round.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.misc.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.integerarithmetics.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/math/pgfmathcalc.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/math/pgfmathfloat.code.tex)) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/math/pgfint.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepoints.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepathconstruct.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepathusage.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/basiclayer/pgfcorescopes.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/basiclayer/pgfcoregraphicstate.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/basiclayer/pgfcoretransformations.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/basiclayer/pgfcorequick.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreobjects.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepathprocessing.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/basiclayer/pgfcorearrows.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreshade.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreimage.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreexternal.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/basiclayer/pgfcorelayers.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/basiclayer/pgfcoretransparency.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepatterns.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/basiclayer/pgfcorerdf.code.tex))) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/modules/pgfmoduleshapes.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/modules/pgfmoduleplot.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/latex/pgf/compatibility/pgfcomp-version-0-65.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/pgf/compatibility/pgfcomp-version-1-18.sty)) (/usr/local/texlive/2023/texmf-dist/tex/latex/pgf/utilities/pgffor.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/pgf/utilities/pgfkeys.sty (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/utilities/pgfkeys.code.tex)) (/usr/local/texlive/2023/texmf-dist/tex/latex/pgf/math/pgfmath.sty (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/math/pgfmath.code.tex)) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/utilities/pgffor.code.tex)) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/frontendlayer/tikz/tikz.code.tex (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/libraries/pgflibraryplothandlers.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/modules/pgfmodulematrix.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarytopaths.code.tex))) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarypositioning.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/latex/tools/calc.sty))
+./macros.tex:174: Undefined control sequence.
+l.174   \printfield
+                   {labelyear}%
+
+./macros.tex:174: LaTeX Error: Missing \begin{document}.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.174   \printfield{l
+                     abelyear}%
+./macros.tex:175: Undefined control sequence.
+l.175   \printfield
+                   {extrayear}%
+./macros.tex:176: Too many }'s.
+l.176 }
+       {%
+./macros.tex:177: Undefined control sequence.
+l.177   \bibhyperref
+                    {%
+./macros.tex:178: Undefined control sequence.
+l.178     \printfield
+                     {labelyear}%
+./macros.tex:179: Undefined control sequence.
+l.179     \printfield
+                     {extrayear}%
+
+./macros.tex:191: LaTeX Error: Command \norm already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.191 ...nd{\norm}[1]{\left\lVert#1\right\rVert_2}
+                                                  
+
+./macros.tex:233: LaTeX Error: Command \bb already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.233 \newcommand\bb[0]{\mathbb{B}}
+                                   
+
+./macros.tex:234: LaTeX Error: Command \cc already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.234 \newcommand\cc[0]{\mathbb{C}}
+                                   
+
+./macros.tex:235: LaTeX Error: Command \dd already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.235 \newcommand\dd[0]{\mathbb{D}}
+                                   
+
+./macros.tex:236: LaTeX Error: Command \ee already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.236 \newcommand\ee[0]{\mathbb{E}}
+                                   
+
+./macros.tex:237: LaTeX Error: Command \ff already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.237 \newcommand\ff[0]{\mathbb{F}}
+                                   
+
+./macros.tex:239: LaTeX Error: Command \hh already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.239 \newcommand\hh[0]{\mathbb{H}}
+                                   
+
+./macros.tex:240: LaTeX Error: Command \ii already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.240 \newcommand\ii[0]{\mathbb{I}}
+                                   
+
+./macros.tex:241: LaTeX Error: Command \jj already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.241 \newcommand\jj[0]{\mathbb{J}}
+                                   
+
+./macros.tex:242: LaTeX Error: Command \kk already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.242 \newcommand\kk[0]{\mathbb{K}}
+                                   
+
+./macros.tex:244: LaTeX Error: Command \mm already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.244 \newcommand\mm[0]{\mathbb{M}}
+                                   
+
+./macros.tex:245: LaTeX Error: Command \nn already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.245 \newcommand\nn[0]{\mathbb{N}}
+                                   
+
+./macros.tex:246: LaTeX Error: Command \oo already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.246 \newcommand\oo[0]{\mathbb{O}}
+                                   
+
+./macros.tex:247: LaTeX Error: Command \pp already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.247 \newcommand\pp[0]{\mathbb{P}}
+                                   
+
+./macros.tex:248: LaTeX Error: Command \qq already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.248 \newcommand\qq[0]{\mathbb{Q}}
+                                   
+
+./macros.tex:249: LaTeX Error: Command \rr already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.249 \newcommand\rr[0]{\mathbb{R}}
+                                   
+
+./macros.tex:252: LaTeX Error: Command \uu already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.252 \newcommand\uu[0]{\mathbb{U}}
+                                   
+
+./macros.tex:253: LaTeX Error: Command \vv already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.253 \newcommand\vv[0]{\mathbb{V}}
+                                   
+
+./macros.tex:254: LaTeX Error: Command \ww already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.254 \newcommand\ww[0]{\mathbb{W}}
+                                   
+
+./macros.tex:255: LaTeX Error: Command \xx already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.255 \newcommand\xx[0]{\mathbb{X}}
+                                   
+
+./macros.tex:256: LaTeX Error: Command \yy already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.256 \newcommand\yy[0]{\mathbb{Y}}
+                                   
+
+./macros.tex:257: LaTeX Error: Command \zz already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.257 \newcommand\zz[0]{\mathbb{Z}}
+                                   
+
+./macros.tex:293: LaTeX Error: Command \supp already defined.
+               Or name \end... illegal, see p.192 of the manual.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.293 ...mmand\supp[1]{\text{supp}\left(#1\right)}
+                                                  
+(/usr/local/texlive/2023/texmf-dist/tex/latex/cancel/cancel.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/lipsum/lipsum.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/l3packages/l3keys2e/l3keys2e.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/lipsum/lipsum.ltd.tex)) (/usr/local/texlive/2023/texmf-dist/tex/latex/tcolorbox/tcolorbox.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/tools/verbatim.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/environ/environ.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/trimspaces/trimspaces.sty)) (/usr/local/texlive/2023/texmf-dist/tex/latex/tcolorbox/tcbraster.code.tex
+Library (tcolorbox): 'tcbraster.code.tex' version '6.0.1'
+) (/usr/local/texlive/2023/texmf-dist/tex/latex/tcolorbox/tcbskins.code.tex
+Library (tcolorbox): 'tcbskins.code.tex' version '6.0.1'
+(/usr/local/texlive/2023/texmf-dist/tex/latex/tikzfill/tikzfill.image.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/tikzfill/tikzfill-common.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/tikzfill/tikzlibraryfill.image.code.tex)) (/usr/local/texlive/2023/texmf-dist/tex/latex/tcolorbox/tcbskinsjigsaw.code.tex
+Library (tcolorbox): 'tcbskinsjigsaw.code.tex' version '6.0.1'
+)) (/usr/local/texlive/2023/texmf-dist/tex/latex/tcolorbox/tcbbreakable.code.tex
+Library (tcolorbox): 'tcbbreakable.code.tex' version '6.0.1'
+(/usr/local/texlive/2023/texmf-dist/tex/latex/pdfcol/pdfcol.sty)) (/usr/local/texlive/2023/texmf-dist/tex/latex/tcolorbox/tcbhooks.code.tex
+Library (tcolorbox): 'tcbhooks.code.tex' version '6.0.1'
+) (/usr/local/texlive/2023/texmf-dist/tex/latex/tcolorbox/tcbtheorems.code.tex
+Library (tcolorbox): 'tcbtheorems.code.tex' version '6.0.1'
+) (/usr/local/texlive/2023/texmf-dist/tex/latex/tcolorbox/tcbfitting.code.tex
+Library (tcolorbox): 'tcbfitting.code.tex' version '6.0.1'
+) (/usr/local/texlive/2023/texmf-dist/tex/latex/tcolorbox/tcblistingsutf8.code.tex
+Library (tcolorbox): 'tcblistingsutf8.code.tex' version '6.0.1'
+(/usr/local/texlive/2023/texmf-dist/tex/latex/tcolorbox/tcblistings.code.tex
+Library (tcolorbox): 'tcblistings.code.tex' version '6.0.1'
+(/usr/local/texlive/2023/texmf-dist/tex/latex/tcolorbox/tcblistingscore.code.tex
+Library (tcolorbox): 'tcblistingscore.code.tex' version '6.0.1'
+(/usr/local/texlive/2023/texmf-dist/tex/latex/tcolorbox/tcbprocessing.code.tex
+Library (tcolorbox): 'tcbprocessing.code.tex' version '6.0.1'
+(/usr/local/texlive/2023/texmf-dist/tex/latex/tools/shellesc.sty)))) (/usr/local/texlive/2023/texmf-dist/tex/latex/listingsutf8/listingsutf8.sty (/usr/local/texlive/2023/texmf-dist/tex/generic/stringenc/stringenc.sty))) (/usr/local/texlive/2023/texmf-dist/tex/latex/tcolorbox/tcbexternal.code.tex
+Library (tcolorbox): 'tcbexternal.code.tex' version '6.0.1'
+) (/usr/local/texlive/2023/texmf-dist/tex/latex/tcolorbox/tcbmagazine.code.tex
+Library (tcolorbox): 'tcbmagazine.code.tex' version '6.0.1'
+) (/usr/local/texlive/2023/texmf-dist/tex/latex/tcolorbox/tcbvignette.code.tex
+Library (tcolorbox): 'tcbvignette.code.tex' version '6.0.1'
+(/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibraryfadings.code.tex (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/libraries/pgflibraryfadings.code.tex))) (/usr/local/texlive/2023/texmf-dist/tex/latex/tcolorbox/tcbposter.code.tex
+Library (tcolorbox): 'tcbposter.code.tex' version '6.0.1'
+)) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/libraries/pgflibraryarrows.meta.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibraryshapes.code.tex (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibraryshapes.geometric.code.tex (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/libraries/shapes/pgflibraryshapes.geometric.code.tex)) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibraryshapes.misc.code.tex (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/libraries/shapes/pgflibraryshapes.misc.code.tex)) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibraryshapes.symbols.code.tex (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/libraries/shapes/pgflibraryshapes.symbols.code.tex)) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibraryshapes.arrows.code.tex (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/libraries/shapes/pgflibraryshapes.arrows.code.tex)) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibraryshapes.callouts.code.tex (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/libraries/shapes/pgflibraryshapes.callouts.code.tex)) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibraryshapes.multipart.code.tex (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/libraries/shapes/pgflibraryshapes.multipart.code.tex))) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarycalc.code.tex) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarypatterns.code.tex (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/libraries/pgflibrarypatterns.code.tex)) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarydecorations.pathreplacing.code.tex (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarydecorations.code.tex (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/modules/pgfmoduledecorations.code.tex)) (/usr/local/texlive/2023/texmf-dist/tex/generic/pgf/libraries/decorations/pgflibrarydecorations.pathreplacing.code.tex)) (/usr/local/texlive/2023/texmf-dist/tex/latex/algorithms/algorithm.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/algorithmicx/algpseudocode.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/algorithmicx/algorithmicx.sty
+Document Style algorithmicx 1.2 - a greatly improved `algorithmic' style
+)
+Document Style - pseudocode environments for use with the `algorithmicx' style
+))
+
+Package biblatex Warning: 'babel/polyglossia' detected but 'csquotes' missing.
+(biblatex)                Loading 'csquotes' recommended.
+
+(/usr/local/texlive/2023/texmf-dist/tex/latex/psnfss/t1ptm.fd)
+No file main.aux.
+*geometry* driver: auto-detecting
+*geometry* detected driver: pdftex
+(/usr/local/texlive/2023/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+) (/usr/local/texlive/2023/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty (/usr/local/texlive/2023/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg)) (/usr/local/texlive/2023/texmf-dist/tex/latex/caption/ltcaption.sty) (/usr/local/texlive/2023/texmf-dist/tex/latex/translations/translations-basic-dictionary-english.trsl) (/usr/local/texlive/2023/texmf-dist/tex/latex/biblatex/lbx/english.lbx)
+No file main.bbl.
+
+Package todonotes Warning: The length marginparwidth is less than 2cm and will most likely cause issues with the appearance of inserted todonotes. The issue can be solved by adding a line like \setlength {\marginparwidth }{2cm} prior to loading the todonotes package. on input line 23.
+
+[-3{/usr/local/texlive/2023/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/usr/local/texlive/2023/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc}{/usr/local/texlive/2023/texmf-dist/fonts/enc/dvips/base/8r.enc}] [-2 <./figures//UdS.pdf>] [-1] (./body/ai.tex (/usr/local/texlive/2023/texmf-dist/tex/latex/amsfonts/umsa.fd) (/usr/local/texlive/2023/texmf-dist/tex/latex/amsfonts/umsb.fd)) [1] (./frontmatter/abstract.tex) [2] (./frontmatter/acknows.tex) [3]
+No file main.toc.
+[4] (./body/introduction.tex
+Chapter 1.
+
+LaTeX Warning: Citation 'brown2020language' on page 1 undefined on input line 7.
+
+
+LaTeX Warning: Citation 'radford2018improving' on page 1 undefined on input line 7.
+
+
+LaTeX Warning: Citation 'liu2024deepseek' on page 1 undefined on input line 7.
+
+
+LaTeX Warning: Citation 'team2023gemini' on page 1 undefined on input line 7.
+
+
+LaTeX Warning: Reference `fig:computation_growth' on page 1 undefined on input line 7.
+
+
+Overfull \hbox (29.21646pt too wide) in paragraph at lines 6--8
+\T1/ptm/m/n/10.95 mark-able suc-cess across di-verse do-mains [[], [], []]
+
+LaTeX Warning: File `master_thesis//figures/computation_growth.png' not found on input line 12.
+
+
+./body/introduction.tex:12: Package pdftex.def Error: File `master_thesis//figures/computation_growth.png' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.12 ...er_thesis//figures/computation_growth.png}
+                                                  
+(/usr/local/texlive/2023/texmf-dist/tex/latex/courier-scaled/t1pcrs.fd)
+
+LaTeX Warning: Citation 'mcmahan2017communication' on page 1 undefined on input line 19.
+
+
+LaTeX Warning: Citation 'harlap2018pipedream' on page 1 undefined on input line 22.
+
+
+LaTeX Warning: Citation 'chen2022training' on page 1 undefined on input line 22.
+
+[1] [2]
+
+LaTeX Warning: Citation 'colin2019theoretical' on page 3 undefined on input line 24.
+
+
+LaTeX Warning: Citation 'guan2024advances' on page 3 undefined on input line 25.
+
+
+Overfull \hbox (18.33168pt too wide) in paragraph at lines 25--26
+ []\T1/ptm/b/n/10.95 Practical Lim-i-ta-tions:[] \T1/ptm/m/n/10.95 Ef-fec-tive pipelin-ing re-quires care-ful schedul-ing to min-i-mize ``bub-bles''^^Vidle
+(/usr/local/texlive/2023/texmf-dist/tex/latex/psnfss/ts1ptm.fd)
+
+LaTeX Warning: Citation 'liang2024resource' on page 3 undefined on input line 27.
+
+
+LaTeX Warning: Citation 'guan2024advances' on page 3 undefined on input line 29.
+
+
+Overfull \hbox (25.3955pt too wide) in paragraph at lines 29--30
+\T1/ptm/m/n/10.95 which typ-i-cally yields 20--50% in-ef-fi-ciency un-der stan-dard train-ing set-tings [[]]. 
+
+Overfull \hbox (3.56152pt too wide) in paragraph at lines 31--32
+[]\T1/ptm/b/n/10.95 Convergence Degra-da-tion:  \T1/ptm/m/n/10.95 Asyn-chronous pipelines mit-i-gate bub-bling by tol-er-at-ing weight
+
+LaTeX Warning: Citation 'harlap2018pipedream' on page 3 undefined on input line 33.
+
+
+Overfull \hbox (6.93378pt too wide) in paragraph at lines 33--34
+\T1/ptm/m/n/10.95 each de-vice. For ex-am-ple, PipeDream's weight stash-ing mech-a-nism [[]]
+[3]
+
+LaTeX Warning: Citation 'llama3scaling' on page 4 undefined on input line 36.
+
+
+LaTeX Warning: Citation 'nesterov2012efficiency' on page 4 undefined on input line 42.
+
+
+LaTeX Warning: Citation 'wright2015coordinate' on page 4 undefined on input line 42.
+
+
+LaTeX Warning: Citation 'richtarik2016parallel' on page 4 undefined on input line 42.
+
+
+LaTeX Warning: Citation 'fercoq2015accelerated' on page 4 undefined on input line 42.
+
+
+LaTeX Warning: Citation 'mutny2018parallel' on page 4 undefined on input line 42.
+
+
+LaTeX Warning: Citation 'tappenden2018complexity' on page 4 undefined on input line 42.
+
+
+Overfull \hbox (97.8604pt too wide) in paragraph at lines 42--43
+\T1/ptm/m/n/10.95 Coordinate de-scent (CD) meth-ods are early ap-proaches for un-con-strained smooth min-i-miza-tion [[],
+
+Overfull \hbox (14.71794pt too wide) in paragraph at lines 42--43
+\T1/ptm/m/n/10.95 tributed, CD's struc-ture en-ables par-al-leliza-tion, spawn-ing dis-tributed vari-ants [[],
+[4]
+Underfull \hbox (badness 10000) in paragraph at lines 54--55
+
+
+LaTeX Warning: Citation '' on page 5 undefined on input line 56.
+
+
+LaTeX Warning: Reference `chap:related_works' on page 5 undefined on input line 63.
+
+
+LaTeX Warning: Reference `chap:coordinate_descent' on page 5 undefined on input line 65.
+
+
+LaTeX Warning: Reference `chap:decoupled_gradient_descent_ascent' on page 5 undefined on input line 67.
+
+) [5] (./body/related_works.tex
+Chapter 2.
+
+LaTeX Warning: Citation 'nesterov2012efficiency' on page 6 undefined on input line 6.
+
+
+LaTeX Warning: Citation 'wright2015coordinate' on page 6 undefined on input line 6.
+
+
+LaTeX Warning: Citation 'nesterov2012efficiency' on page 6 undefined on input line 8.
+
+
+Overfull \hbox (7.96295pt too wide) in paragraph at lines 8--9
+ []\T1/ptm/b/n/10.95 Fundamental Anal-y-sis of Ran-dom-ized Co-or-di-nate De-scent[] \T1/ptm/m/n/10.95 Nes-terov [[]]
+
+LaTeX Warning: Citation 'richtarik2014iteration' on page 6 undefined on input line 10.
+
+
+LaTeX Warning: Citation 'richtarik2016parallel' on page 6 undefined on input line 10.
+
+
+LaTeX Warning: Citation 'fercoq2015accelerated' on page 6 undefined on input line 10.
+
+[6]
+
+LaTeX Warning: Citation 'rumelhart1986learning' on page 7 undefined on input line 12.
+
+
+LaTeX Warning: Citation 'pmlr-v54-mcmahan17a' on page 7 undefined on input line 12.
+
+
+LaTeX Warning: Citation 'mcmahan2017communication' on page 7 undefined on input line 12.
+
+
+LaTeX Warning: Citation 'kingma2014adam' on page 7 undefined on input line 12.
+
+
+LaTeX Warning: Citation 'jaggi2014communication' on page 7 undefined on input line 14.
+
+
+LaTeX Warning: Citation 'hsieh2015passcode' on page 7 undefined on input line 14.
+
+
+LaTeX Warning: Citation 'smith2018cocoa' on page 7 undefined on input line 14.
+
+
+Overfull \hbox (14.94829pt too wide) in paragraph at lines 14--15
+\T1/ptm/m/n/10.95 distributed set-tings, of-ten via a dual for-mu-la-tion. The Co-CoA frame-work [[]]
+
+LaTeX Warning: Citation 'luo2024badam' on page 7 undefined on input line 16.
+
+
+LaTeX Warning: Citation 'pan2024lisa' on page 7 undefined on input line 16.
+
+) [7] [8] (./body/coordinate_descent.tex
+Chapter 3.
+[9]
+
+LaTeX Warning: Reference `assumption:Coordinatewise-smoothness' on page 10 undefined on input line 76.
+
+
+LaTeX Warning: Reference `assumption:Multi-coordinate-smoothness' on page 10 undefined on input line 76.
+
+
+LaTeX Warning: Reference `assumption:coordinatewise-convexity' on page 10 undefined on input line 76.
+
+
+LaTeX Warning: Reference `assumption:coordinatewise-strong-convexity' on page 10 undefined on input line 76.
+
+
+LaTeX Warning: Reference `assumption:overall-convexity' on page 10 undefined on input line 76.
+
+
+LaTeX Warning: Reference `section:clarifying_the_assumtpoions_and_coeficients' on page 10 undefined on input line 76.
+
+[10]
+
+LaTeX Warning: Reference `assumption:Coordinatewise-smoothness' on page 11 undefined on input line 82.
+
+
+LaTeX Warning: Reference `assumption:Multi-coordinate-smoothness' on page 11 undefined on input line 82.
+
+
+LaTeX Warning: Reference `assumption:coordinatewise-convexity' on page 11 undefined on input line 87.
+
+
+LaTeX Warning: Reference `assumption:coordinatewise-strong-convexity' on page 11 undefined on input line 87.
+
+
+LaTeX Warning: Reference `assumption:overall-convexity' on page 11 undefined on input line 87.
+
+
+Overfull \hbox (7.10347pt too wide) detected at line 90
+\OML/cmm/m/it/10.95 U[]\OMS/cmsy/m/n/10.95 r[]\OML/cmm/m/it/10.95 f\OT1/cmr/m/n/10.95 (\OT1/cmr/bx/n/10.95 x\OT1/cmr/m/n/10.95 )\OML/cmm/m/it/10.95 U[] \OMS/cmsy/m/n/10.95 ^^W \OML/cmm/m/it/10.95 ^^V[]I[] \OMS/cmsy/m/n/10.95 8\OT1/cmr/bx/n/10.95 x \OMS/cmsy/m/n/10.95 2 \U/msb/m/n/10.95 R[]\OML/cmm/m/it/10.95 ;  U[]\OMS/cmsy/m/n/10.95 r[]\OML/cmm/m/it/10.95 f\OT1/cmr/m/n/10.95 (\OT1/cmr/bx/n/10.95 x\OT1/cmr/m/n/10.95 )\OML/cmm/m/it/10.95 U[] \OMS/cmsy/m/n/10.95 ^^W \OT1/cmr/m/n/10.95 0 \OMS/cmsy/m/n/10.95 8\OT1/cmr/bx/n/10.95 x \OMS/cmsy/m/n/10.95 2 \U/msb/m/n/10.95 R[]\OML/cmm/m/it/10.95 ;  \OMS/cmsy/m/n/10.95 r[]\OML/cmm/m/it/10.95 f\OT1/cmr/m/n/10.95 (\OT1/cmr/bx/n/10.95 x\OT1/cmr/m/n/10.95 ) \OMS/cmsy/m/n/10.95 ^^W \OT1/cmr/m/n/10.95 0 \OMS/cmsy/m/n/10.95 8\OT1/cmr/bx/n/10.95 x \OMS/cmsy/m/n/10.95 2 \U/msb/m/n/10.95 R[]\OML/cmm/m/it/10.95 :
+
+Overfull \hbox (1.11128pt too wide) detected at line 100
+\OML/cmm/m/it/10.95 f [] \OT1/cmr/m/n/10.95 + []\OMS/cmsy/m/n/10.95 k[] ^^@ \OT1/cmr/bx/n/10.95 x[]\OMS/cmsy/m/n/10.95 k[] ^^T [] [] \OT1/cmr/m/n/10.95 + \OML/cmm/m/it/10.95 ^^N[]:[]
+./body/coordinate_descent.tex:113: Undefined control sequence.
+l.113         \ParFor
+                     {$i = 1, \dots, n$}
+./body/coordinate_descent.tex:115: Undefined control sequence.
+l.115         \EndParFor
+                        
+[11]
+
+LaTeX Warning: Reference `alg:prox_bcd' on page 12 undefined on input line 132.
+
+
+Overfull \hbox (6.22171pt too wide) in paragraph at lines 132--133
+\T1/ptm/m/n/10.95 set-tings with ap-prox-i-mate sub-prob-lem solves. We be-gin by de-riv-ing de-scent prop-er-ties and gradient-
+
+LaTeX Warning: Reference `alg:prox_bcd' on page 12 undefined on input line 135.
+
+[12]
+
+LaTeX Warning: Reference `assumption: coordinatewise-strongconvexity' on page 13 undefined on input line 139.
+
+
+LaTeX Warning: Reference `assumption:Block-strong-convexity' on page 13 undefined on input line 143.
+
+
+LaTeX Warning: Reference `lem:gradient_related' on page 13 undefined on input line 157.
+
+
+LaTeX Warning: Reference `alg:prox_bcd' on page 13 undefined on input line 170.
+
+
+LaTeX Warning: Reference `theorem:communication_complexity_realisitic_method' on page 13 undefined on input line 170.
+
+
+LaTeX Warning: Reference `alg:prox_bcd' on page 13 undefined on input line 175.
+
+
+LaTeX Warning: Reference `alg:prox_bcd' on page 13 undefined on input line 193.
+
+[13]
+
+LaTeX Warning: Reference `alg:prox_bcd' on page 14 undefined on input line 214.
+
+
+LaTeX Warning: Reference `alg:prox_bcd' on page 14 undefined on input line 226.
+
+
+LaTeX Warning: Citation 'nesterov1983method' on page 14 undefined on input line 226.
+
+
+Overfull \hbox (38.65463pt too wide) in paragraph at lines 226--227
+\T1/ptm/m/n/10.95 tion. In this sec-tion, we in-stead as-sume that Nes-terov's ac-cel-er-ated gra-di-ent de-scent [[]]
+
+LaTeX Warning: Reference `assumption:Coordinatewise-smoothness' on page 14 undefined on input line 229.
+
+
+LaTeX Warning: Reference `assumption:Coordinatewise-smoothness' on page 14 undefined on input line 244.
+
+[14]
+
+LaTeX Warning: Reference `theorem:communication_complexity_realisitic_method' on page 15 undefined on input line 269.
+
+
+LaTeX Warning: Reference `alg:prox_bcd' on page 15 undefined on input line 269.
+
+
+LaTeX Warning: Reference `corollary:communication_complexity' on page 15 undefined on input line 291.
+
+[15]
+
+LaTeX Warning: Reference `eq:local_complexity' on page 16 undefined on input line 300.
+
+
+LaTeX Warning: Reference `eq:comm_complexity' on page 16 undefined on input line 300.
+
+
+LaTeX Warning: Citation 'nesterov2012efficiency' on page 16 undefined on input line 304.
+
+
+Overfull \hbox (81.37424pt too wide) in paragraph at lines 304--305
+\T1/ptm/m/n/10.95 pling)\T1/ptm/b/n/10.95 . []\T1/ptm/m/it/10.95 For smooth con-vex min-i-miza-tion, Nes-terov's ran-dom-ized co-or-di-nate de-scent (RCD) [[]]
+
+Overfull \hbox (17.69211pt too wide) in paragraph at lines 304--305
+\T1/ptm/m/it/10.95 with im-por-tance sam-pling achieves ran-dom-ized co-or-di-nate de-scent (RCD) yields $\OMS/cmsy/m/n/10.95 O []$\T1/ptm/m/it/10.95 .
+
+Overfull \hbox (20.34706pt too wide) in paragraph at lines 304--305
+\T1/ptm/m/it/10.95 Our dis-tributed prox-i-mal block co-or-di-nate de-scent has to-tal com-plex-ity $\OMS/cmsy/m/n/10.95 O []$\T1/ptm/m/it/10.95 ,
+) [16]
+/Users/parham/Documents/master_thesis/main.tex:52: I can't write on file `master_thesis/body/game.aux'.
+\@include ...mmediate \openout \@partaux "#1.aux" 
+                                                  \immediate \write \@partau...
+l.52 \include{master_thesis/body/game}
+                                      
+(Press Enter to retry, or Control-D to exit; default file extension is `.tex')
+Please type another output file name
+/Users/parham/Documents/master_thesis/main.tex:52: Emergency stop.
+\@include ...mmediate \openout \@partaux "#1.aux" 
+                                                  \immediate \write \@partau...
+l.52 \include{master_thesis/body/game}
+                                      
+/Users/parham/Documents/master_thesis/main.tex:52:  ==> Fatal error occurred, no output PDF file produced!
+Transcript written on main.log.
+Latexmk: Missing input file 'main.aux' (or dependence on it) from following:
+  No file main.aux.
+Latexmk: Missing bbl file 'main.bbl' in following:
+ No file main.bbl.
+Latexmk: Missing input file 'main.toc' (or dependence on it) from following:
+  No file main.toc.
+Latexmk: Missing input file 'master_thesis//figures/computation_growth.png' (or dependence on it) from following:
+  LaTeX Warning: File `master_thesis//figures/computation_growth.png' not found on input line 12.
+Latexmk: Getting log file 'main.log'
+Latexmk: Examining 'main.fls'
+Latexmk: Examining 'main.log'
+Latexmk: ====List of undefined refs and citations:
+  Reference `fig:computation_growth' on page 1 undefined on input line 7
+  Reference `chap:related_works' on page 5 undefined on input line 63
+  Reference `chap:coordinate_descent' on page 5 undefined on input line 65
+  Reference `chap:decoupled_gradient_descent_ascent' on page 5 undefined on input line 67
+  Reference `assumption:Coordinatewise-smoothness' on page 10 undefined on input line 76
+  Reference `assumption:Multi-coordinate-smoothness' on page 10 undefined on input line 76
+  Reference `assumption:coordinatewise-convexity' on page 10 undefined on input line 76
+ And 26 more --- see log file.
+Latexmk: If appropriate, the -f option can be used to get latexmk
+  to try to force complete processing.
+Latexmk: Bibliography file(s) form .bcf file:
+  ./backmatter/bibliography.bib
+Latexmk: Summary of warnings from last run of *latex:
+  Latex failed to resolve 33 reference(s)
+Latexmk: Errors, so I did not complete making targets
+Collected error summary (may duplicate other messages):
+  pdflatex: Command for 'pdflatex' gave return code 1
+      Refer to 'main.log' and/or above output for details
+
