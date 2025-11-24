@@ -26,6 +26,9 @@ DEFAULT_HYPERPARAMETERS: Dict[str, Any] = {
     "communication_delay": 0,
     "n_workers": 1,
     "beta": 0.5,
+    "gamma": 1.0,
+    "prox_lambda": 0.0,
+    "block_accuracy_factor": 0.5,
     "reports_dir": "default_path",
 }
 
@@ -36,7 +39,6 @@ DEFAULT_HYPERPARAMETERS: Dict[str, Any] = {
 # Keeping them here acts like a cookbook and satisfies the "comment everything" guidance.
 
 TRAINING_DISPATCH: Dict[str, Callable[[Any], None]] = {
-    "blockwise": BCD_engine.train_blockwise_distributed,
     "blockwise_sequential": BCD_engine.train_blockwise_sequential,
     "entire": BCD_engine.train_entire,
 }

@@ -32,7 +32,7 @@ class Frame:
         self.input_shape  = None
         self.output_shape = None     
 
-    def setup_dataloaders(self, data_set,layzzy_loader=False):
+    def setup_dataloaders(self, data_set):
         # Keep the original dataset structure, avoid moving everything to device here
         self.dataset = data_set
 
@@ -69,14 +69,10 @@ class Frame:
             drop_last=False # Usually don't drop the last batch in testing
         )
 
-        if not layzzy_loader:
-            train_data = [(x[0].to(self.device, non_blocking=False),x[1].to(self.device, non_blocking=False)) for x in self.train_loader]
-            train_data_bigBatch = [(x[0].to(self.device, non_blocking=False),x[1].to(self.device, non_blocking=False)) for x in self.big_train_loader]
-            # test_data = [(x[0].to(self.device, non_blocking=False),x[1].to(self.device, non_blocking=False)) for x in self.test_loader]
-            
-            self.train_loader = train_data
-            self.big_train_loader = train_data_bigBatch
-            # self.test_loader = test_data
+        train_data = [(x[0].to(self.device, non_blocking=False), x[1].to(self.device, non_blocking=False)) for x in self.train_loader]
+        train_data_bigBatch = [(x[0].to(self.device, non_blocking=False), x[1].to(self.device, non_blocking=False)) for x in self.big_train_loader]
+        self.train_loader = train_data
+        self.big_train_loader = train_data_bigBatch
 
     def set_measure_units(self, measure_units: list):
         """
@@ -126,6 +122,12 @@ class Disributed_frame(Frame):
 
         self.distributed_models = {}
         self.optimizers = []
+        self.gamma = float(H.get("gamma", 1.0))
+        self.gamma = max(0.0, min(self.gamma, 1.0))
+        accuracy_factor = H.get("block_accuracy_factor", 0.5)
+        self.block_accuracy_factor = None if accuracy_factor is None else float(accuracy_factor)
+        self._prox_lambda_config = H.get("prox_lambda", 0.0)
+        self.block_lambdas = []
 
 
     def train(self):
@@ -139,7 +141,12 @@ class Disributed_frame(Frame):
         # Synchronize the blocks with the central model
         for block_idx, block in enumerate(self.distributed_models.keys()):
             model, _ = self.distributed_models[block]
-            utils.copy_block(model, self.center_model, block_idx)
+            if self.gamma >= 1.0:
+                utils.copy_block(model, self.center_model, block_idx)
+            elif self.gamma <= 0.0:
+                continue
+            else:
+                utils.blend_block(model, self.center_model, block_idx, self.gamma)
 
         time.sleep(self.H['communication_delay'])
         # Synchronize the central model with the blocks
@@ -163,14 +170,16 @@ class Disributed_frame(Frame):
 
     def init_distributed_models(self):
         # If the model has a block structure, create a distributed copy for each block.
-        if hasattr(self.center_model, "blocks"):
-            for i, block in enumerate(self.center_model.blocks):
-                copy_model = copy.deepcopy(self.center_model).to(self.device)
-                optimizer = optim.Adam(copy_model.blocks[i].parameters(), lr=self.lr)
-                self.optimizers.append(optimizer)
-                self.distributed_models[f"block_{i}"] = (copy_model, optimizer)
-        else:
+        if not hasattr(self.center_model, "blocks"):
             raise ValueError("Distributed regression training requires a block-structured model. The provided center_model does not have a 'blocks' attribute.")
+        block_count = len(self.center_model.blocks)
+        self.block_lambdas = self._broadcast_block_parameter(self._prox_lambda_config, block_count, "prox_lambda")
+
+        for i, _ in enumerate(self.center_model.blocks):
+            copy_model = copy.deepcopy(self.center_model).to(self.device)
+            optimizer = optim.Adam(copy_model.blocks[i].parameters(), lr=self.lr)
+            self.optimizers.append(optimizer)
+            self.distributed_models[f"block_{i}"] = (copy_model, optimizer)
 
     def average_parameter_difference_norm(self):
         total_norm = 0
@@ -191,6 +200,24 @@ class Disributed_frame(Frame):
 
         return average_norm
 
+    @staticmethod
+    def _broadcast_block_parameter(value, block_count, name):
+        if isinstance(value, (list, tuple)):
+            if len(value) != block_count:
+                raise ValueError(f"{name} expects {block_count} entries, got {len(value)}.")
+            try:
+                return [float(v) for v in value]
+            except (TypeError, ValueError) as exc:
+                raise ValueError(f"Could not cast all entries of {name} to float.") from exc
+        if value is None:
+            scalar = 0.0
+        else:
+            try:
+                scalar = float(value)
+            except (TypeError, ValueError) as exc:
+                raise ValueError(f"{name} must be a float or a list of floats.") from exc
+        return [scalar] * block_count
+
 
 class ImageClassifier_frame_blockwise(Disributed_frame):
     def __init__(self, model, H):
@@ -200,17 +227,6 @@ class ImageClassifier_frame_blockwise(Disributed_frame):
         self.dataset_name = H["dataset_name"]
         self.loss_history = []
         self.param_deviation = []
-
-
-        # # Iterate over the blocks of the model
-        # for i, block in enumerate(self.center_model.blocks):
-        #     # Create a deep copy of the model for each block
-        #     copy_model = copy.deepcopy(self.center_model)
-        #     # Initialize an optimizer for the parameters of the current block
-        #     optimizer = optim.Adam(copy_model.blocks[i].parameters(), lr=self.lr)
-        #     self.optimizers.append(optimizer)
-        #     # Map each block to its corresponding model and optimizer
-        #     self.distributed_models[f"block_{i}"] = (copy_model, optimizer)
 
 
         self.init_distributed_models()
@@ -316,8 +332,7 @@ class Regression_frame_entire(Frame):
             raise
 
         # Setup the dataloaders for training and testing
-        # The setup_dataloaders method splits data and creates loaders
-        self.setup_dataloaders(dataset) # Use layzzy_loader=False by default if desired
+        self.setup_dataloaders(dataset)
 
         # Log basic information about the frame and model
         frame_type = type(self).__name__
@@ -410,11 +425,9 @@ def generate_ModelFrame(H):
         model = Models.load_resnet18(pretrained=pretrained, num_classes=output_shape[0])
 
     elif model_type == "ResNet34":
-        print(f"\n\n\nin_features: {input_shape}, num_classes: {output_shape}\n\n\n")
         model = Models.load_resnet34(pretrained=pretrained, num_classes=output_shape[0], bi_partitioned=False)
 
     elif model_type == "ResNet34-bi":
-        print(f"\n\n\nin_features: {input_shape}, num_classes: {output_shape}\n\n\n")
         model = Models.load_resnet34(pretrained=pretrained, num_classes=output_shape[0], bi_partitioned=True)
 
     elif model_type == "linear_nn":

@@ -1,10 +1,10 @@
-import torch
-import src.Buliding_Units.Model_frames as Model_frames
-import concurrent.futures
-import time  # Import the time module
-import multiprocessing
-from src.Buliding_Units.StopperUnit import StopperUnit
 import random
+import time
+from typing import List, Sequence, Tuple
+
+import torch
+
+import src.Buliding_Units.Model_frames as Model_frames
 
 def log_progress(frame, round_idx, total_time, optimize_block_time, log_deviation=False):
     """Logs performance on one batch from big_train_loader with optional deviation info."""
@@ -41,102 +41,170 @@ def perform_communication(frame, communicate_func):
     return time.time() - start
 
 
-def optimzie_block(model, optimizer, K, data_set, device, criterion):
-    """
-    Trains a copy of the model for K local steps using the given optimizer.
-    
-    Args:
-        model: The model to copy and train.
-        optimizer: The optimizer tied to a specific parameter group.
-        K: Number of local optimization steps.
-        train_loader: DataLoader for training data.
-        device: Device to run the training on (e.g., CUDA).
-        criterion: Loss function.
-    
-    Returns:
-        The updated model copy after K steps.
-    """
-    sub_data_set = random.sample(data_set, K)
+def _draw_minibatches(dataset: Sequence[Tuple[torch.Tensor, torch.Tensor]], steps: int):
+    """Sample `steps` micro-batches from the cached training loader."""
+    if steps <= 0:
+        return []
+    data_len = len(dataset)
+    if data_len == 0:
+        raise ValueError("Training dataset is empty; cannot run block update.")
+    if steps <= data_len:
+        indices = random.sample(range(data_len), steps)
+    else:
+        indices = [random.randrange(data_len) for _ in range(steps)]
+    return [dataset[idx] for idx in indices]
 
-    iteration = 0
-    for inputs, labels in sub_data_set:
 
-        # Clear all gradients (including frozen blocks) once per step
-        model.zero_grad(set_to_none=True)
+def _block_distance_sq(block_params: List[torch.nn.Parameter], reference_params: List[torch.Tensor]) -> torch.Tensor:
+    """Return the squared Euclidean distance between current and reference block parameters."""
+    if not block_params:
+        device = reference_params[0].device if reference_params else torch.device("cpu")
+        return torch.zeros(1, device=device)
+    device = block_params[0].device
+    distance = torch.zeros(1, device=device)
+    for param, ref in zip(block_params, reference_params):
+        distance += torch.sum((param - ref) ** 2)
+    return distance
 
+
+def _stationarity_metrics(
+    model: torch.nn.Module,
+    block_params: List[torch.nn.Parameter],
+    reference_params: List[torch.Tensor],
+    criterion,
+    lambda_i: float,
+    inputs: torch.Tensor,
+    labels: torch.Tensor,
+) -> Tuple[float, float]:
+    """Compute gradient norm of the proximal subproblem and distance from the reference point."""
+    model.zero_grad(set_to_none=True)
+    outputs = model(inputs)
+    loss = criterion(outputs, labels)
+    prox_penalty = _block_distance_sq(block_params, reference_params)
+    objective = loss + 0.5 * lambda_i * prox_penalty
+    grads = torch.autograd.grad(objective, block_params, retain_graph=False, allow_unused=False)
+
+    grad_norm_sq = torch.zeros(1, device=objective.device)
+    for grad in grads:
+        grad_norm_sq += grad.detach().pow(2).sum()
+    grad_norm = torch.sqrt(grad_norm_sq + 1e-12).item()
+
+    with torch.no_grad():
+        diff_norm = torch.sqrt(_block_distance_sq(block_params, reference_params) + 1e-12).item()
+    return grad_norm, diff_norm
+
+
+def solve_proximal_block(
+    model: torch.nn.Module,
+    block_index: int,
+    optimizer: torch.optim.Optimizer,
+    local_steps: int,
+    dataset: Sequence[Tuple[torch.Tensor, torch.Tensor]],
+    device: torch.device,
+    criterion,
+    lambda_i: float,
+    accuracy_factor: float | None,
+) -> None:
+    """Approximately solve the proximal block subproblem described in Algorithm 1."""
+    block_params = list(model.blocks[block_index].parameters())
+    if not block_params or local_steps <= 0:
+        return
+
+    reference_params = [param.detach().clone() for param in block_params]
+    minibatches = _draw_minibatches(dataset, local_steps)
+
+    model.train()
+    for inputs, labels in minibatches:
+        if hasattr(inputs, "device") and inputs.device != device:
+            inputs = inputs.to(device, non_blocking=True)
+        if hasattr(labels, "device") and labels.device != device:
+            labels = labels.to(device, non_blocking=True)
+
+        optimizer.zero_grad(set_to_none=True)
         outputs = model(inputs)
-        loss = criterion(outputs, labels)
-
-        loss.backward ()
+        task_loss = criterion(outputs, labels)
+        prox_penalty = _block_distance_sq(block_params, reference_params)
+        loss = task_loss + 0.5 * lambda_i * prox_penalty
+        loss.backward()
         optimizer.step()
 
-        iteration += 1
-    return model
+        if accuracy_factor is None or accuracy_factor < 0:
+            continue
+
+        grad_norm, diff_norm = _stationarity_metrics(
+            model,
+            block_params,
+            reference_params,
+            criterion,
+            lambda_i,
+            inputs,
+            labels,
+        )
+        if diff_norm == 0:
+            continue
+        if grad_norm <= accuracy_factor * lambda_i * diff_norm:
+            break
 
 
-# Set the start method for multiprocessing to 'spawn'
-multiprocessing.set_start_method('spawn', force=True)
-
-def train_blockwise_distributed(frame:Model_frames.Disributed_frame):
-    pass
-
-def train_blockwise_sequential(frame: Model_frames.Disributed_frame, share_of_active_workes=-1):
-    """
-    Trains the model with an inner loop (round) calling train_block for each optimizer.
-
-    Args:
-        frame: The Classifier instance containing model, optimizers, stopper_units, etc.
-        number_of_active_workes: Number of randomly selected active workers to use per round.
-                                  If -1, all workers are used.
-    """
-        # Ensure model is on the correct device (only performed once per call).
-       
+def train_blockwise_sequential(frame: Model_frames.Disributed_frame, share_of_active_workes: float = -1) -> None:
+    """Run the proximal block coordinate descent loop described in Algorithm 1."""
     device = frame.device
+    block_items = list(frame.distributed_models.values())
+    if not block_items:
+        raise ValueError("No distributed models were registered; cannot run blockwise training.")
+    block_count = len(block_items)
+    block_lambdas = frame.block_lambdas
+    accuracy_factor = frame.block_accuracy_factor
+
+    if isinstance(frame.train_loader, list):
+        cached_batches = frame.train_loader
+    else:
+        cached_batches = list(frame.train_loader)
+
+    frame.reporter.log("Started proximal block coordinate descent training loop")
+    frame.reporter.log(
+        f"Total rounds: {frame.rounds}, blocks: {block_count}, gamma={frame.gamma}, "
+        f"lambda_range=[{min(block_lambdas):.3g}, {max(block_lambdas):.3g}]"
+    )
+
+    total_time_start = time.time()
+    time_spent_in_optimize_block = 0.0
     iteration = 0
 
-    frame.reporter.log("Started the training loop")
-    frame.reporter.log(f"Total rounds: {frame.rounds}, number of blocks: {len(frame.distributed_models)}")
-
-    # Initialize timing measurements
-    total_time_start = time.time()
-    time_spent_in_optimize_block = 0
-    time_spent_in_communicate = 0
-
     for round_idx in range(frame.rounds):
-        # New: Randomly select M active workers for this round
-        all_blocks = list(frame.distributed_models.keys())
-        number_of_active_blocks = int(share_of_active_workes*len(all_blocks))
-
-        if share_of_active_workes == -1 or number_of_active_blocks >= len(all_blocks):
-            active_blocks = all_blocks
+        if share_of_active_workes == -1:
+            active_indices = list(range(block_count))
         else:
-            active_blocks = random.sample(all_blocks, number_of_active_blocks)
-        
-        # Step 1: Call the optimization function only on the selected active workers
-        for block_name in active_blocks:
-            model, optimizer = frame.distributed_models[block_name]
-            optimize_block_start = time.time()  # Start timing
-            optimzie_block(
-                model,
-                optimizer,
-                frame.K,
-                frame.train_loader,
-                device,
-                frame.criterion
-            )
-            time_spent_in_optimize_block += time.time() - optimize_block_start  # Accumulate time
+            share = max(0.0, min(1.0, float(share_of_active_workes)))
+            num_active = max(1, int(share * block_count))
+            num_active = min(num_active, block_count)
+            active_indices = random.sample(range(block_count), num_active)
 
-        # Step 2: Update the main model's blocks with the updated blocks using helper function.
-        time_spent_in_communicate += perform_communication(frame, frame.communicate_withDelay)
-        # Measurement sampling based on new sampling rate
+        for block_idx in active_indices:
+            model, optimizer = block_items[block_idx]
+            lambda_i = block_lambdas[block_idx]
+            optimize_block_start = time.time()
+            solve_proximal_block(
+                model=model,
+                block_index=block_idx,
+                optimizer=optimizer,
+                local_steps=frame.K,
+                dataset=cached_batches,
+                device=device,
+                criterion=frame.criterion,
+                lambda_i=lambda_i,
+                accuracy_factor=accuracy_factor,
+            )
+            time_spent_in_optimize_block += time.time() - optimize_block_start
+
+        perform_communication(frame, frame.communicate_withDelay)
+
         if round_idx % frame.H.get("measurement_sampling_rate", 1) == 1:
             frame.run_measurmentUnits()
 
         total_time = time.time() - total_time_start
-        # Log progress every report_sampling_rate rounds using the helper function (with deviation)
         if round_idx % frame.H["report_sampling_rate"] == 0:
             log_progress(frame, round_idx, total_time, time_spent_in_optimize_block, log_deviation=True)
-            # Check stopper condition after logging progress using stopper_units attribute
             if hasattr(frame, "stopper_units") and frame.stopper_units:
                 if any(stopper.should_stop(frame, frame.last_loss, frame.last_accuracy) for stopper in frame.stopper_units):
                     frame.reporter.log("Early stopping triggered.")
@@ -144,8 +212,7 @@ def train_blockwise_sequential(frame: Model_frames.Disributed_frame, share_of_ac
 
         iteration += 1
 
-    total_time_end = time.time()
-    total_time = total_time_end - total_time_start
+    total_time = time.time() - total_time_start
     frame.reporter.log(f"Training completed in {total_time:.2f}s over {iteration} rounds")
     print(f"Finished Training in {total_time:.2f}s over {iteration} rounds")
 
@@ -157,7 +224,6 @@ def train_entire(frame):
         frame: The Classifier instance containing model, optimizer, stopper_units, etc.
     """
     center_model = frame.center_model.to(frame.device)
-    train_loader = frame.train_loader
     criterion = frame.criterion
     optimizer = frame.optimizers[0]
     device = frame.device
@@ -169,7 +235,6 @@ def train_entire(frame):
     reporter.log(f"Total epochs: {frame.rounds}")
     total_time_start = time.time()
     iteration = 0
-    data_iter = iter(train_loader)
     full_break = False
 
     while not full_break:

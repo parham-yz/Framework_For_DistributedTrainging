@@ -179,6 +179,23 @@ def copy_block(source_model: torch.nn.Module, target_model: torch.nn.Module, blo
             target_param.data = copy.deepcopy(source_param.data).detach()
 
 
+def blend_block(source_model: torch.nn.Module, target_model: torch.nn.Module, block_index: int, gamma: float) -> None:
+    """Blend source block parameters into the target block using convex weight gamma."""
+    if not 0.0 <= gamma <= 1.0:
+        raise ValueError("gamma must satisfy 0 <= gamma <= 1.")
+    if not hasattr(source_model, "blocks") or not hasattr(target_model, "blocks"):
+        raise ValueError("Both models must expose a 'blocks' attribute.")
+    if block_index < 0 or block_index >= len(source_model.blocks):
+        raise IndexError("Block index is out of range for blending.")
+
+    source_block = source_model.blocks[block_index]
+    target_block = target_model.blocks[block_index]
+
+    with torch.no_grad():
+        for source_param, target_param in zip(source_block.parameters(), target_block.parameters()):
+            target_param.data = (1 - gamma) * target_param.data + gamma * source_param.data
+
+
 def parse_arguments(hyperparameters: Dict[str, Any]) -> Dict[str, Any]:
     """Dynamically parse CLI arguments based on default hyperparameter dict."""
     parser = argparse.ArgumentParser(

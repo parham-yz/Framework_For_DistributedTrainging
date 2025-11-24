@@ -51,10 +51,11 @@ python -m src.dol1 \
 ```
 
 Key knobs:
-- `training_mode`: `blockwise`, `blockwise_sequential`, `entire`, or `ploting` (exports ONNX snapshots).
-- `dataset_name`: see the supported values in `src/Data/data_sets.py` (MNIST variants, CIFARs, SVHN, ImageNet/Mini‑ImageNet, IMDb, California Housing, toy ones).
+- `training_mode`: `blockwise_sequential`, `entire`, or `ploting` (exports ONNX snapshots).
+- `dataset_name`: see the supported values in `src/Data/data_sets.py` (MNIST variants, CIFARs, SVHN, ImageNet/Mini-ImageNet, IMDb, California Housing, toy ones).
 - `config`: JSON string interpreted by the chosen model loader (e.g., block widths for CNN/ResNet variants).
 - `K`, `communication_delay`, `beta`, `n_workers`: control local steps per round, simulated latency, smoothing, and distributed worker counts for blockwise modes.
+- `gamma`, `prox_lambda`, `block_accuracy_factor`: tune Algorithm 1 by blending updates, setting the proximal regularizer (scalar or per-block list), and defining the $\delta_i = \text{factor}\cdot \lambda_i \|\hat{x}^{(i)}_{t+1} - x^{(i)}_t\|$ stopping threshold for the inner solvers.
 
 ### 3. Inspect run artefacts
 - **Reports** land in `reports/<reports_dir>/R*.txt` (auto-created). Each log contains the hashed hyper‑parameters, timestamped progress, and termination status via `utils.Reporter`.
@@ -68,10 +69,9 @@ Key knobs:
 ### Training frames & engines
 - `src/Buliding_Units/Model_frames.py` constructs task-specific frames (`ImageClassifier_frame_blockwise`, `ImageClassifier_frame_entire`, `Regression_frame_blockwise`, `Distributed_frame`) that own the centre model, the distributed copies (one per block), optimisers, stoppers, and reporters.
 - `src/Optimizer_Engines/BCD_engine.py` houses the concrete training loops:
-  1. `train_blockwise_distributed` – multiprocessing per block with explicit communication phases.
-  2. `train_blockwise_sequential` – single-process variant that iterates over blocks.
-  3. `train_entire` – vanilla whole-model training for baselines.
-  All loops share `log_progress`, which evaluates on a “big” batch at the cadence given by `report_sampling_rate`.
+  1. `train_blockwise_sequential` – sequential proximal block updates plus the Algorithm 1 damping step.
+  2. `train_entire` – vanilla whole-model training for baselines.
+  Both loops share `log_progress`, which evaluates on a “big” batch at the cadence given by `report_sampling_rate`.
 
 ### Architectures
 - `src/Architectures/feedforward_nn.py` – fully-connected networks (including CNN variants) plus ensembles that concatenate sub-model blocks.
