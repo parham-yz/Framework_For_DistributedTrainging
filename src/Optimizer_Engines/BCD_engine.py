@@ -17,9 +17,11 @@ def log_progress(frame, round_idx, total_time, optimize_block_time, log_deviatio
             loss = frame.criterion(outputs, labels)
             _, predicted = torch.max(outputs, 1)
             accuracy = (predicted == labels).float().mean().item()
-            # Calculate compute time share (ensuring we avoid division by zero)
             compute_share = round(optimize_block_time / total_time, 2) if total_time > 0 else 0
-            message = f"Time {round_idx/1000}: Energy = {loss.item()}, Accuracy = {round(accuracy, 2)}, ComputeTimeShare = {compute_share}"
+            message = (
+                f"Round {round_idx}: Loss = {loss.item()}, Accuracy = {round(accuracy, 4)}, "
+                f"ComputeTimeShare = {compute_share}"
+            )
             if log_deviation:
                 frame.compute_deviation()
                 deviation = sum(frame.param_deviation) / len(frame.param_deviation) if frame.param_deviation else 0
@@ -146,7 +148,7 @@ def solve_proximal_block(
             break
 
 
-def train_blockwise_sequential(frame: Model_frames.Disributed_frame, share_of_active_workes: float = -1) -> None:
+def train_blockwise_sequential(frame: Model_frames.Disributed_frame) -> None:
     """Run the proximal block coordinate descent loop described in Algorithm 1."""
     device = frame.device
     block_items = list(frame.distributed_models.values())
@@ -166,21 +168,14 @@ def train_blockwise_sequential(frame: Model_frames.Disributed_frame, share_of_ac
         f"Total rounds: {frame.rounds}, blocks: {block_count}, gamma={frame.gamma}, "
         f"lambda_range=[{min(block_lambdas):.3g}, {max(block_lambdas):.3g}]"
     )
+    log_progress(frame, -1, total_time=1e-6, optimize_block_time=0.0, log_deviation=True)
 
     total_time_start = time.time()
     time_spent_in_optimize_block = 0.0
     iteration = 0
 
     for round_idx in range(frame.rounds):
-        if share_of_active_workes == -1:
-            active_indices = list(range(block_count))
-        else:
-            share = max(0.0, min(1.0, float(share_of_active_workes)))
-            num_active = max(1, int(share * block_count))
-            num_active = min(num_active, block_count)
-            active_indices = random.sample(range(block_count), num_active)
-
-        for block_idx in active_indices:
+        for block_idx in range(block_count):
             model, optimizer = block_items[block_idx]
             lambda_i = block_lambdas[block_idx]
             optimize_block_start = time.time()
@@ -233,6 +228,7 @@ def train_entire(frame):
 
     reporter.log("Started the training loop")
     reporter.log(f"Total epochs: {frame.rounds}")
+    log_progress(frame, -1, total_time=1e-6, optimize_block_time=0.0, log_deviation=False)
     total_time_start = time.time()
     iteration = 0
     full_break = False

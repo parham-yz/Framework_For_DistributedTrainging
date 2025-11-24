@@ -1,0 +1,135 @@
+Process ID: 23280
+Status: dead
+Hyperparameters: {"step_size": 0.001, "batch_size": 128, "rounds": 600, "dataset_name": "mnist", "cuda_core": -1, "training_mode": "entire", "report_sampling_rate": 5, "measurement_sampling_rate": 399, "model": "cnn", "config": [32], "K": 1, "communication_delay": 0, "n_workers": 1, "beta": 0.5, "gamma": 1.0, "prox_lambda": 0.0, "block_accuracy_factor": 0.5, "reports_dir": "mnist_entire_long"}
+
+[2025-11-24 16:50:08] Frame initialization took 8.23 seconds
+[2025-11-24 16:50:08] Total number of parameters: 10,474
+[2025-11-24 16:50:08] Started the training loop
+[2025-11-24 16:50:08] Total epochs: 600
+[2025-11-24 16:50:09] Starting measurement units
+[2025-11-24 16:50:09] Finished measurement units , took 0.00 seconds
+[2025-11-24 16:50:09] Time 0.005: Energy = 2.297149658203125, Accuracy = 0.11, ComputeTimeShare = 0.0
+[2025-11-24 16:50:10] Time 0.01: Energy = 2.2910408973693848, Accuracy = 0.19, ComputeTimeShare = 0.0
+[2025-11-24 16:50:11] Time 0.015: Energy = 2.285928726196289, Accuracy = 0.16, ComputeTimeShare = 0.0
+[2025-11-24 16:50:12] Time 0.02: Energy = 2.2826929092407227, Accuracy = 0.2, ComputeTimeShare = 0.0
+[2025-11-24 16:50:13] Time 0.025: Energy = 2.274376392364502, Accuracy = 0.16, ComputeTimeShare = 0.0
+[2025-11-24 16:50:13] Time 0.03: Energy = 2.265411376953125, Accuracy = 0.16, ComputeTimeShare = 0.0
+[2025-11-24 16:50:14] Time 0.035: Energy = 2.2565228939056396, Accuracy = 0.17, ComputeTimeShare = 0.0
+[2025-11-24 16:50:15] Time 0.04: Energy = 2.240602493286133, Accuracy = 0.19, ComputeTimeShare = 0.0
+[2025-11-24 16:50:15] Time 0.045: Energy = 2.227555751800537, Accuracy = 0.21, ComputeTimeShare = 0.0
+[2025-11-24 16:50:16] Time 0.05: Energy = 2.2194857597351074, Accuracy = 0.2, ComputeTimeShare = 0.0
+[2025-11-24 16:50:17] Time 0.055: Energy = 2.2035510540008545, Accuracy = 0.19, ComputeTimeShare = 0.0
+[2025-11-24 16:50:18] Time 0.06: Energy = 2.1870205402374268, Accuracy = 0.19, ComputeTimeShare = 0.0
+[2025-11-24 16:50:19] Time 0.065: Energy = 2.172636032104492, Accuracy = 0.21, ComputeTimeShare = 0.0
+[2025-11-24 16:50:20] Time 0.07: Energy = 2.174773693084717, Accuracy = 0.21, ComputeTimeShare = 0.0
+[2025-11-24 16:50:21] Time 0.075: Energy = 2.1460843086242676, Accuracy = 0.22, ComputeTimeShare = 0.0
+[2025-11-24 16:50:22] Time 0.08: Energy = 2.13278865814209, Accuracy = 0.21, ComputeTimeShare = 0.0
+[2025-11-24 16:50:22] Time 0.085: Energy = 2.126002550125122, Accuracy = 0.22, ComputeTimeShare = 0.0
+[2025-11-24 16:50:23] Time 0.09: Energy = 2.1131370067596436, Accuracy = 0.22, ComputeTimeShare = 0.0
+[2025-11-24 16:50:24] Time 0.095: Energy = 2.098304033279419, Accuracy = 0.23, ComputeTimeShare = 0.0
+[2025-11-24 16:50:25] Time 0.1: Energy = 2.0904734134674072, Accuracy = 0.23, ComputeTimeShare = 0.0
+[2025-11-24 16:50:26] Time 0.105: Energy = 2.086073875427246, Accuracy = 0.21, ComputeTimeShare = 0.0
+[2025-11-24 16:50:27] Time 0.11: Energy = 2.0715787410736084, Accuracy = 0.21, ComputeTimeShare = 0.0
+[2025-11-24 16:50:28] Time 0.115: Energy = 2.07035493850708, Accuracy = 0.23, ComputeTimeShare = 0.0
+[2025-11-24 16:50:29] Time 0.12: Energy = 2.0405969619750977, Accuracy = 0.25, ComputeTimeShare = 0.0
+[2025-11-24 16:50:30] Time 0.125: Energy = 2.035292625427246, Accuracy = 0.26, ComputeTimeShare = 0.0
+[2025-11-24 16:50:31] Time 0.13: Energy = 2.0234718322753906, Accuracy = 0.26, ComputeTimeShare = 0.0
+[2025-11-24 16:50:31] Time 0.135: Energy = 2.000502586364746, Accuracy = 0.26, ComputeTimeShare = 0.0
+[2025-11-24 16:50:32] Time 0.14: Energy = 1.9893943071365356, Accuracy = 0.26, ComputeTimeShare = 0.0
+[2025-11-24 16:50:33] Time 0.145: Energy = 1.9843415021896362, Accuracy = 0.24, ComputeTimeShare = 0.0
+[2025-11-24 16:50:33] Time 0.15: Energy = 1.965969204902649, Accuracy = 0.26, ComputeTimeShare = 0.0
+[2025-11-24 16:50:34] Time 0.155: Energy = 1.9532610177993774, Accuracy = 0.31, ComputeTimeShare = 0.0
+[2025-11-24 16:50:35] Time 0.16: Energy = 1.9445682764053345, Accuracy = 0.28, ComputeTimeShare = 0.0
+[2025-11-24 16:50:36] Time 0.165: Energy = 1.9316598176956177, Accuracy = 0.29, ComputeTimeShare = 0.0
+[2025-11-24 16:50:37] Time 0.17: Energy = 1.93498694896698, Accuracy = 0.28, ComputeTimeShare = 0.0
+[2025-11-24 16:50:38] Time 0.175: Energy = 1.9073506593704224, Accuracy = 0.27, ComputeTimeShare = 0.0
+[2025-11-24 16:50:38] Time 0.18: Energy = 1.8925546407699585, Accuracy = 0.28, ComputeTimeShare = 0.0
+[2025-11-24 16:50:39] Time 0.185: Energy = 1.877400517463684, Accuracy = 0.28, ComputeTimeShare = 0.0
+[2025-11-24 16:50:40] Time 0.19: Energy = 1.8768151998519897, Accuracy = 0.29, ComputeTimeShare = 0.0
+[2025-11-24 16:50:41] Time 0.195: Energy = 1.8772650957107544, Accuracy = 0.29, ComputeTimeShare = 0.0
+[2025-11-24 16:50:41] Time 0.2: Energy = 1.8563414812088013, Accuracy = 0.28, ComputeTimeShare = 0.0
+[2025-11-24 16:50:42] Time 0.205: Energy = 1.8472625017166138, Accuracy = 0.29, ComputeTimeShare = 0.0
+[2025-11-24 16:50:43] Time 0.21: Energy = 1.8482776880264282, Accuracy = 0.3, ComputeTimeShare = 0.0
+[2025-11-24 16:50:43] Time 0.215: Energy = 1.84749174118042, Accuracy = 0.29, ComputeTimeShare = 0.0
+[2025-11-24 16:50:44] Time 0.22: Energy = 1.8336377143859863, Accuracy = 0.31, ComputeTimeShare = 0.0
+[2025-11-24 16:50:45] Time 0.225: Energy = 1.824875831604004, Accuracy = 0.3, ComputeTimeShare = 0.0
+[2025-11-24 16:50:46] Time 0.23: Energy = 1.8158732652664185, Accuracy = 0.31, ComputeTimeShare = 0.0
+[2025-11-24 16:50:46] Time 0.235: Energy = 1.8040984869003296, Accuracy = 0.31, ComputeTimeShare = 0.0
+[2025-11-24 16:50:47] Time 0.24: Energy = 1.792528748512268, Accuracy = 0.31, ComputeTimeShare = 0.0
+[2025-11-24 16:50:48] Time 0.245: Energy = 1.787040114402771, Accuracy = 0.31, ComputeTimeShare = 0.0
+[2025-11-24 16:50:49] Time 0.25: Energy = 1.778668999671936, Accuracy = 0.32, ComputeTimeShare = 0.0
+[2025-11-24 16:50:49] Time 0.255: Energy = 1.773969054222107, Accuracy = 0.33, ComputeTimeShare = 0.0
+[2025-11-24 16:50:50] Time 0.26: Energy = 1.7635624408721924, Accuracy = 0.31, ComputeTimeShare = 0.0
+[2025-11-24 16:50:51] Time 0.265: Energy = 1.7638566493988037, Accuracy = 0.36, ComputeTimeShare = 0.0
+[2025-11-24 16:50:51] Time 0.27: Energy = 1.7554329633712769, Accuracy = 0.31, ComputeTimeShare = 0.0
+[2025-11-24 16:50:52] Time 0.275: Energy = 1.739193081855774, Accuracy = 0.34, ComputeTimeShare = 0.0
+[2025-11-24 16:50:53] Time 0.28: Energy = 1.7474421262741089, Accuracy = 0.32, ComputeTimeShare = 0.0
+[2025-11-24 16:50:54] Time 0.285: Energy = 1.7307848930358887, Accuracy = 0.32, ComputeTimeShare = 0.0
+[2025-11-24 16:50:54] Time 0.29: Energy = 1.72059965133667, Accuracy = 0.33, ComputeTimeShare = 0.0
+[2025-11-24 16:50:55] Time 0.295: Energy = 1.7130088806152344, Accuracy = 0.33, ComputeTimeShare = 0.0
+[2025-11-24 16:50:56] Time 0.3: Energy = 1.7279757261276245, Accuracy = 0.34, ComputeTimeShare = 0.0
+[2025-11-24 16:50:56] Time 0.305: Energy = 1.7076560258865356, Accuracy = 0.36, ComputeTimeShare = 0.0
+[2025-11-24 16:50:57] Time 0.31: Energy = 1.7237569093704224, Accuracy = 0.34, ComputeTimeShare = 0.0
+[2025-11-24 16:50:58] Time 0.315: Energy = 1.7154412269592285, Accuracy = 0.34, ComputeTimeShare = 0.0
+[2025-11-24 16:50:59] Time 0.32: Energy = 1.703420639038086, Accuracy = 0.34, ComputeTimeShare = 0.0
+[2025-11-24 16:50:59] Time 0.325: Energy = 1.6942286491394043, Accuracy = 0.33, ComputeTimeShare = 0.0
+[2025-11-24 16:51:00] Time 0.33: Energy = 1.6941605806350708, Accuracy = 0.35, ComputeTimeShare = 0.0
+[2025-11-24 16:51:01] Time 0.335: Energy = 1.6897220611572266, Accuracy = 0.35, ComputeTimeShare = 0.0
+[2025-11-24 16:51:01] Time 0.34: Energy = 1.6960334777832031, Accuracy = 0.33, ComputeTimeShare = 0.0
+[2025-11-24 16:51:02] Time 0.345: Energy = 1.665999412536621, Accuracy = 0.37, ComputeTimeShare = 0.0
+[2025-11-24 16:51:03] Time 0.35: Energy = 1.675248384475708, Accuracy = 0.35, ComputeTimeShare = 0.0
+[2025-11-24 16:51:04] Time 0.355: Energy = 1.6552568674087524, Accuracy = 0.34, ComputeTimeShare = 0.0
+[2025-11-24 16:51:04] Time 0.36: Energy = 1.6461882591247559, Accuracy = 0.37, ComputeTimeShare = 0.0
+[2025-11-24 16:51:05] Time 0.365: Energy = 1.6601221561431885, Accuracy = 0.35, ComputeTimeShare = 0.0
+[2025-11-24 16:51:06] Time 0.37: Energy = 1.6683568954467773, Accuracy = 0.36, ComputeTimeShare = 0.0
+[2025-11-24 16:51:06] Time 0.375: Energy = 1.6547297239303589, Accuracy = 0.35, ComputeTimeShare = 0.0
+[2025-11-24 16:51:07] Time 0.38: Energy = 1.6586917638778687, Accuracy = 0.33, ComputeTimeShare = 0.0
+[2025-11-24 16:51:08] Time 0.385: Energy = 1.6429327726364136, Accuracy = 0.38, ComputeTimeShare = 0.0
+[2025-11-24 16:51:08] Time 0.39: Energy = 1.6294225454330444, Accuracy = 0.39, ComputeTimeShare = 0.0
+[2025-11-24 16:51:09] Time 0.395: Energy = 1.6378867626190186, Accuracy = 0.37, ComputeTimeShare = 0.0
+[2025-11-24 16:51:10] Starting measurement units
+[2025-11-24 16:51:10] Finished measurement units , took 0.00 seconds
+[2025-11-24 16:51:10] Time 0.4: Energy = 1.6196295022964478, Accuracy = 0.38, ComputeTimeShare = 0.0
+[2025-11-24 16:51:11] Time 0.405: Energy = 1.6252121925354004, Accuracy = 0.38, ComputeTimeShare = 0.0
+[2025-11-24 16:51:11] Time 0.41: Energy = 1.6344008445739746, Accuracy = 0.38, ComputeTimeShare = 0.0
+[2025-11-24 16:51:12] Time 0.415: Energy = 1.6252812147140503, Accuracy = 0.39, ComputeTimeShare = 0.0
+[2025-11-24 16:51:13] Time 0.42: Energy = 1.602590799331665, Accuracy = 0.38, ComputeTimeShare = 0.0
+[2025-11-24 16:51:14] Time 0.425: Energy = 1.5962375402450562, Accuracy = 0.39, ComputeTimeShare = 0.0
+[2025-11-24 16:51:14] Time 0.43: Energy = 1.5921752452850342, Accuracy = 0.41, ComputeTimeShare = 0.0
+[2025-11-24 16:51:15] Time 0.435: Energy = 1.5896631479263306, Accuracy = 0.41, ComputeTimeShare = 0.0
+[2025-11-24 16:51:16] Time 0.44: Energy = 1.5873944759368896, Accuracy = 0.4, ComputeTimeShare = 0.0
+[2025-11-24 16:51:16] Time 0.445: Energy = 1.5883649587631226, Accuracy = 0.4, ComputeTimeShare = 0.0
+[2025-11-24 16:51:17] Time 0.45: Energy = 1.5858982801437378, Accuracy = 0.38, ComputeTimeShare = 0.0
+[2025-11-24 16:51:18] Time 0.455: Energy = 1.5808846950531006, Accuracy = 0.4, ComputeTimeShare = 0.0
+[2025-11-24 16:51:18] Time 0.46: Energy = 1.5753685235977173, Accuracy = 0.38, ComputeTimeShare = 0.0
+[2025-11-24 16:51:19] Time 0.465: Energy = 1.5902070999145508, Accuracy = 0.37, ComputeTimeShare = 0.0
+[2025-11-24 16:51:20] Time 0.47: Energy = 1.5788123607635498, Accuracy = 0.4, ComputeTimeShare = 0.0
+[2025-11-24 16:51:21] Time 0.475: Energy = 1.5751155614852905, Accuracy = 0.37, ComputeTimeShare = 0.0
+[2025-11-24 16:51:21] Time 0.48: Energy = 1.5647530555725098, Accuracy = 0.39, ComputeTimeShare = 0.0
+[2025-11-24 16:51:22] Time 0.485: Energy = 1.5641988515853882, Accuracy = 0.4, ComputeTimeShare = 0.0
+[2025-11-24 16:51:23] Time 0.49: Energy = 1.551599383354187, Accuracy = 0.42, ComputeTimeShare = 0.0
+[2025-11-24 16:51:23] Time 0.495: Energy = 1.55948007106781, Accuracy = 0.39, ComputeTimeShare = 0.0
+[2025-11-24 16:51:24] Time 0.5: Energy = 1.5551517009735107, Accuracy = 0.41, ComputeTimeShare = 0.0
+[2025-11-24 16:51:25] Time 0.505: Energy = 1.5738576650619507, Accuracy = 0.4, ComputeTimeShare = 0.0
+[2025-11-24 16:51:26] Time 0.51: Energy = 1.5652440786361694, Accuracy = 0.4, ComputeTimeShare = 0.0
+[2025-11-24 16:51:26] Time 0.515: Energy = 1.5488638877868652, Accuracy = 0.38, ComputeTimeShare = 0.0
+[2025-11-24 16:51:27] Time 0.52: Energy = 1.5483022928237915, Accuracy = 0.39, ComputeTimeShare = 0.0
+[2025-11-24 16:51:28] Time 0.525: Energy = 1.5490096807479858, Accuracy = 0.41, ComputeTimeShare = 0.0
+[2025-11-24 16:51:29] Time 0.53: Energy = 1.5571222305297852, Accuracy = 0.4, ComputeTimeShare = 0.0
+[2025-11-24 16:51:29] Time 0.535: Energy = 1.5456136465072632, Accuracy = 0.4, ComputeTimeShare = 0.0
+[2025-11-24 16:51:30] Time 0.54: Energy = 1.5274887084960938, Accuracy = 0.4, ComputeTimeShare = 0.0
+[2025-11-24 16:51:31] Time 0.545: Energy = 1.5253902673721313, Accuracy = 0.41, ComputeTimeShare = 0.0
+[2025-11-24 16:51:32] Time 0.55: Energy = 1.5234737396240234, Accuracy = 0.43, ComputeTimeShare = 0.0
+[2025-11-24 16:51:32] Time 0.555: Energy = 1.5260798931121826, Accuracy = 0.44, ComputeTimeShare = 0.0
+[2025-11-24 16:51:33] Time 0.56: Energy = 1.5157488584518433, Accuracy = 0.43, ComputeTimeShare = 0.0
+[2025-11-24 16:51:34] Time 0.565: Energy = 1.5348759889602661, Accuracy = 0.4, ComputeTimeShare = 0.0
+[2025-11-24 16:51:34] Time 0.57: Energy = 1.513598084449768, Accuracy = 0.45, ComputeTimeShare = 0.0
+[2025-11-24 16:51:35] Time 0.575: Energy = 1.516608715057373, Accuracy = 0.44, ComputeTimeShare = 0.0
+[2025-11-24 16:51:36] Time 0.58: Energy = 1.5128706693649292, Accuracy = 0.42, ComputeTimeShare = 0.0
+[2025-11-24 16:51:36] Time 0.585: Energy = 1.5112355947494507, Accuracy = 0.42, ComputeTimeShare = 0.0
+[2025-11-24 16:51:37] Time 0.59: Energy = 1.5220812559127808, Accuracy = 0.41, ComputeTimeShare = 0.0
+[2025-11-24 16:51:38] Time 0.595: Energy = 1.4979723691940308, Accuracy = 0.44, ComputeTimeShare = 0.0
+[2025-11-24 16:51:39] Time 0.6: Energy = 1.5017316341400146, Accuracy = 0.41, ComputeTimeShare = 0.0
+[2025-11-24 16:51:39] Training completed in 90.26s over 600 rounds
+[2025-11-24 16:51:39] Training completed in 90.26 seconds
+[2025-11-24 16:51:39] Process ended

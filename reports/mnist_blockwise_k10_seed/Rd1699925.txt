@@ -1,0 +1,34 @@
+Process ID: 26028
+Status: dead
+Hyperparameters: {"step_size": 0.001, "batch_size": 128, "rounds": 100, "dataset_name": "mnist", "cuda_core": -1, "training_mode": "blockwise_sequential", "report_sampling_rate": 5, "measurement_sampling_rate": 399, "model": "cnn", "config": [32], "K": 10, "communication_delay": 0, "n_workers": 1, "beta": 0.5, "gamma": 1.0, "prox_lambda": 0.0, "block_accuracy_factor": 0.5, "seed": 123, "reports_dir": "mnist_blockwise_k10_seed"}
+
+[2025-11-24 17:45:26] Frame Type: ImageClassifier_frame_blockwise, Number of Blocks: 2, Number of Model Parameters: 10474
+[2025-11-24 17:45:26] Frame initialization took 8.11 seconds
+[2025-11-24 17:45:26] Total number of parameters: 10,474
+[2025-11-24 17:45:26] Started proximal block coordinate descent training loop
+[2025-11-24 17:45:26] Total rounds: 100, blocks: 2, gamma=1.0, lambda_range=[0, 0]
+[2025-11-24 17:45:29] Round 0: Loss = 2.2974910736083984, Accuracy = 0.0869, ComputeTimeShare = 1.0, Deviation = 0.0
+[2025-11-24 17:45:33] Starting measurement units
+[2025-11-24 17:45:33] Finished measurement units , took 0.00 seconds
+[2025-11-24 17:45:46] Round 5: Loss = 2.2385385036468506, Accuracy = 0.1836, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:46:03] Round 10: Loss = 2.1238505840301514, Accuracy = 0.2031, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:46:20] Round 15: Loss = 1.9985684156417847, Accuracy = 0.2783, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:46:37] Round 20: Loss = 1.9158644676208496, Accuracy = 0.2588, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:46:53] Round 25: Loss = 1.8022433519363403, Accuracy = 0.3262, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:47:10] Round 30: Loss = 1.770014762878418, Accuracy = 0.333, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:47:27] Round 35: Loss = 1.6918280124664307, Accuracy = 0.3691, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:47:43] Round 40: Loss = 1.665062665939331, Accuracy = 0.3604, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:48:00] Round 45: Loss = 1.6439807415008545, Accuracy = 0.3877, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:48:17] Round 50: Loss = 1.6186835765838623, Accuracy = 0.4131, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:48:33] Round 55: Loss = 1.628571629524231, Accuracy = 0.3652, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:48:52] Round 60: Loss = 1.569298267364502, Accuracy = 0.4199, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:49:11] Round 65: Loss = 1.5604907274246216, Accuracy = 0.4277, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:49:28] Round 70: Loss = 1.5464285612106323, Accuracy = 0.4131, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:49:46] Round 75: Loss = 1.545360803604126, Accuracy = 0.4424, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:50:03] Round 80: Loss = 1.5772120952606201, Accuracy = 0.3936, ComputeTimeShare = 0.98, Deviation = 0.0
+[2025-11-24 17:50:21] Round 85: Loss = 1.507279872894287, Accuracy = 0.4238, ComputeTimeShare = 0.98, Deviation = 0.0
+[2025-11-24 17:50:39] Round 90: Loss = 1.5059783458709717, Accuracy = 0.4355, ComputeTimeShare = 0.98, Deviation = 0.0
+[2025-11-24 17:50:56] Round 95: Loss = 1.4594261646270752, Accuracy = 0.4834, ComputeTimeShare = 0.98, Deviation = 0.0
+[2025-11-24 17:51:10] Training completed in 344.57s over 100 rounds
+[2025-11-24 17:51:10] Training completed in 344.57 seconds
+[2025-11-24 17:51:10] Process ended

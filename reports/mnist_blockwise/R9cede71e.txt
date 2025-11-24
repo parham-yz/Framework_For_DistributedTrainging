@@ -1,0 +1,26 @@
+Process ID: 22260
+Status: dead
+Hyperparameters: {"step_size": 0.001, "batch_size": 128, "rounds": 60, "dataset_name": "mnist", "cuda_core": -1, "training_mode": "blockwise_sequential", "report_sampling_rate": 5, "measurement_sampling_rate": 399, "model": "cnn", "config": [32], "K": 1, "communication_delay": 0, "n_workers": 1, "beta": 0.5, "gamma": 1.0, "prox_lambda": 0.0, "block_accuracy_factor": 0.5, "reports_dir": "mnist_blockwise"}
+
+[2025-11-24 16:40:43] Frame Type: ImageClassifier_frame_blockwise, Number of Blocks: 2, Number of Model Parameters: 10474
+[2025-11-24 16:40:43] Frame initialization took 8.59 seconds
+[2025-11-24 16:40:43] Total number of parameters: 10,474
+[2025-11-24 16:40:43] Started proximal block coordinate descent training loop
+[2025-11-24 16:40:43] Total rounds: 60, blocks: 2, gamma=1.0, lambda_range=[0, 0]
+[2025-11-24 16:40:44] Time 0.0: Energy = 2.3213157653808594, Accuracy = 0.09, ComputeTimeShare = 1.0, Deviation = 0.0
+[2025-11-24 16:40:45] Starting measurement units
+[2025-11-24 16:40:45] Finished measurement units , took 0.00 seconds
+[2025-11-24 16:40:47] Time 0.005: Energy = 2.3030591011047363, Accuracy = 0.12, ComputeTimeShare = 0.89, Deviation = 0.0
+[2025-11-24 16:40:49] Time 0.01: Energy = 2.294600486755371, Accuracy = 0.13, ComputeTimeShare = 0.87, Deviation = 0.0
+[2025-11-24 16:40:52] Time 0.015: Energy = 2.2909553050994873, Accuracy = 0.11, ComputeTimeShare = 0.87, Deviation = 0.0
+[2025-11-24 16:40:54] Time 0.02: Energy = 2.2869606018066406, Accuracy = 0.12, ComputeTimeShare = 0.87, Deviation = 0.0
+[2025-11-24 16:40:56] Time 0.025: Energy = 2.281726598739624, Accuracy = 0.14, ComputeTimeShare = 0.87, Deviation = 0.0
+[2025-11-24 16:40:59] Time 0.03: Energy = 2.2746834754943848, Accuracy = 0.17, ComputeTimeShare = 0.87, Deviation = 0.0
+[2025-11-24 16:41:01] Time 0.035: Energy = 2.268674612045288, Accuracy = 0.15, ComputeTimeShare = 0.87, Deviation = 0.0
+[2025-11-24 16:41:04] Time 0.04: Energy = 2.261629819869995, Accuracy = 0.17, ComputeTimeShare = 0.87, Deviation = 0.0
+[2025-11-24 16:41:06] Time 0.045: Energy = 2.2506306171417236, Accuracy = 0.17, ComputeTimeShare = 0.87, Deviation = 0.0
+[2025-11-24 16:41:09] Time 0.05: Energy = 2.241514205932617, Accuracy = 0.19, ComputeTimeShare = 0.87, Deviation = 0.0
+[2025-11-24 16:41:11] Time 0.055: Energy = 2.230694055557251, Accuracy = 0.19, ComputeTimeShare = 0.87, Deviation = 0.0
+[2025-11-24 16:41:13] Training completed in 29.51s over 60 rounds
+[2025-11-24 16:41:13] Training completed in 29.51 seconds
+[2025-11-24 16:41:13] Process ended

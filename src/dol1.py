@@ -29,6 +29,7 @@ DEFAULT_HYPERPARAMETERS: Dict[str, Any] = {
     "gamma": 1.0,
     "prox_lambda": 0.0,
     "block_accuracy_factor": 0.5,
+    "seed": 42,
     "reports_dir": "default_path",
 }
 

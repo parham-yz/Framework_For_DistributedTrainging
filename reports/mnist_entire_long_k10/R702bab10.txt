@@ -1,0 +1,37 @@
+Process ID: 25028
+Status: dead
+Hyperparameters: {"step_size": 0.001, "batch_size": 128, "rounds": 120, "dataset_name": "mnist", "cuda_core": -1, "training_mode": "entire", "report_sampling_rate": 5, "measurement_sampling_rate": 399, "model": "cnn", "config": [32], "K": 1, "communication_delay": 0, "n_workers": 1, "beta": 0.5, "gamma": 1.0, "prox_lambda": 0.0, "block_accuracy_factor": 0.5, "reports_dir": "mnist_entire_long_k10"}
+
+[2025-11-24 17:32:14] Frame initialization took 7.87 seconds
+[2025-11-24 17:32:14] Total number of parameters: 10,474
+[2025-11-24 17:32:14] Started the training loop
+[2025-11-24 17:32:14] Total epochs: 120
+[2025-11-24 17:32:14] Starting measurement units
+[2025-11-24 17:32:14] Finished measurement units , took 0.00 seconds
+[2025-11-24 17:32:15] Time 0.005: Energy = 2.3071131706237793, Accuracy = 0.18, ComputeTimeShare = 0.0
+[2025-11-24 17:32:16] Time 0.01: Energy = 2.300060510635376, Accuracy = 0.13, ComputeTimeShare = 0.0
+[2025-11-24 17:32:16] Time 0.015: Energy = 2.293199062347412, Accuracy = 0.14, ComputeTimeShare = 0.0
+[2025-11-24 17:32:17] Time 0.02: Energy = 2.2872540950775146, Accuracy = 0.15, ComputeTimeShare = 0.0
+[2025-11-24 17:32:18] Time 0.025: Energy = 2.281247854232788, Accuracy = 0.17, ComputeTimeShare = 0.0
+[2025-11-24 17:32:18] Time 0.03: Energy = 2.2749953269958496, Accuracy = 0.17, ComputeTimeShare = 0.0
+[2025-11-24 17:32:19] Time 0.035: Energy = 2.271350383758545, Accuracy = 0.18, ComputeTimeShare = 0.0
+[2025-11-24 17:32:20] Time 0.04: Energy = 2.26127552986145, Accuracy = 0.21, ComputeTimeShare = 0.0
+[2025-11-24 17:32:21] Time 0.045: Energy = 2.251924991607666, Accuracy = 0.18, ComputeTimeShare = 0.0
+[2025-11-24 17:32:21] Time 0.05: Energy = 2.237853527069092, Accuracy = 0.19, ComputeTimeShare = 0.0
+[2025-11-24 17:32:22] Time 0.055: Energy = 2.2281432151794434, Accuracy = 0.19, ComputeTimeShare = 0.0
+[2025-11-24 17:32:23] Time 0.06: Energy = 2.2121129035949707, Accuracy = 0.19, ComputeTimeShare = 0.0
+[2025-11-24 17:32:23] Time 0.065: Energy = 2.197242021560669, Accuracy = 0.19, ComputeTimeShare = 0.0
+[2025-11-24 17:32:24] Time 0.07: Energy = 2.1876537799835205, Accuracy = 0.2, ComputeTimeShare = 0.0
+[2025-11-24 17:32:25] Time 0.075: Energy = 2.1761794090270996, Accuracy = 0.2, ComputeTimeShare = 0.0
+[2025-11-24 17:32:26] Time 0.08: Energy = 2.1634342670440674, Accuracy = 0.22, ComputeTimeShare = 0.0
+[2025-11-24 17:32:27] Time 0.085: Energy = 2.1601474285125732, Accuracy = 0.2, ComputeTimeShare = 0.0
+[2025-11-24 17:32:27] Time 0.09: Energy = 2.1425797939300537, Accuracy = 0.21, ComputeTimeShare = 0.0
+[2025-11-24 17:32:28] Time 0.095: Energy = 2.134357213973999, Accuracy = 0.22, ComputeTimeShare = 0.0
+[2025-11-24 17:32:29] Time 0.1: Energy = 2.1191422939300537, Accuracy = 0.21, ComputeTimeShare = 0.0
+[2025-11-24 17:32:30] Time 0.105: Energy = 2.099515914916992, Accuracy = 0.22, ComputeTimeShare = 0.0
+[2025-11-24 17:32:31] Time 0.11: Energy = 2.0883994102478027, Accuracy = 0.23, ComputeTimeShare = 0.0
+[2025-11-24 17:32:31] Time 0.115: Energy = 2.0747790336608887, Accuracy = 0.25, ComputeTimeShare = 0.0
+[2025-11-24 17:32:32] Time 0.12: Energy = 2.0589776039123535, Accuracy = 0.25, ComputeTimeShare = 0.0
+[2025-11-24 17:32:32] Training completed in 17.79s over 120 rounds
+[2025-11-24 17:32:32] Training completed in 17.79 seconds
+[2025-11-24 17:32:32] Process ended

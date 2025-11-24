@@ -1,0 +1,13 @@
+Process ID: 22333
+Status: dead
+Hyperparameters: {"step_size": 0.001, "batch_size": 128, "rounds": 3, "dataset_name": "mnist", "cuda_core": -1, "training_mode": "entire", "report_sampling_rate": 5, "measurement_sampling_rate": 399, "model": "cnn", "config": [32], "K": 1, "communication_delay": 0, "n_workers": 1, "beta": 0.5, "gamma": 1.0, "prox_lambda": 0.0, "block_accuracy_factor": 0.5, "reports_dir": "mnist_entire"}
+
+[2025-11-24 16:41:28] Frame initialization took 8.79 seconds
+[2025-11-24 16:41:28] Total number of parameters: 10,474
+[2025-11-24 16:41:28] Started the training loop
+[2025-11-24 16:41:28] Total epochs: 3
+[2025-11-24 16:41:28] Starting measurement units
+[2025-11-24 16:41:28] Finished measurement units , took 0.00 seconds
+[2025-11-24 16:41:28] Training completed in 0.41s over 3 rounds
+[2025-11-24 16:41:28] Training completed in 0.41 seconds
+[2025-11-24 16:41:28] Process ended

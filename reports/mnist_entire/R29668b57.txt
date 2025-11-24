@@ -1,0 +1,25 @@
+Process ID: 22364
+Status: dead
+Hyperparameters: {"step_size": 0.001, "batch_size": 128, "rounds": 60, "dataset_name": "mnist", "cuda_core": -1, "training_mode": "entire", "report_sampling_rate": 5, "measurement_sampling_rate": 399, "model": "cnn", "config": [32], "K": 1, "communication_delay": 0, "n_workers": 1, "beta": 0.5, "gamma": 1.0, "prox_lambda": 0.0, "block_accuracy_factor": 0.5, "reports_dir": "mnist_entire"}
+
+[2025-11-24 16:41:46] Frame initialization took 8.51 seconds
+[2025-11-24 16:41:46] Total number of parameters: 10,474
+[2025-11-24 16:41:46] Started the training loop
+[2025-11-24 16:41:46] Total epochs: 60
+[2025-11-24 16:41:46] Starting measurement units
+[2025-11-24 16:41:46] Finished measurement units , took 0.00 seconds
+[2025-11-24 16:41:47] Time 0.005: Energy = 2.301715135574341, Accuracy = 0.14, ComputeTimeShare = 0.0
+[2025-11-24 16:41:48] Time 0.01: Energy = 2.295875072479248, Accuracy = 0.18, ComputeTimeShare = 0.0
+[2025-11-24 16:41:48] Time 0.015: Energy = 2.29067063331604, Accuracy = 0.18, ComputeTimeShare = 0.0
+[2025-11-24 16:41:49] Time 0.02: Energy = 2.283559799194336, Accuracy = 0.18, ComputeTimeShare = 0.0
+[2025-11-24 16:41:50] Time 0.025: Energy = 2.2777717113494873, Accuracy = 0.17, ComputeTimeShare = 0.0
+[2025-11-24 16:41:51] Time 0.03: Energy = 2.270808219909668, Accuracy = 0.16, ComputeTimeShare = 0.0
+[2025-11-24 16:41:52] Time 0.035: Energy = 2.263697862625122, Accuracy = 0.17, ComputeTimeShare = 0.0
+[2025-11-24 16:41:53] Time 0.04: Energy = 2.2571418285369873, Accuracy = 0.18, ComputeTimeShare = 0.0
+[2025-11-24 16:41:54] Time 0.045: Energy = 2.2462472915649414, Accuracy = 0.19, ComputeTimeShare = 0.0
+[2025-11-24 16:41:55] Time 0.05: Energy = 2.2351489067077637, Accuracy = 0.19, ComputeTimeShare = 0.0
+[2025-11-24 16:41:56] Time 0.055: Energy = 2.2253916263580322, Accuracy = 0.2, ComputeTimeShare = 0.0
+[2025-11-24 16:41:57] Time 0.06: Energy = 2.2214150428771973, Accuracy = 0.19, ComputeTimeShare = 0.0
+[2025-11-24 16:41:57] Training completed in 11.39s over 60 rounds
+[2025-11-24 16:41:57] Training completed in 11.39 seconds
+[2025-11-24 16:41:57] Process ended

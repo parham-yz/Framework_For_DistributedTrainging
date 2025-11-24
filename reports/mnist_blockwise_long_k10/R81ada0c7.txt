@@ -1,0 +1,45 @@
+Process ID: 24563
+Status: alive
+Hyperparameters: {"step_size": 0.001, "batch_size": 128, "rounds": 300, "dataset_name": "mnist", "cuda_core": -1, "training_mode": "blockwise_sequential", "report_sampling_rate": 5, "measurement_sampling_rate": 399, "model": "cnn", "config": [32], "K": 10, "communication_delay": 0, "n_workers": 1, "beta": 0.5, "gamma": 1.0, "prox_lambda": 0.0, "block_accuracy_factor": 0.5, "reports_dir": "mnist_blockwise_long_k10"}
+
+[2025-11-24 17:14:43] Frame Type: ImageClassifier_frame_blockwise, Number of Blocks: 2, Number of Model Parameters: 10474
+[2025-11-24 17:14:43] Frame initialization took 7.80 seconds
+[2025-11-24 17:14:43] Total number of parameters: 10,474
+[2025-11-24 17:14:43] Started proximal block coordinate descent training loop
+[2025-11-24 17:14:43] Total rounds: 300, blocks: 2, gamma=1.0, lambda_range=[0, 0]
+[2025-11-24 17:14:47] Time 0.0: Energy = 2.299834966659546, Accuracy = 0.08, ComputeTimeShare = 1.0, Deviation = 0.0
+[2025-11-24 17:14:50] Starting measurement units
+[2025-11-24 17:14:50] Finished measurement units , took 0.00 seconds
+[2025-11-24 17:15:04] Time 0.005: Energy = 2.206730365753174, Accuracy = 0.25, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:15:20] Time 0.01: Energy = 2.0470545291900635, Accuracy = 0.29, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:15:37] Time 0.015: Energy = 1.911463737487793, Accuracy = 0.29, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:15:53] Time 0.02: Energy = 1.8139417171478271, Accuracy = 0.32, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:16:10] Time 0.025: Energy = 1.7325236797332764, Accuracy = 0.38, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:16:27] Time 0.03: Energy = 1.6969889402389526, Accuracy = 0.36, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:16:46] Time 0.035: Energy = 1.6620339155197144, Accuracy = 0.36, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:17:06] Time 0.04: Energy = 1.5840386152267456, Accuracy = 0.42, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:17:25] Time 0.045: Energy = 1.5436122417449951, Accuracy = 0.46, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:17:44] Time 0.05: Energy = 1.5587866306304932, Accuracy = 0.4, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:18:01] Time 0.055: Energy = 1.5004082918167114, Accuracy = 0.45, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:18:18] Time 0.06: Energy = 1.4960827827453613, Accuracy = 0.45, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:18:36] Time 0.065: Energy = 1.4397776126861572, Accuracy = 0.49, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:18:53] Time 0.07: Energy = 1.4525755643844604, Accuracy = 0.47, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:19:10] Time 0.075: Energy = 1.4399839639663696, Accuracy = 0.45, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:19:28] Time 0.08: Energy = 1.414000153541565, Accuracy = 0.46, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:19:45] Time 0.085: Energy = 1.3858433961868286, Accuracy = 0.52, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:20:02] Time 0.09: Energy = 1.38296639919281, Accuracy = 0.52, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:20:19] Time 0.095: Energy = 1.4011021852493286, Accuracy = 0.47, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:20:37] Time 0.1: Energy = 1.438692569732666, Accuracy = 0.47, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:20:54] Time 0.105: Energy = 1.3232094049453735, Accuracy = 0.54, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:21:11] Time 0.11: Energy = 1.3207950592041016, Accuracy = 0.5, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:21:29] Time 0.115: Energy = 1.3260390758514404, Accuracy = 0.52, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:21:46] Time 0.12: Energy = 1.3418503999710083, Accuracy = 0.53, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:22:03] Time 0.125: Energy = 1.3068867921829224, Accuracy = 0.53, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:22:21] Time 0.13: Energy = 1.2695040702819824, Accuracy = 0.56, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:22:39] Time 0.135: Energy = 1.2664738893508911, Accuracy = 0.55, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:22:56] Time 0.14: Energy = 1.303459644317627, Accuracy = 0.51, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:23:14] Time 0.145: Energy = 1.3440033197402954, Accuracy = 0.55, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:23:31] Time 0.15: Energy = 1.3007392883300781, Accuracy = 0.52, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:23:48] Time 0.155: Energy = 1.266251802444458, Accuracy = 0.54, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:24:06] Time 0.16: Energy = 1.2383102178573608, Accuracy = 0.57, ComputeTimeShare = 0.99, Deviation = 0.0
+[2025-11-24 17:24:23] Time 0.165: Energy = 1.2139445543289185, Accuracy = 0.57, ComputeTimeShare = 0.99, Deviation = 0.0

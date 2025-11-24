@@ -15,11 +15,13 @@ import subprocess
 import sys
 from typing import Any, Dict, Iterable, List
 
+import numpy as np
 import torch
 import torch.onnx
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from torch.onnx import TrainingMode
+import random
 
 import src.Buliding_Units.MeasurementUnit as MeasurementUnit
 
@@ -194,6 +196,17 @@ def blend_block(source_model: torch.nn.Module, target_model: torch.nn.Module, bl
     with torch.no_grad():
         for source_param, target_param in zip(source_block.parameters(), target_block.parameters()):
             target_param.data = (1 - gamma) * target_param.data + gamma * source_param.data
+
+
+def set_global_seed(seed: int | None) -> None:
+    """Seed Python, NumPy, and Torch RNGs so experiments start identically."""
+    if seed is None:
+        return
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
 
 
 def parse_arguments(hyperparameters: Dict[str, Any]) -> Dict[str, Any]:

@@ -5,7 +5,7 @@ This repository hosts a compact research playground for experimenting with block
 
 ## Highlights
 - **Block awareness everywhere.** Architectures (feed‑forward, CNN, ResNet‑style, nanoGPT) ship with explicit block lists so training engines, measurement units, and plotting utilities can operate on sub‑structures.
-- **Composable training frames.** `src/Buliding_Units/Model_frames.py` wires the centre model, distributed replicas, datasets, reporters, stoppers, and measurement units, letting you toggle between blockwise distributed, blockwise sequential, and full‑model (`entire`) modes with a flag.
+- **Composable training frames.** `src/Buliding_Units/Model_frames.py` wires the centre model, distributed replicas, datasets, reporters, stoppers, and measurement units, letting you toggle between blockwise sequential and full‑model (`entire`) modes with a flag.
 - **Plugin instrumentation.** Measurement units (memory footprint, finite‑difference Hessian, block interaction heat‑maps, …) are auto‑loaded from `measurements/Units.txt`; adding a new unit is as simple as registering its class name.
 - **Batteries included datasets.** `src/Data/data_sets.py` covers MNIST variants, CIFAR‑10/100, SVHN, ImageNet/Mini‑ImageNet, IMDb, California Housing, and toy regressions so experiments stay focused on optimisation ideas rather than data plumbing.
 - **Automation hooks.** Shell launchers under `lunch_files/` sweep step sizes and block counts, while `plot.py` aggregates JSON logs into publication‑ready figures.

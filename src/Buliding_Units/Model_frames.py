@@ -407,6 +407,7 @@ def generate_ModelFrame(H):
     ttype = H["training_mode"]
     model_type = H.get("model", "ResNet18")  # Default to ResNet18 if not specified
     dataset_name = H["dataset_name"]
+    utils.set_global_seed(H.get("seed"))
 
     if dataset_name in IMAGE_DATASETS:
         input_shape, output_shape = get_dataset_dimensionality(dataset_name, 'image')
@@ -543,7 +544,7 @@ def generate_ModelFrame(H):
     #
 
     # Create the appropriate training frame
-    if ttype == "entire" or ttype == "ploting": # Changed 'ploting' to 'plotting' assuming typo
+    if ttype in ("entire", "ploting"):
         # Select frame based on dataset type for 'entire' mode
         if dataset_name in REGRESSION_DATASETS:
             frame = Regression_frame_entire(model, H)      # Use the new class
@@ -553,9 +554,9 @@ def generate_ModelFrame(H):
         #     # frame = NLP_frame_entire(model, H) # If you create this
         #     raise NotImplementedError("Entire training mode not yet implemented for NLP datasets.")
         else:
-             raise ValueError(f"Unsupported dataset type '{data_sets}' for 'entire' training mode.")
+             raise ValueError(f"Unsupported dataset '{dataset_name}' for 'entire' training mode.")
 
-    elif ttype == "blockwise" or ttype == "blockwise_sequential":
+    elif ttype == "blockwise_sequential":
         # Select appropriate distributed training frame based on dataset type
         if dataset_name in REGRESSION_DATASETS:
             frame = Regression_frame_blockwis(model, H)
@@ -565,7 +566,7 @@ def generate_ModelFrame(H):
         #     # frame = NLP_frame_blockwise(model, H) # If you create this
         #     raise NotImplementedError("Blockwise training mode not yet implemented for NLP datasets.")
         else:
-            raise ValueError(f"Unsupported dataset type '{data_sets}' for 'blockwise' training mode.")
+            raise ValueError(f"Unsupported dataset '{dataset_name}' for blockwise training.")
     else:
         raise ValueError(f"Unknown training type: {ttype}")
 

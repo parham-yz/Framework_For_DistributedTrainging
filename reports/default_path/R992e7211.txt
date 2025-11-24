@@ -1,0 +1,4 @@
+Process ID: 26919
+Status: alive
+Hyperparameters: {"step_size": 0.1, "batch_size": 1, "cuda_core": -1, "K": 1, "communication_delay": 0}
+
