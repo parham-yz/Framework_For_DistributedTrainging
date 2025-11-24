@@ -1,186 +1,132 @@
 # Block‑Wise Deep‑Learning Sandbox
 
-This repository is a **small research playground** for block‑wise optimisation and
-distributed training of neural‑network models.  We wanted an environment that is
-
-* **Small & hackable** – every component is contained in a handful of clear
-  Python modules so that newcomers can read the code in an afternoon.
-* **Block‑aware by design** – all core models expose their layers as a
-  `ModuleList` called `blocks`, making it trivial to copy / swap / analyse
-  individual parts of the network.
-* **Extensible** – measurement units, early‑stop criteria, and optimiser
-  engines are *plugins*: add a new class, import it in `Units.txt`, and it is
-  available in the next run without touching the training loop.
-
-The goal is to **experiment quickly with ideas like**
-
-* analysing Hessian structure per parameter block,
-* comparing synchronous vs. asynchronous block updates,
-* measuring memory or communication‑time trade‑offs,
-* trying exotic early‑stopping or curriculum schedules.
-
-If you have similar curiosities, the framework should save you the boilerplate
-work while staying transparent enough to be fully customisable.
+This repository hosts a compact research playground for experimenting with block‑wise optimisation, distributed training, and instrumentation of neural networks. Every model exposes its layers through a `ModuleList` (`model.blocks`), making it straightforward to copy, swap, or analyse individual blocks while keeping the rest of the framework minimal and hackable.
 
 
----
+## Highlights
+- **Block awareness everywhere.** Architectures (feed‑forward, CNN, ResNet‑style, nanoGPT) ship with explicit block lists so training engines, measurement units, and plotting utilities can operate on sub‑structures.
+- **Composable training frames.** `src/Buliding_Units/Model_frames.py` wires the centre model, distributed replicas, datasets, reporters, stoppers, and measurement units, letting you toggle between blockwise distributed, blockwise sequential, and full‑model (`entire`) modes with a flag.
+- **Plugin instrumentation.** Measurement units (memory footprint, finite‑difference Hessian, block interaction heat‑maps, …) are auto‑loaded from `measurements/Units.txt`; adding a new unit is as simple as registering its class name.
+- **Batteries included datasets.** `src/Data/data_sets.py` covers MNIST variants, CIFAR‑10/100, SVHN, ImageNet/Mini‑ImageNet, IMDb, California Housing, and toy regressions so experiments stay focused on optimisation ideas rather than data plumbing.
+- **Automation hooks.** Shell launchers under `lunch_files/` sweep step sizes and block counts, while `plot.py` aggregates JSON logs into publication‑ready figures.
 
-# Directory Tour
 
+## Agent Protocol (`Agents/AGENTS.md`)
+The repository is operated by an `ml_research_agent` persona whose ground rules live in `Agents/AGENTS.md`. Before running anything, skim and update that file—it doubles as a lab notebook. Key expectations:
+
+- **Persist learnings.** Append takeaways, pitfalls, and heuristics back into `Agents/AGENTS.md` after every meaningful run so the next iteration starts from the latest context.
+- **Mirror metrics to disk.** Any metric printed to stdout per iteration/epoch must also be serialized under `ploting_data/<run_tag>/` (e.g., `.npy`, `.csv`, plus a compact `metrics_log.csv`) to keep plotting reproducible across scripts.
+- **Deterministic plotting.** When using Matplotlib, cycle colors in the order `black → red → blue → brown → purple → green` before falling back to defaults; `plot.py` already follows this pattern.
+- **Persona & workflow.** Operate like a senior research engineer: plan runs explicitly (dataset slices, layer configs, penalties, seeds), tee stdout to `_logs/<timestamp>.log`, keep data provenance clear, and summarise each run in Markdown (drop short notes in `figures/README.md` or similar).
+- **Testing discipline.** Add focused tests under `tests/` for new solvers or optimisers and run `python -m pytest tests -q` before relying on a change. Smoking the MNIST baseline for 5 epochs is the default regression test when you touch training loops.
+
+
+## Quickstart
+
+### 1. Install dependencies
+```bash
+python -m pip install -r requirements.txt
+# optional but recommended
+python -m venv .venv && source .venv/bin/activate
 ```
-├── src
-│   ├── Architectures          # models & model‑loader helpers
-│   ├── Buliding_Units         # measurement / stopper plugins & model frames
-│   ├── Data                   # dataset download & synthetic data
-│   ├── Optimizer_Engines      # different training loops
-│   └── utils.py               # shared utilities
-├── dol1.py                    # single‑run example script
-├── master.py                  # multi‑GPU batch launcher
-├── figures/                   # auto‑generated plots (Hessian heat‑maps …)
-├── measurements/              # text logs from measurement units
-└── reports/                   # high‑level run logs (hyper‑params, progress)
-```
+`src/utils.py` dynamically installs `GPUtil` and `onnx` if they are missing, but pre‑installing through the requirements file keeps runs deterministic.
 
-Below is a *functional* description of every important component.  For the
-complete call signatures please consult the source – files are short and
-documented inline.
-
-
-## 1. `src/utils.py`
-
-| Symbol | Purpose |
-| ------ | ------- |
-| `Reporter` | Simple run logger that writes a hash‑named file in `reports/` and records arbitrary messages plus program exit status. |
-| `get_max_batch_size` | Heuristic GPU‑memory probe to pick the largest batch that fits. |
-| `generate_data` | Thin wrapper around *torchvision* downloads so that all scripts share the same transforms. |
-| `copy_block` / `copy_model` | Utilities that copy parameters between two *block‑compatible* models – crucial for the distributed engines. |
-| `parse_arguments` | Automatically converts a default hyper‑parameter dict into a command‑line interface. |
-| `parse_measurement_units` | Reads `measurements/Units.txt` and instantiates the listed measurement plugins. |
-
-
-## 2. `src/Architectures/`
-
-### feedforward_nn.py
-
-* **FeedForwardNetwork** – fully‑connected network where *every linear layer is
-  its own block* (`InitialBlock`, multiple `LinearBlock`s, `FinalBlock`).
-* **FeedForwardCNN** – same spirit but with convolutional blocks.
-* **EnsembleFeedForward{Network,CNN}** – hold *N* sub‑models and combine their
-  predictions by averaging or by random voting.  All sub‑models’ blocks are
-  concatenated into a global `ModuleList` so that engines / measurement units
-  do not need to know about the ensemble internals.
-
-### resnets.py
-
-Re‑implementation of ResNet‑18/34 that preserves the layer list as blocks while
-remaining weight‑compatible with the official torchvision variant.
-
-### Models.py
-
-Collection of *loader* helpers (`load_resnet18`, `load_feedforward_ensemble`, …)
-so that experiment scripts can stay model‑agnostic.
-
-
-## 3. `src/Buliding_Units/`
-
-### MeasurementUnit.py (plugin interface)
-
-* **MeasurementUnit (ABC)** – opens its own log file in `measurements/`, offers
-  `measure(frame)` + `log_measurement()`.
-* **Working_memory_usage** – sums parameter + optimiser state sizes.
-* **Hessian_measurement** – brute‑force full Hessian via finite differences
-  (usable on tiny models).
-* **HessianBlockInteractionMeasurement** – **fast** power‑iteration routine
-  that estimates the largest singular value of every off‑diagonal Hessian block
-  without ever materialising the full matrix; writes a heat‑map to
-  `figures/Measurements/Hessian_Measurement/`.
-
-### StopperUnit.py (plugin interface)
-
-Patience‑based (`EarlyStoppingStopper`) and threshold‑based
-(`TargetStopper`) early‑stopping criteria specialised for loss or accuracy.
-
-### Model_frames.py
-
-`Frame` is the *runtime container* that owns the centre model, data loaders,
-criterion, reporter, and registered plugins.  Two hierarchies extend it:
-
-* **Disributed_frame** – maintains one model copy per parameter block plus
-  optimisation & synchronisation helpers.
-* **ImageClassifier_frame_blockwise** / **Regression_frame_blockwis** – task‑
-  specific subclasses for block‑wise experiments.
-* **ImageClassifier_frame_entire** – classic single‑model training.
-
-The factory `generate_ModelFrame(H)` inspects the hyper‑parameter dict and
-returns the right combination of model + frame.
-
-
-## 4. `src/Optimizer_Engines/`
-
-### BCD_engine.py
-
-Includes three concrete training loops:
-
-1. `train_blockwise_distributed` – spawns a process per block and alternates
-   *K* local optimisation steps with a communication stage.
-2. `train_blockwise_sequential` – executes the same algorithm sequentially
-   (optionally on a random subset of blocks each round).
-3. `train_entire` – vanilla epoch training for the non‑distributed baseline.
-
-All loops share `log_progress()` which evaluates the model on a “big” batch and
-records loss, accuracy, and timing information.
-
-
-## 5. `src/Data/`
-
-`generate_imagedata` downloads MNIST, CIFAR‑10/100, SVHN or a folder‑based
-ImageNet subset and applies a uniform 32×32 transform.  `generate_regressiondata`
-creates a trivial all‑ones regression toy set.
-
-
----
-
-# How to Run an Experiment
+### 2. Launch a training run
+`src/dol1.py` exposes all hyper‑parameters as CLI flags through `utils.parse_arguments`. Typical invocation:
 
 ```bash
-# (1) install deps
-python -m pip install -r requirements.txt
-
-# (2) define / override hyper‑parameters on the cmd line
-#     – every key in the default dict in dol1.py becomes a flag
-python dol1.py --training_mode blockwise --model cnn_ensemble \
-              --config "[[16,16],[32,32],[32,64]]" --rounds 2000
-
-# (3) check results
-cat reports/R*.txt                      # high‑level progress log
-ls figures/Measurements/*/*.pdf         # Hessian heat‑maps, etc.
+python -m src.dol1 \
+  --model ResNet34-bi \
+  --dataset_name cifar10 \
+  --training_mode blockwise_sequential \
+  --step_size 5e-3 \
+  --batch_size 256 \
+  --rounds 10000 \
+  --K 10 \
+  --cuda_core 0 \
+  --config "[128,64,32,32,32]" \
+  --report_sampling_rate 20 \
+  --measurement_sampling_rate 400 \
+  --reports_dir rcnn_cifar10
 ```
 
-For large parameter sweeps you can use `master.py`, which launches many
-`dol1.py` workers across all available GPUs and keeps track of progress in
-`progress_tracker.json`.
+Key knobs:
+- `training_mode`: `blockwise`, `blockwise_sequential`, `entire`, or `ploting` (exports ONNX snapshots).
+- `dataset_name`: see the supported values in `src/Data/data_sets.py` (MNIST variants, CIFARs, SVHN, ImageNet/Mini‑ImageNet, IMDb, California Housing, toy ones).
+- `config`: JSON string interpreted by the chosen model loader (e.g., block widths for CNN/ResNet variants).
+- `K`, `communication_delay`, `beta`, `n_workers`: control local steps per round, simulated latency, smoothing, and distributed worker counts for blockwise modes.
+
+### 3. Inspect run artefacts
+- **Reports** land in `reports/<reports_dir>/R*.txt` (auto-created). Each log contains the hashed hyper‑parameters, timestamped progress, and termination status via `utils.Reporter`.
+- **Measurements** are appended to `measurements/<name>_log.txt` by each active plugin, and expensive routines such as the Hessian block interaction estimator populate `figures/Measurements/Hessian_Measurement/`.
+- **Metrics serialization** must mirror console output under `ploting_data/<run_tag>/` (per the agent protocol). The plotting scripts treat that directory as ground truth when re-generating curves.
+- **Plots**: run `python plot.py` (or call `plot_results`/`plot_with_variance` inside a notebook) to sweep `saved_logs/` and materialise comparison figures under `figures/`.
 
 
----
+## Experiment Orchestration
 
-# Extending the Framework
+### Training frames & engines
+- `src/Buliding_Units/Model_frames.py` constructs task-specific frames (`ImageClassifier_frame_blockwise`, `ImageClassifier_frame_entire`, `Regression_frame_blockwise`, `Distributed_frame`) that own the centre model, the distributed copies (one per block), optimisers, stoppers, and reporters.
+- `src/Optimizer_Engines/BCD_engine.py` houses the concrete training loops:
+  1. `train_blockwise_distributed` – multiprocessing per block with explicit communication phases.
+  2. `train_blockwise_sequential` – single-process variant that iterates over blocks.
+  3. `train_entire` – vanilla whole-model training for baselines.
+  All loops share `log_progress`, which evaluates on a “big” batch at the cadence given by `report_sampling_rate`.
 
-* **Add a new measurement** – create a subclass of `MeasurementUnit`, put it in
-  `src/Buliding_Units/MeasurementUnit.py`, list its class name in
-  `measurements/Units.txt`.  Next run of `dol1.py` will automatically import
-  and execute it.
-* **Add a new early‑stop criterion** – derive from `StopperUnit` or
-  `EarlyStoppingStopper`.
-* **Try a different optimisation algorithm** – add a new function to
-  `src/Optimizer_Engines/` that accepts a `Frame` instance.  Because all models
-  expose `frame.center_model` and optional `frame.distributed_models`, the loop
-  does not need to know the architecture in advance.
+### Architectures
+- `src/Architectures/feedforward_nn.py` – fully-connected networks (including CNN variants) plus ensembles that concatenate sub-model blocks.
+- `src/Architectures/resnets.py` – ResNet‑18/34 recreation that stays weight-compatible with torchvision while preserving block metadata.
+- `src/Architectures/nanoGPT.py` – compact GPT implementation usable as another block‑wise architecture.
+- `src/Architectures/Models.py` – loader helpers (`load_resnet18`, `load_feedforward_ensemble`, etc.) that keep scripts model-agnostic.
+
+### Data utilities
+`src/Data/data_sets.py` unifies dataset downloads and custom subsets:
+- Image classification: `mnist`, `mini_mnist`, `mini_mnist_8chanel`, `mnist_flat`, `cifar10`, `cifar100`, `svhn`, `imagenet`, `mini_imagenet`.
+- Regression & tabular: `ones`, `california_housing` (requires `scikit-learn`).
+- Text: `imdb`.
+Each dataset shares preprocessing transforms so hyper-parameter sweeps remain comparable.
+
+### Measurement & logging plugins
+- `src/Buliding_Units/MeasurementUnit.py` defines the plugin interface plus built-ins such as `Working_memory_usage`, `Hessian_measurement`, and `HessianBlockInteractionMeasurement`. New units should subclass `MeasurementUnit`, implement `measure(frame)`, and register their class name in `measurements/Units.txt`.
+- `src/Buliding_Units/StopperUnit.py` provides patience-based (`EarlyStoppingStopper`) and threshold-based (`TargetStopper`, `AccuracyTargetStopper`) early stopping hooks.
+- `measurement_sampling_rate` throttles how often each unit runs; heavy routines like Hessians usually run every few hundred rounds.
+
+### Batch launchers
+`lunch_files/lunchV2.sh` and `lunch_files/mnist_cnn.sh` sweep combinations of step sizes and block counts (`K`) across GPUs, handle cleanup on `SIGINT`, and store outputs under the `reports_dir` configured inside each script. Use them as templates for larger grids.
 
 
----
+## Repository Layout
 
-# Acknowledgements & Licence
+```
+├── Agents/AGENTS.md          # ml_research_agent playbook / lab notebook
+├── lunch_files/              # bash launchers for large experiment grids
+├── measurements/             # plugin logs + Units.txt registry
+├── plot.py                   # plotting + log aggregation helpers
+├── requirements.txt
+├── src/
+│   ├── Architectures/        # feedforward, CNN, ResNet, nanoGPT, loaders
+│   ├── Buliding_Units/       # Model frames, measurement + stopper units
+│   ├── Data/                 # dataset loaders & synthetic generators
+│   ├── Optimizer_Engines/    # blockwise / entire training loops
+│   ├── dol1.py               # CLI entry point (invoked via python -m src.dol1)
+│   └── utils.py              # reporters, CLI parsing, ONNX export, helpers
+├── tests/                    # regression tests for block copying, Hessians, etc.
+└── llms_tools/               # scratch space for LLM-generated experiment notes
+```
 
-The code base was written for internal experimentation and is released under a
-permissive licence (see `LICENSE`, if present).  Feel free to use, modify, and
-build upon it – a citation or link back is always appreciated.
+Directories such as `reports/`, `figures/`, `ploting_data/`, `_logs/`, and `saved_logs/` are created at runtime and should remain in `.gitignore` unless a figure is curated for documentation.
+
+
+## Testing & Quality Gates
+- Run `python -m pytest tests -q` before trusting changes. The suite checks block isolation, copy semantics, Hessian utilities, and distributed update logic.
+- For new optimisation ideas, add a regression test that hits the smallest reproducible case (e.g., verify conjugate-gradient convergence within `N` steps on a synthetic system).
+- When touching training loops, smoke test a short MNIST/CIFAR run (5 epochs) and stash the log under `_logs/`.
+
+
+## Extending the Framework
+- **New measurement**: subclass `MeasurementUnit`, emit metrics + figures, register the class in `measurements/Units.txt`, and remember to write measurements to `ploting_data/<run_tag>/`.
+- **New optimiser/engine**: drop a function in `src/Optimizer_Engines/`, accept a `Frame` instance, and hook it into `src/dol1.py`.
+- **New architecture**: expose `model.blocks` as a `ModuleList` and add a loader in `src/Architectures/Models.py`.
+- **Document everything**: when you uncover a pitfall, log it to `Agents/AGENTS.md`, mention it in the run summary, and (when helpful) codify it as a test.
+
+Have fun hacking—this codebase is intentionally small so you can trace every tensor in an afternoon while still experimenting with serious distributed-training ideas.
